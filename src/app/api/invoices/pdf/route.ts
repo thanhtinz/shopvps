@@ -74,6 +74,7 @@ export async function GET(req: NextRequest) {
   <tbody>
     ${invoice.items.map((item: any) => `<tr><td>${item.description}</td><td style="text-align:center">${item.quantity}</td><td style="text-align:right">${formatVND(Number(item.unitPrice))}</td><td style="text-align:right">${formatVND(Number(item.total))}</td></tr>`).join("")}
     ${Number(invoice.discount) > 0 ? `<tr><td colspan="3" style="text-align:right;color:#666">Giảm giá${invoice.couponCode ? ` (${invoice.couponCode})` : ""}:</td><td style="text-align:right;color:#dc2626">-${formatVND(Number(invoice.discount))}</td></tr>` : ""}
+    ${Number(invoice.tax) > 0 ? `<tr><td colspan="3" style="text-align:right;color:#666">Trong đó thuế VAT (đã gồm):</td><td style="text-align:right;color:#666">${formatVND(Number(invoice.tax))}</td></tr>` : ""}
     <tr class="total-row"><td colspan="3" style="text-align:right">Tổng cộng:</td><td style="text-align:right;color:#4f7cff">${formatVND(Number(invoice.total))}</td></tr>
   </tbody>
 </table>

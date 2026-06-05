@@ -5,6 +5,7 @@ import { queueVpsProvision } from "@/lib/workers";
 import { scheduleAutoRenew } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
+import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -70,6 +71,8 @@ export async function POST(req: NextRequest) {
   const expiresAt = new Date();
   expiresAt.setMonth(expiresAt.getMonth() + months);
   const invoiceNumber = generateInvoiceNumber();
+  const { rate: taxRate } = await getTaxConfig();
+  const tax = taxFromInclusive(finalPrice, taxRate);
 
   // Transaction
   let result;
@@ -113,6 +116,7 @@ export async function POST(req: NextRequest) {
         invoiceNumber,
         subtotal: price,
         discount,
+        tax,
         total: finalPrice,
         status: "PAID",
         couponCode: couponCode || null,

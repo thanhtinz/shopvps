@@ -17,6 +17,10 @@ const SECTIONS = [
   { title:"Affiliate", fields:[
     { key:"affiliate_rate", label:"Hoa hồng (%)" },
   ]},
+  { title:"Thuế (VAT)", fields:[
+    { key:"tax_rate", label:"Thuế suất VAT (%) — 0 để tắt. Giá đã bao gồm VAT" },
+    { key:"tax_label", label:"Tên thuế (vd: VAT)" },
+  ]},
   { title:"Hệ thống", fields:[
     { key:"maintenance_mode", label:"Chế độ bảo trì (true/false)" },
     { key:"demo_mode", label:"Chế độ Demo (true/false)" },
