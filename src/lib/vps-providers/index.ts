@@ -5,6 +5,7 @@ export interface VpsProviderAPI {
   powerOff(serverId: string): Promise<void>;
   reboot(serverId: string): Promise<void>;
   rebuild(serverId: string, osId: string): Promise<void>;
+  resizeServer(serverId: string, planId: string): Promise<void>;
   changePassword(serverId: string, password: string): Promise<void>;
   getServerInfo(serverId: string): Promise<ServerInfo>;
   listOsImages(): Promise<OsImage[]>;

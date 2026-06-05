@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { changeServicePackage } from "@/lib/upgrade";
+import { resizeVpsAtProvider } from "@/lib/billing-provider";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -23,6 +24,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     };
     return NextResponse.json({ error: msg[res.reason || ""] || t("Không thể đổi gói") }, { status: 400 });
   }
+
+  // Best-effort: resize the underlying VPS to the new provider plan.
+  const newPkg = await prisma.vpsPackage.findUnique({ where: { id: packageId }, select: { slug: true } });
+  if (newPkg?.slug) await resizeVpsAtProvider(id, newPkg.slug);
 
   const { t: tn } = await getUserT(session.user.id);
   await prisma.notification.create({

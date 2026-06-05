@@ -46,6 +46,14 @@ export class DigitalOceanProvider implements VpsProviderAPI {
     });
   }
 
+  async resizeServer(serverId: string, planId: string): Promise<void> {
+    await this.client.post(`/droplets/${serverId}/actions`, {
+      type: "resize",
+      size: planId,
+      disk: true,
+    });
+  }
+
   async changePassword(serverId: string, password: string): Promise<void> {
     await this.client.post(`/droplets/${serverId}/actions`, { type: "password_reset" });
   }

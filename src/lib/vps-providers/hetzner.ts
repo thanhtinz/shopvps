@@ -43,6 +43,10 @@ export class HetznerProvider implements VpsProviderAPI {
     await this.client.post(`/servers/${serverId}/actions/rebuild`, { image: osId });
   }
 
+  async resizeServer(serverId: string, planId: string): Promise<void> {
+    await this.client.post(`/servers/${serverId}/actions/change_type`, { server_type: planId, upgrade_disk: true });
+  }
+
   async changePassword(serverId: string, password: string): Promise<void> {
     await this.client.post(`/servers/${serverId}/actions/reset_password`);
   }

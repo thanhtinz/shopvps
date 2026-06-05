@@ -24,6 +24,18 @@ export const suspendVpsAtProvider = (id: string) => vpsAction(id, "powerOff");
 export const reactivateVpsAtProvider = (id: string) => vpsAction(id, "powerOn");
 export const terminateVpsAtProvider = (id: string) => vpsAction(id, "deleteServer");
 
+/** Resize the underlying VPS to a new provider plan (slug). Best-effort. */
+export async function resizeVpsAtProvider(orderId: string, planId: string) {
+  try {
+    const order = await prisma.vpsOrder.findUnique({ where: { id: orderId }, include: { provider: true } });
+    if (!order || !order.provider?.apiKey || !order.providerVpsId || !planId) return;
+    const provider = getVpsProvider(order.provider.slug, decrypt(order.provider.apiKey));
+    await provider.resizeServer(order.providerVpsId, planId);
+  } catch (e) {
+    console.error(`[Billing] VPS resize failed for ${orderId}:`, e);
+  }
+}
+
 type WhmAction = "suspendAccount" | "unsuspendAccount" | "terminateAccount";
 
 async function hostingAction(orderId: string, action: WhmAction, reason?: string) {

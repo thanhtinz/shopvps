@@ -44,6 +44,10 @@ export class VultrProvider implements VpsProviderAPI {
     await this.client.post(`/instances/${serverId}/reinstall`, { hostname: serverId });
   }
 
+  async resizeServer(serverId: string, planId: string): Promise<void> {
+    await this.client.patch(`/instances/${serverId}`, { plan: planId });
+  }
+
   async changePassword(serverId: string, password: string): Promise<void> {
     // Vultr doesn't support direct password change via API — requires OS level
     throw new Error("Not supported by Vultr API directly");
