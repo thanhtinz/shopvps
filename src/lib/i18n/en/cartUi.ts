@@ -1,0 +1,26 @@
+// EN translations.
+const m: Record<string, string> = {
+  "Giỏ hàng": "Cart",
+  "Giỏ hàng trống": "Your cart is empty",
+  "Đến cửa hàng": "Go to store",
+  "VPS": "VPS",
+  "Hosting": "Hosting",
+  "Hoá đơn": "Invoices",
+  "Dịch vụ": "Service",
+  "Cấu hình": "Configuration",
+  "Chu kỳ": "Cycle",
+  "Thành tiền": "Total",
+  "1 tháng": "1 month",
+  "3 tháng": "3 months",
+  "6 tháng": "6 months",
+  "1 năm": "1 year",
+  "Xoá": "Remove",
+  "Tổng cộng:": "Total:",
+  "Thanh toán": "Checkout",
+  "Đang xử lý...": "Processing...",
+  "Thanh toán được trừ từ số dư ví của bạn.": "Payment is deducted from your wallet balance.",
+  "Đặt hàng thành công!": "Order placed successfully!",
+  "Một số mục chưa xử lý được, vui lòng kiểm tra số dư hoặc thông tin.": "Some items could not be processed, please check your balance or details.",
+  "Đặt hàng thất bại": "Order failed",
+};
+export default m;

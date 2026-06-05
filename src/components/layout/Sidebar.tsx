@@ -8,6 +8,7 @@ const nav = [
     { href: "/dashboard", label: "nav.dashboard", icon: "M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10" },
   ]},
   { section: "section.services", items: [
+    { href: "/store", label: "nav.store", icon: "M3 9l1-5h16l1 5 M4 9v11a1 1 0 001 1h14a1 1 0 001-1V9 M3 9h18 M9 13h6" },
     { href: "/vps", label: "nav.vps", icon: "M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7 M2 19h20 M5 19v-4 M19 19v-4" },
     { href: "/hosting", label: "nav.hosting", icon: "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" },
     { href: "/domains", label: "nav.domains", icon: "M12 2a10 10 0 100 20A10 10 0 0012 2z M2 12h20 M12 2a15 15 0 010 20 M12 2a15 15 0 000 20" },
@@ -16,6 +17,7 @@ const nav = [
     { href: "/wallet", label: "nav.wallet", icon: "M20 12V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h6 M16 16h6 M19 13v6" },
     { href: "/invoices", label: "nav.invoices", icon: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" },
     { href: "/quotes", label: "nav.quotes", icon: "M9 11l3 3 8-8 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" },
+    { href: "/cart", label: "nav.cart", icon: "M9 22a1 1 0 100-2 1 1 0 000 2z M20 22a1 1 0 100-2 1 1 0 000 2z M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" },
   ]},
   { section: "section.manage", items: [
     { href: "/tickets", label: "nav.support", icon: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },

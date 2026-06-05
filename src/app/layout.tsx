@@ -3,6 +3,7 @@ import "./globals.css";
 import { AppearanceProvider } from "@/components/AppearanceProvider";
 import { APPEARANCE_BOOT_SCRIPT } from "@/lib/appearance";
 import { LocaleProvider } from "@/components/LocaleProvider";
+import { CartProvider } from "@/components/CartProvider";
 import { LOCALE_BOOT_SCRIPT } from "@/lib/i18n/dictionaries";
 import { getServerT } from "@/lib/i18n/server";
 
@@ -30,7 +31,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="h-full">
         <AppearanceProvider>
-          <LocaleProvider>{children}</LocaleProvider>
+          <LocaleProvider>
+            <CartProvider>{children}</CartProvider>
+          </LocaleProvider>
         </AppearanceProvider>
       </body>
     </html>
