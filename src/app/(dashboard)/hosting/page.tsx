@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -83,23 +84,11 @@ export default function HostingPage() {
               </div>
             </div>
 
-            {h.status === "ACTIVE" && (
-              <div style={{ display:"flex", gap:8, marginTop:16, paddingTop:16, borderTop:"1px solid var(--border)", flexWrap:"wrap" }}>
-                {[
-                  { label:"Đăng nhập cPanel", icon:"M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71", color:"var(--accent)" },
-                  { label:"Đổi mật khẩu", icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10", color:"var(--yellow)" },
-                  { label:"Đổi domain", icon:"M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 019-9", color:"var(--cyan)" },
-                  { label:"Gia hạn", icon:"M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15", color:"var(--green)" },
-                ].map(btn => (
-                  <button key={btn.label} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 12px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", fontSize:12.5, cursor:"pointer", transition:"all 0.12s" }}
-                    onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.borderColor=btn.color; (e.currentTarget as HTMLElement).style.color=btn.color; }}
-                    onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor="var(--border)"; (e.currentTarget as HTMLElement).style.color="var(--text-secondary)"; }}
-                  >
-                    <Icon d={btn.icon} size={13}/>{btn.label}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div style={{ display:"flex", gap:8, marginTop:16, paddingTop:16, borderTop:"1px solid var(--border)", flexWrap:"wrap" }}>
+              <Link href={`/hosting/${h.id}`} style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:12.5, fontWeight:600, textDecoration:"none" }}>
+                <Icon d="M12 20h9 M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4 12.5-12.5z" size={13}/> Quản lý
+              </Link>
+            </div>
           </div>
         ))}
       </div>

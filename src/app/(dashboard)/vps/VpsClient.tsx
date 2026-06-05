@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -124,9 +125,10 @@ export default function VpsClient({ orders }: { orders: any[] }) {
               {/* Price + Expiry */}
               <div style={{ flex: "0 0 auto", textAlign: "right" }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 2 }}>{formatCurrency(vps.price)}/tháng</div>
-                <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
+                <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginBottom: 8 }}>
                   HH: {vps.expiresAt ? formatDate(vps.expiresAt) : "—"}
                 </div>
+                <Link href={`/vps/${vps.id}`} style={{ fontSize: 12.5, fontWeight: 600, color: "var(--accent)", textDecoration: "none" }}>Quản lý →</Link>
               </div>
             </div>
 
