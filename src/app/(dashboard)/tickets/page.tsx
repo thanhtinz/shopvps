@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Badge from "@/components/ui/Badge";
 import { formatDate } from "@/lib/utils";
+import { getSocket } from "@/lib/socketClient";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
@@ -29,9 +30,11 @@ export default function TicketsPage() {
     fetch("/api/tickets").then(r=>r.json()).then(d=>{ setTickets(d.data||[]); setLoading(false); });
   }, []);
 
-  // Live updates: poll the open ticket's messages so admin replies appear
-  // without a manual refresh. State is only replaced when the thread actually
-  // changed, so the auto-scroll effect doesn't fire on every poll.
+  // Live updates: the server pushes a "ticket:update" signal over Socket.IO
+  // when a message is added; we then refetch through the authorized REST
+  // endpoint. State is only replaced when the thread actually changed, so the
+  // auto-scroll effect doesn't fire on every refetch. A slow interval acts as
+  // a fallback if the socket connection drops.
   useEffect(() => {
     if (!selected) return;
     let active = true;
@@ -45,8 +48,12 @@ export default function TicketsPage() {
       });
     };
     load();
-    const iv = setInterval(load, 4000);
-    return () => { active = false; clearInterval(iv); };
+    const socket = getSocket();
+    socket.emit("join", selected.id);
+    const onUpdate = (p: any) => { if (p?.id === selected.id) load(); };
+    socket.on("ticket:update", onUpdate);
+    const iv = setInterval(load, 15000);
+    return () => { active = false; socket.emit("leave", selected.id); socket.off("ticket:update", onUpdate); clearInterval(iv); };
   }, [selected]);
 
   useEffect(() => {
