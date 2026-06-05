@@ -31,7 +31,6 @@ In Vercel dashboard:
 DATABASE_URL=postgresql://...
 NEXTAUTH_SECRET=...
 NEXTAUTH_URL=https://yourdomain.com
-LICENSE_SERVER_URL=...
 REDIS_URL=...
 # ... etc
 ```
@@ -279,7 +278,6 @@ fly deploy
 - [ ] **Rate Limiting** — Configure in nginx/CDN
 - [ ] **CORS** — Restrict origins
 - [ ] **WAF** — CloudFlare or AWS WAF
-- [ ] **License Server** — Deploy separately if not using SaaS
 - [ ] **Email** — Use SendGrid/SES for production SMTP
 - [ ] **Webhooks** — Test SePay webhook integration
 - [ ] **Workers** — Running in separate service

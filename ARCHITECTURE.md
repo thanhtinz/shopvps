@@ -63,7 +63,6 @@
     │  │ • WHM/cPanel (Hosting)           │
     │  │ • SePay (VietQR Payments)        │
     │  │ • SMTP (Email Delivery)          │
-    │  │ • License Server                 │
     │  └──────────────────────────────────│
     └──────────────────────────────────────┘
 ```
@@ -363,14 +362,12 @@ Vercel Preview Deployment
 2. Redis memory
 3. API rate limits from VPS providers
 4. Email SMTP rate limits
-5. License server availability
 
 ### Solutions
 - Database connection pooling (PgBouncer)
 - Redis cluster mode
 - Implement local request caching
 - Batch email sending
-- License server redundancy
 
 ---
 

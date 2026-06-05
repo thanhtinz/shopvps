@@ -16,13 +16,10 @@ export async function POST(req: NextRequest) {
     if (adminPassword.length < 8)
       return NextResponse.json({ error: "Mật khẩu tối thiểu 8 ký tự" }, { status: 400 });
 
-    const licenseServerUrl = process.env.LICENSE_SERVER_URL;
-    if (!licenseServerUrl) return NextResponse.json({ error: "LICENSE_SERVER_URL chưa cấu hình" }, { status: 500 });
-
     const host = req.headers.get("host") || "localhost";
     const domain = host.replace(/:\d+$/, "");
 
-    const result = await verifyLicense({ licenseKey: licenseKey.trim(), domain, serverUrl: licenseServerUrl });
+    const result = await verifyLicense({ licenseKey: licenseKey.trim(), domain });
     if (!result.valid) return NextResponse.json({ error: "License key không hợp lệ" }, { status: 400 });
 
     const existingUser = await prisma.user.findUnique({ where: { email: adminEmail } });

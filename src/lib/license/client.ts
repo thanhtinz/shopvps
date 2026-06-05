@@ -1,4 +1,5 @@
 import { getHardwareFingerprint } from "./fingerprint";
+import { getLicenseEndpoint } from "./endpoint";
 
 const PRODUCT_ID = "SHOPVPS";
 const VERSION = process.env.npm_package_version || "1.0.0";
@@ -26,9 +27,10 @@ export interface VerifyResult {
 export async function verifyLicense(opts: {
   licenseKey: string;
   domain: string;
-  serverUrl: string;
+  serverUrl?: string;
 }): Promise<VerifyResult> {
-  const { licenseKey, domain, serverUrl } = opts;
+  const { licenseKey, domain } = opts;
+  const serverUrl = opts.serverUrl || getLicenseEndpoint();
 
   // Trả cache nếu còn mới
   if (cache && Date.now() - cache.checkedAt < CACHE_TTL) {

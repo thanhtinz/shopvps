@@ -30,7 +30,6 @@ cp .env.example .env
 # DATABASE_URL="postgresql://postgres:password@localhost/shopvps"
 # NEXTAUTH_SECRET=$(openssl rand -base64 32)
 # NEXTAUTH_URL="http://localhost:3000"
-# LICENSE_SERVER_URL="http://localhost:3001"  (for now, can use dummy)
 ```
 
 ---

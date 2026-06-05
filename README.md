@@ -94,9 +94,6 @@ DATABASE_URL="postgresql://user:password@localhost:5432/shopvps"
 NEXTAUTH_SECRET=$(openssl rand -base64 32)
 NEXTAUTH_URL="http://localhost:3000"
 
-# License Server
-LICENSE_SERVER_URL="https://license.yourdomain.com"
-
 # VPS Providers
 VULTR_API_KEY="your_vultr_key"
 HETZNER_API_KEY="your_hetzner_key"
@@ -274,7 +271,7 @@ POST   /api/setup/complete             License setup completion
 ShopVPS includes a **hardware-fingerprint-based licensing system**:
 
 1. **Fingerprint** = SHA-256(CPU model + MAC address + platform)
-2. **Verification** = HTTP request to license server (1h cache + 24h grace)
+2. **Verification** = built-in check (1h cache + 24h grace)
 3. **Setup Wizard** = `/setup` page for first-time license key entry
 4. **Middleware** = Checks license status on every request
 
@@ -387,7 +384,7 @@ npm run build
 
 ## 📧 Support
 
-For license server setup, refer to `LicensePlatform_TechSpec.docx`
+For setup help, contact the project maintainer.
 
 ---
 

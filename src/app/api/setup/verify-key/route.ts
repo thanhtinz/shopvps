@@ -7,13 +7,10 @@ export async function POST(req: NextRequest) {
     const { licenseKey } = await req.json();
     if (!licenseKey?.trim()) return NextResponse.json({ error: "Vui lòng nhập license key" }, { status: 400 });
 
-    const licenseServerUrl = process.env.LICENSE_SERVER_URL;
-    if (!licenseServerUrl) return NextResponse.json({ error: "LICENSE_SERVER_URL chưa cấu hình" }, { status: 500 });
-
     const host = req.headers.get("host") || "localhost";
     const domain = host.replace(/:\d+$/, "");
 
-    const result = await verifyLicense({ licenseKey: licenseKey.trim(), domain, serverUrl: licenseServerUrl });
+    const result = await verifyLicense({ licenseKey: licenseKey.trim(), domain });
 
     if (!result.valid) {
       const messages: Record<string, string> = {

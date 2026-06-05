@@ -37,17 +37,11 @@ export async function checkAndRefreshLicense(): Promise<LicenseState> {
 
   if (!setup) return { status: "NOT_SETUP" };
 
-  const licenseServerUrl = process.env.LICENSE_SERVER_URL;
-  if (!licenseServerUrl) {
-    return { status: "INVALID", reason: "LICENSE_SERVER_URL not configured" };
-  }
-
   clearLicenseCache();
 
   const result = await verifyLicense({
     licenseKey: setup.licenseKey,
     domain: setup.domain,
-    serverUrl: licenseServerUrl,
   });
 
   const newStatus: SetupStatus = result.valid
