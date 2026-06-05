@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const invoice = await prisma.invoice.findFirst({
     where: { id, userId: session.user.id },
-    include: { items: true, user: { select: { name: true, email: true } } },
+    include: { items: true, user: { select: { name: true, email: true, company: true, phone: true, address: true, city: true, country: true, taxId: true } } },
   });
   if (!invoice) return new NextResponse("Not found", { status: 404 });
 
@@ -56,8 +56,12 @@ export async function GET(req: NextRequest) {
   <div class="section" style="flex:1">
     <div class="section-title">Thông tin khách hàng</div>
     <div class="info-box">
-      <div style="font-weight:700;margin-bottom:4px">${invoice.user?.name || "—"}</div>
+      ${invoice.user?.company ? `<div style="font-weight:700;margin-bottom:4px">${invoice.user.company}</div>` : ""}
+      <div style="${invoice.user?.company ? "color:#666" : "font-weight:700"};margin-bottom:4px">${invoice.user?.name || "—"}</div>
       <div style="color:#666">${invoice.user?.email}</div>
+      ${invoice.user?.phone ? `<div style="color:#666">${invoice.user.phone}</div>` : ""}
+      ${invoice.user?.address ? `<div style="color:#666">${[invoice.user.address, invoice.user.city, invoice.user.country].filter(Boolean).join(", ")}</div>` : ""}
+      ${invoice.user?.taxId ? `<div style="color:#666">MST: ${invoice.user.taxId}</div>` : ""}
     </div>
   </div>
   <div class="section" style="flex:1">

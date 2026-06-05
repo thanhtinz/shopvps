@@ -13,6 +13,7 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>("profile");
   const [profile, setProfile] = useState<any>(null);
   const [name, setName] = useState("");
+  const [billing, setBilling] = useState<any>({ company: "", phone: "", address: "", city: "", country: "", taxId: "" });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState("");
 
@@ -33,12 +34,12 @@ export default function SettingsPage() {
   const [twoFAError, setTwoFAError] = useState("");
 
   useEffect(() => {
-    fetch("/api/user/profile").then(r=>r.json()).then(d=>{ setProfile(d.data); setName(d.data?.name||""); });
+    fetch("/api/user/profile").then(r=>r.json()).then(d=>{ setProfile(d.data); setName(d.data?.name||""); setBilling({ company:d.data?.company||"", phone:d.data?.phone||"", address:d.data?.address||"", city:d.data?.city||"", country:d.data?.country||"", taxId:d.data?.taxId||"" }); });
   }, []);
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault(); setSavingProfile(true); setProfileMsg("");
-    const res = await fetch("/api/user/profile", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ name }) });
+    const res = await fetch("/api/user/profile", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ name, ...billing }) });
     const data = await res.json();
     if (data.success) setProfileMsg("Đã lưu thay đổi!");
     setSavingProfile(false); setTimeout(()=>setProfileMsg(""), 3000);
@@ -117,9 +118,26 @@ export default function SettingsPage() {
               <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Họ tên</label>
               <input value={name} onChange={e=>setName(e.target.value)} style={inputStyle} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
             </div>
-            <div style={{ marginBottom:20 }}>
+            <div style={{ marginBottom:16 }}>
               <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Email</label>
               <input value={profile?.email||""} disabled style={{ ...inputStyle, opacity:0.5, cursor:"not-allowed" }}/>
+            </div>
+
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", margin:"4px 0 12px", paddingTop:8, borderTop:"1px solid var(--border)" }}>Thông tin xuất hoá đơn</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
+              {[
+                { k:"company", l:"Công ty" },
+                { k:"phone", l:"Số điện thoại" },
+                { k:"address", l:"Địa chỉ" },
+                { k:"city", l:"Thành phố" },
+                { k:"country", l:"Quốc gia" },
+                { k:"taxId", l:"Mã số thuế" },
+              ].map(f=>(
+                <div key={f.k}>
+                  <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>{f.l}</label>
+                  <input value={billing[f.k]} onChange={e=>setBilling({ ...billing, [f.k]: e.target.value })} style={inputStyle} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
+                </div>
+              ))}
             </div>
             {profileMsg && <div style={{ background:"var(--green-soft)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:"var(--radius-md)", padding:"8px 12px", color:"var(--green)", fontSize:13, marginBottom:14 }}>&#10003; {profileMsg}</div>}
             <button type="submit" disabled={savingProfile} style={{ padding:"10px 20px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>

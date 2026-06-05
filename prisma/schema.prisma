@@ -22,6 +22,12 @@ model User {
   status            UserStatus @default(ACTIVE)
   balance           Decimal   @default(0) @db.Decimal(15, 2)
   preferredCurrency String    @default("VND")
+  company           String?
+  phone             String?
+  address           String?
+  city              String?
+  country           String?
+  taxId             String?
   twoFactorEnabled  Boolean   @default(false)
   twoFactorSecret   String?
   affiliateCode     String?   @unique
