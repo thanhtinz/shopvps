@@ -16,6 +16,15 @@ let cache: {
 const CACHE_TTL = 60 * 60 * 1000; // 1 giờ
 const GRACE_PERIOD = 24 * 60 * 60 * 1000; // 24 giờ nếu server license unreachable
 
+// Timestamp format expected by the license server (anti-replay). Configurable
+// so it matches whatever the deployed license-platform validates against.
+function licenseTimestamp(): number | string {
+  const fmt = (process.env.LS_TIMESTAMP_FORMAT || "ms").toLowerCase();
+  if (fmt === "sec") return Math.floor(Date.now() / 1000);
+  if (fmt === "iso") return new Date().toISOString();
+  return Date.now(); // milliseconds (default)
+}
+
 export interface VerifyResult {
   valid: boolean;
   reason?: string;
@@ -57,7 +66,7 @@ export async function verifyLicense(opts: {
         domain,
         hw_fingerprint: getHardwareFingerprint(),
         // Anti-replay fields documented by the license server contract.
-        timestamp: Date.now(),
+        timestamp: licenseTimestamp(),
         nonce: crypto.randomBytes(16).toString("hex"),
       }),
       signal: controller.signal,
