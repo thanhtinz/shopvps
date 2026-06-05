@@ -25,6 +25,31 @@ export default function HostingDetailClient({ hosting }: { hosting: any }) {
   const [packages, setPackages] = useState<any[]>([]);
   const [selectedPkg, setSelectedPkg] = useState("");
   const [changing, setChanging] = useState(false);
+  const [pendingCancel, setPendingCancel] = useState<{ cancelMode: string } | null>(null);
+  const [cancelMode, setCancelMode] = useState<"END_OF_TERM" | "IMMEDIATE">("END_OF_TERM");
+  const [cancelNote, setCancelNote] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/services/request`).then(r => r.json()).then(d => {
+      const req = (d.data || []).find((r: any) => r.status === "PENDING" && r.type === "CANCEL" && r.hostingOrderId === hosting.id);
+      if (req) setPendingCancel({ cancelMode: req.cancelMode });
+    }).catch(() => {});
+  }, [hosting.id]);
+
+  async function submitCancel() {
+    setCancelling(true); setMsg(null);
+    try {
+      const res = await fetch(`/api/services/request`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceType: "hosting", orderId: hosting.id, type: "CANCEL", cancelMode, note: cancelNote }),
+      });
+      const d = await res.json();
+      if (res.ok) { setMsg({ type: "ok", text: t("Đã gửi yêu cầu huỷ") }); setPendingCancel({ cancelMode }); }
+      else setMsg({ type: "err", text: d.error || t("Thất bại") });
+    } catch { setMsg({ type: "err", text: t("Không thể kết nối") }); }
+    finally { setCancelling(false); }
+  }
 
   useEffect(() => {
     fetch(`/api/hosting/packages`).then(r => r.json()).then(d => {
@@ -167,6 +192,35 @@ export default function HostingDetailClient({ hosting }: { hosting: any }) {
               </button>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Cancellation */}
+      <div style={card}>
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Yêu cầu huỷ dịch vụ")}</h3>
+        {pendingCancel ? (
+          <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+            {t("Đang chờ duyệt yêu cầu huỷ")} — {pendingCancel.cancelMode === "IMMEDIATE" ? t("Huỷ ngay") : t("Huỷ cuối chu kỳ")}
+          </p>
+        ) : isActive ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("Gửi yêu cầu huỷ dịch vụ. Quản trị viên sẽ xem xét và xử lý.")}</p>
+            <div>
+              <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>{t("Thời điểm huỷ")}</div>
+              <select value={cancelMode} onChange={e => setCancelMode(e.target.value as "END_OF_TERM" | "IMMEDIATE")} style={{ width: "100%", boxSizing: "border-box", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 12px", color: "var(--text-primary)", fontSize: 13 }}>
+                <option value="END_OF_TERM">{t("Cuối chu kỳ hiện tại")}</option>
+                <option value="IMMEDIATE">{t("Huỷ ngay lập tức")}</option>
+              </select>
+            </div>
+            <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)} placeholder={t("Lý do (tuỳ chọn)")} rows={3} style={{ width: "100%", boxSizing: "border-box", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 12px", color: "var(--text-primary)", fontSize: 13, resize: "vertical", fontFamily: "inherit" }} />
+            <div>
+              <button onClick={submitCancel} disabled={cancelling} style={{ ...btn, background: "var(--red)", color: "white", border: "none", opacity: cancelling ? 0.6 : 1 }}>
+                {cancelling ? t("Đang gửi...") : t("Gửi yêu cầu huỷ")}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("Chỉ có thể yêu cầu huỷ khi dịch vụ đang hoạt động.")}</p>
         )}
       </div>
 
