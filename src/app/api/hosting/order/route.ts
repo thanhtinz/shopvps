@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { queueHostingProvision } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
+import { encrypt } from "@/lib/encrypt";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -51,6 +52,8 @@ export async function POST(req: NextRequest) {
   const cpanelUsername = domain.replace(/[^a-z0-9]/gi, "").slice(0, 8).toLowerCase() +
     crypto.randomBytes(2).toString("hex");
   const cpanelPassword = crypto.randomBytes(12).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(0, 14) + "A1!";
+  // Store the cPanel password encrypted at rest; decrypt only when provisioning.
+  const cpanelPasswordEnc = encrypt(cpanelPassword);
 
   const expiresAt = new Date();
   expiresAt.setMonth(expiresAt.getMonth() + months);
@@ -71,7 +74,7 @@ export async function POST(req: NextRequest) {
     const order = await tx.hostingOrder.create({
       data: {
         userId: session.user.id, packageId, serverId: pkg.serverId,
-        domain, cpanelUsername, cpanelPassword,
+        domain, cpanelUsername, cpanelPassword: cpanelPasswordEnc,
         status: "PENDING", billingCycle,
         price: pkg.priceMonthly, expiresAt, autoRenew: true,
       },

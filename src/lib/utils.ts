@@ -5,6 +5,24 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Whitelist-pick only the allowed keys from an (untrusted) request body.
+ * Prevents mass-assignment of fields the client should not control.
+ */
+export function pick<T extends Record<string, any>>(
+  obj: T | null | undefined,
+  keys: readonly string[]
+): Record<string, any> {
+  const out: Record<string, any> = {};
+  if (!obj || typeof obj !== "object") return out;
+  for (const k of keys) {
+    if (Object.prototype.hasOwnProperty.call(obj, k) && obj[k] !== undefined) {
+      out[k] = obj[k];
+    }
+  }
+  return out;
+}
+
 export function formatCurrency(amount: number | string | null): string {
   const num = typeof amount === "string" ? parseFloat(amount) : (amount ?? 0);
   return new Intl.NumberFormat("vi-VN", {
