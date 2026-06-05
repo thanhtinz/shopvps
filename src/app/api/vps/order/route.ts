@@ -1,0 +1,165 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { queueVpsProvision } from "@/lib/workers";
+import { scheduleAutoRenew } from "@/lib/workers";
+import { generateInvoiceNumber } from "@/lib/utils";
+
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { packageId, os, billingCycle, hostname, couponCode } = await req.json();
+  if (!packageId || !os || !hostname)
+    return NextResponse.json({ error: "Thiếu thông tin" }, { status: 400 });
+
+  const pkg = await prisma.vpsPackage.findUnique({
+    where: { id: packageId, isActive: true },
+    include: { provider: true },
+  });
+  if (!pkg) return NextResponse.json({ error: "Gói không tồn tại" }, { status: 404 });
+
+  // Tính giá theo billing cycle
+  const cycleMultiplier: Record<string, number> = {
+    MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12,
+  };
+  const months = cycleMultiplier[billingCycle] || 1;
+  let price = Number(pkg.priceMonthly) * months;
+
+  // Discount nếu billing cycle dài
+  if (billingCycle === "ANNUAL" && pkg.priceYearly) price = Number(pkg.priceYearly);
+
+  // Apply coupon
+  let discount = 0;
+  let coupon = null;
+  if (couponCode) {
+    coupon = await prisma.coupon.findFirst({
+      where: { code: couponCode.toUpperCase(), isActive: true },
+    });
+    if (coupon) {
+      if (coupon.expiresAt && coupon.expiresAt < new Date())
+        return NextResponse.json({ error: "Coupon đã hết hạn" }, { status: 400 });
+      if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit)
+        return NextResponse.json({ error: "Coupon đã hết lượt dùng" }, { status: 400 });
+      if (coupon.minOrder && price < Number(coupon.minOrder))
+        return NextResponse.json({ error: `Đơn tối thiểu ${coupon.minOrder}đ` }, { status: 400 });
+      if (coupon.type === "PERCENTAGE") {
+        discount = Math.floor(price * Number(coupon.value) / 100);
+        if (coupon.maxDiscount) discount = Math.min(discount, Number(coupon.maxDiscount));
+      } else {
+        discount = Number(coupon.value);
+      }
+    }
+  }
+
+  const finalPrice = Math.max(0, price - discount);
+
+  // Check balance
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  if (!user || Number(user.balance) < finalPrice)
+    return NextResponse.json({ error: "Số dư không đủ. Vui lòng nạp thêm tiền." }, { status: 400 });
+
+  // Hostname validation
+  const hostnameRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})*$/;
+  if (!hostnameRegex.test(hostname))
+    return NextResponse.json({ error: "Hostname không hợp lệ" }, { status: 400 });
+
+  const expiresAt = new Date();
+  expiresAt.setMonth(expiresAt.getMonth() + months);
+  const invoiceNumber = generateInvoiceNumber();
+
+  // Transaction
+  const result = await prisma.$transaction(async (tx: any) => {
+    // Deduct balance
+    await tx.user.update({
+      where: { id: session.user.id },
+      data: { balance: { decrement: finalPrice } },
+    });
+
+    // Create VPS order
+    const order = await tx.vpsOrder.create({
+      data: {
+        userId: session.user.id,
+        packageId,
+        providerId: pkg.providerId,
+        hostname,
+        os,
+        status: "PENDING",
+        billingCycle,
+        price: pkg.priceMonthly,
+        expiresAt,
+        autoRenew: true,
+      },
+    });
+
+    // Create invoice
+    const invoice = await tx.invoice.create({
+      data: {
+        userId: session.user.id,
+        invoiceNumber,
+        subtotal: price,
+        discount,
+        total: finalPrice,
+        status: "PAID",
+        couponCode: couponCode || null,
+        paidAt: new Date(),
+        items: {
+          create: {
+            description: `VPS ${hostname} - ${pkg.name} (${billingCycle})`,
+            quantity: 1,
+            unitPrice: finalPrice,
+            total: finalPrice,
+            vpsOrderId: order.id,
+          },
+        },
+      },
+    });
+
+    // Transaction record
+    await tx.transaction.create({
+      data: {
+        userId: session.user.id,
+        type: "PURCHASE",
+        amount: finalPrice,
+        balanceBefore: Number(user!.balance),
+        balanceAfter: Number(user!.balance) - finalPrice,
+        description: `Mua VPS ${hostname} - ${pkg.name}`,
+        status: "COMPLETED",
+        reference: invoiceNumber,
+      },
+    });
+
+    // Increment coupon usage
+    if (coupon) {
+      await tx.coupon.update({
+        where: { id: coupon.id },
+        data: { usedCount: { increment: 1 } },
+      });
+    }
+
+    // Activity log
+    await tx.activityLog.create({
+      data: {
+        userId: session.user.id,
+        action: "vps.order",
+        resource: "vps_order",
+        resourceId: order.id,
+        metadata: { packageId, os, billingCycle, hostname, finalPrice },
+      },
+    });
+
+    return { order, invoice };
+  });
+
+  // Queue provisioning
+  await queueVpsProvision(result.order.id);
+
+  // Schedule auto-renew
+  await scheduleAutoRenew(result.order.id, "vps", expiresAt);
+
+  return NextResponse.json({
+    success: true,
+    data: { orderId: result.order.id, invoiceId: result.invoice.id },
+    message: "VPS đang được khởi tạo, vui lòng chờ trong vài phút.",
+  });
+}

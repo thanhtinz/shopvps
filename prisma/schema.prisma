@@ -1,0 +1,746 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// AUTH & USER
+// ============================================================
+
+model User {
+  id                String    @id @default(cuid())
+  name              String?
+  email             String    @unique
+  emailVerified     DateTime?
+  password          String?
+  image             String?
+  role              Role      @default(USER)
+  status            UserStatus @default(ACTIVE)
+  balance           Decimal   @default(0) @db.Decimal(15, 2)
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  affiliateCode     String?   @unique
+  affiliateBalance  Decimal   @default(0) @db.Decimal(15, 2)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  accounts          Account[]
+  sessions          Session[]
+  vpsOrders         VpsOrder[]
+  hostingOrders     HostingOrder[]
+  transactions      Transaction[]
+  invoices          Invoice[]
+  tickets           Ticket[]
+  ticketMessages    TicketMessage[]
+  notifications     Notification[]
+  teamMemberships   TeamMember[]
+  ownedTeams        Team[]
+  affiliateReferrals AffiliateReferral[] @relation("Referrer")
+  affiliateReferred  AffiliateReferral[] @relation("Referred")
+  commissions       Commission[]
+  apiKeys           ApiKey[]
+  activityLogs      ActivityLog[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}
+
+// ============================================================
+// VPS MANAGEMENT
+// ============================================================
+
+model VpsProvider {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  apiKey      String?  @db.Text
+  apiEndpoint String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  packages  VpsPackage[]
+  vpsOrders VpsOrder[]
+
+  @@map("vps_providers")
+}
+
+model VpsPackage {
+  id           String   @id @default(cuid())
+  providerId   String
+  name         String
+  slug         String
+  cpu          Int
+  ram          Int
+  storage      Int
+  bandwidth    Int
+  priceMonthly Decimal  @db.Decimal(10, 2)
+  priceYearly  Decimal? @db.Decimal(10, 2)
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  features     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  provider VpsProvider @relation(fields: [providerId], references: [id])
+  orders   VpsOrder[]
+
+  @@map("vps_packages")
+}
+
+model VpsOrder {
+  id            String       @id @default(cuid())
+  userId        String
+  packageId     String
+  providerId    String
+  providerVpsId String?
+  hostname      String
+  ipAddress     String?
+  rootPassword  String?      @db.Text
+  os            String
+  status        VpsStatus    @default(PENDING)
+  billingCycle  BillingCycle @default(MONTHLY)
+  price         Decimal      @db.Decimal(10, 2)
+  startDate     DateTime?
+  expiresAt     DateTime?
+  autoRenew     Boolean      @default(true)
+  notes         String?      @db.Text
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  package      VpsPackage    @relation(fields: [packageId], references: [id])
+  provider     VpsProvider   @relation(fields: [providerId], references: [id])
+  logs         VpsLog[]
+  teamMembers  TeamMember[]
+  invoiceItems InvoiceItem[]
+
+  @@map("vps_orders")
+}
+
+model VpsLog {
+  id          String   @id @default(cuid())
+  vpsOrderId  String
+  action      String
+  status      String
+  message     String?  @db.Text
+  performedBy String?
+  createdAt   DateTime @default(now())
+
+  vpsOrder VpsOrder @relation(fields: [vpsOrderId], references: [id])
+
+  @@map("vps_logs")
+}
+
+// ============================================================
+// HOSTING MANAGEMENT
+// ============================================================
+
+model HostingServer {
+  id          String   @id @default(cuid())
+  name        String
+  hostname    String
+  whmHost     String
+  whmPort     Int      @default(2087)
+  whmUser     String
+  whmToken    String   @db.Text
+  isActive    Boolean  @default(true)
+  maxAccounts Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  packages HostingPackage[]
+  orders   HostingOrder[]
+
+  @@map("hosting_servers")
+}
+
+model HostingPackage {
+  id            String   @id @default(cuid())
+  serverId      String
+  name          String
+  slug          String
+  storage       Int
+  bandwidth     Int
+  databases     Int
+  emailAccounts Int
+  subdomains    Int
+  priceMonthly  Decimal  @db.Decimal(10, 2)
+  priceYearly   Decimal? @db.Decimal(10, 2)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  server HostingServer  @relation(fields: [serverId], references: [id])
+  orders HostingOrder[]
+
+  @@map("hosting_packages")
+}
+
+model HostingOrder {
+  id             String        @id @default(cuid())
+  userId         String
+  packageId      String
+  serverId       String
+  cpanelUsername String?       @unique
+  cpanelPassword String?       @db.Text
+  domain         String
+  status         HostingStatus @default(PENDING)
+  billingCycle   BillingCycle  @default(MONTHLY)
+  price          Decimal       @db.Decimal(10, 2)
+  startDate      DateTime?
+  expiresAt      DateTime?
+  autoRenew      Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user         User           @relation(fields: [userId], references: [id])
+  package      HostingPackage @relation(fields: [packageId], references: [id])
+  server       HostingServer  @relation(fields: [serverId], references: [id])
+  teamMembers  TeamMember[]
+  invoiceItems InvoiceItem[]
+
+  @@map("hosting_orders")
+}
+
+// ============================================================
+// WALLET & PAYMENT
+// ============================================================
+
+model Transaction {
+  id            String            @id @default(cuid())
+  userId        String
+  type          TransactionType
+  amount        Decimal           @db.Decimal(15, 2)
+  balanceBefore Decimal           @db.Decimal(15, 2)
+  balanceAfter  Decimal           @db.Decimal(15, 2)
+  description   String?
+  reference     String?
+  status        TransactionStatus @default(PENDING)
+  metadata      Json?
+  createdAt     DateTime          @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  invoice Invoice?
+
+  @@map("transactions")
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  userId        String
+  transactionId String?       @unique
+  invoiceNumber String        @unique
+  subtotal      Decimal       @db.Decimal(15, 2)
+  discount      Decimal       @default(0) @db.Decimal(15, 2)
+  total         Decimal       @db.Decimal(15, 2)
+  status        InvoiceStatus @default(UNPAID)
+  couponCode    String?
+  notes         String?       @db.Text
+  dueDate       DateTime?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id])
+  transaction Transaction?  @relation(fields: [transactionId], references: [id])
+  items       InvoiceItem[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id             String  @id @default(cuid())
+  invoiceId      String
+  description    String
+  quantity       Int     @default(1)
+  unitPrice      Decimal @db.Decimal(10, 2)
+  total          Decimal @db.Decimal(10, 2)
+  vpsOrderId     String?
+  hostingOrderId String?
+
+  invoice      Invoice       @relation(fields: [invoiceId], references: [id])
+  vpsOrder     VpsOrder?     @relation(fields: [vpsOrderId], references: [id])
+  hostingOrder HostingOrder? @relation(fields: [hostingOrderId], references: [id])
+
+  @@map("invoice_items")
+}
+
+model BankAccount {
+  id            String   @id @default(cuid())
+  bankName      String
+  bankCode      String
+  accountNumber String
+  accountName   String
+  isActive      Boolean  @default(true)
+  isPrimary     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("bank_accounts")
+}
+
+model DepositBonus {
+  id           String   @id @default(cuid())
+  minAmount    Decimal  @db.Decimal(15, 2)
+  maxAmount    Decimal? @db.Decimal(15, 2)
+  bonusPercent Decimal  @db.Decimal(5, 2)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@map("deposit_bonuses")
+}
+
+model Coupon {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  type        CouponType
+  value       Decimal    @db.Decimal(10, 2)
+  minOrder    Decimal?   @db.Decimal(10, 2)
+  maxDiscount Decimal?   @db.Decimal(10, 2)
+  usageLimit  Int?
+  usedCount   Int        @default(0)
+  isActive    Boolean    @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("coupons")
+}
+
+// ============================================================
+// TEAM MANAGEMENT
+// ============================================================
+
+model Team {
+  id        String   @id @default(cuid())
+  ownerId   String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner   User         @relation(fields: [ownerId], references: [id])
+  members TeamMember[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id             String       @id @default(cuid())
+  teamId         String
+  userId         String
+  email          String
+  status         InviteStatus @default(PENDING)
+  vpsOrderId     String?
+  hostingOrderId String?
+
+  canViewVps        Boolean @default(true)
+  canPowerVps       Boolean @default(false)
+  canViewPassword   Boolean @default(false)
+  canRebuildVps     Boolean @default(false)
+  canChangePwVps    Boolean @default(false)
+  canViewHosting    Boolean @default(true)
+  canAccessCpanel   Boolean @default(false)
+  canChangeDomain   Boolean @default(false)
+  canChangePwHosting Boolean @default(false)
+
+  joinedAt  DateTime?
+  createdAt DateTime @default(now())
+
+  team         Team          @relation(fields: [teamId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  vpsOrder     VpsOrder?     @relation(fields: [vpsOrderId], references: [id])
+  hostingOrder HostingOrder? @relation(fields: [hostingOrderId], references: [id])
+
+  @@map("team_members")
+}
+
+// ============================================================
+// SUPPORT TICKETS
+// ============================================================
+
+model Ticket {
+  id         String         @id @default(cuid())
+  userId     String
+  subject    String
+  priority   TicketPriority @default(MEDIUM)
+  status     TicketStatus   @default(OPEN)
+  department String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id])
+  messages TicketMessage[]
+
+  @@map("tickets")
+}
+
+model TicketMessage {
+  id          String   @id @default(cuid())
+  ticketId    String
+  userId      String
+  content     String   @db.Text
+  attachments Json?
+  isAdmin     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("ticket_messages")
+}
+
+// ============================================================
+// AFFILIATE
+// ============================================================
+
+model AffiliateReferral {
+  id             String   @id @default(cuid())
+  referrerId     String
+  referredId     String
+  commissionRate Decimal  @db.Decimal(5, 2)
+  createdAt      DateTime @default(now())
+
+  referrer User @relation("Referrer", fields: [referrerId], references: [id])
+  referred User @relation("Referred", fields: [referredId], references: [id])
+
+  @@map("affiliate_referrals")
+}
+
+model Commission {
+  id        String           @id @default(cuid())
+  userId    String
+  orderId   String?
+  orderType String?
+  amount    Decimal          @db.Decimal(10, 2)
+  status    CommissionStatus @default(PENDING)
+  paidAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("commissions")
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  content   String           @db.Text
+  isRead    Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model Announcement {
+  id        String    @id @default(cuid())
+  title     String
+  content   String    @db.Text
+  type      String    @default("info")
+  isActive  Boolean   @default(true)
+  isPopup   Boolean   @default(false)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("announcements")
+}
+
+// ============================================================
+// STATUS PAGE
+// ============================================================
+
+model ServiceStatus {
+  id          String            @id @default(cuid())
+  name        String
+  slug        String            @unique
+  description String?
+  status      ServiceStatusType @default(OPERATIONAL)
+  sortOrder   Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  incidents ServiceIncident[]
+
+  @@map("service_statuses")
+}
+
+model ServiceIncident {
+  id        String         @id @default(cuid())
+  serviceId String
+  title     String
+  status    IncidentStatus @default(INVESTIGATING)
+  impact    IncidentImpact @default(MINOR)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  service ServiceStatus    @relation(fields: [serviceId], references: [id])
+  updates IncidentUpdate[]
+
+  @@map("service_incidents")
+}
+
+model IncidentUpdate {
+  id         String         @id @default(cuid())
+  incidentId String
+  content    String         @db.Text
+  status     IncidentStatus
+  createdAt  DateTime       @default(now())
+
+  incident ServiceIncident @relation(fields: [incidentId], references: [id])
+
+  @@map("incident_updates")
+}
+
+// ============================================================
+// SYSTEM
+// ============================================================
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  key         String    @unique
+  permissions Json?
+  lastUsedAt  DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("api_keys")
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  resource   String?
+  resourceId String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("activity_logs")
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+  SUSPENDED
+}
+
+enum VpsStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+  REBUILDING
+}
+
+enum HostingStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  PURCHASE
+  REFUND
+  COMMISSION
+  BONUS
+  ADJUSTMENT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  DANGER
+  PAYMENT
+  VPS
+  SYSTEM
+}
+
+enum ServiceStatusType {
+  OPERATIONAL
+  DEGRADED
+  PARTIAL_OUTAGE
+  MAJOR_OUTAGE
+  MAINTENANCE
+}
+
+enum IncidentStatus {
+  INVESTIGATING
+  IDENTIFIED
+  MONITORING
+  RESOLVED
+}
+
+enum IncidentImpact {
+  NONE
+  MINOR
+  MAJOR
+  CRITICAL
+}
+
+// ============================================================
+// LICENSE SYSTEM
+// ============================================================
+
+model AppSetup {
+  id           String   @id @default("singleton")
+  licenseKey   String
+  domain       String
+  runtimeKey   String   @db.Text
+  productId    String   @default("SHOPVPS")
+  version      String   @default("1.0.0")
+  hwFingerprint String?
+  expiresAt    DateTime?
+  setupAt      DateTime @default(now())
+  setupBy      String   // email admin đầu tiên
+  lastVerifiedAt DateTime?
+  verifyStatus String   @default("VALID") // VALID | INVALID | GRACE
+
+  @@map("app_setup")
+}
