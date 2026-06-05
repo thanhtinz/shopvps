@@ -54,6 +54,7 @@ model User {
   activityLogs      ActivityLog[]
   serviceRequests   ServiceRequest[]
   domainOrders      DomainOrder[]
+  quotes            Quote[]
 
   @@map("users")
 }
@@ -888,6 +889,49 @@ enum InvoiceStatus {
   PAID
   CANCELLED
   REFUNDED
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  userId      String
+  quoteNumber String      @unique
+  title       String?
+  status      QuoteStatus @default(DRAFT)
+  subtotal    Decimal     @db.Decimal(15, 2)
+  discount    Decimal     @default(0) @db.Decimal(15, 2)
+  tax         Decimal     @default(0) @db.Decimal(15, 2)
+  total       Decimal     @db.Decimal(15, 2)
+  validUntil  DateTime?
+  notes       String?     @db.Text
+  invoiceId   String?     @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id])
+  items QuoteItem[]
+
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id          String  @id @default(cuid())
+  quoteId     String
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Decimal @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@map("quote_items")
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
 }
 
 enum CouponType {

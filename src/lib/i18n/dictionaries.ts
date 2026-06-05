@@ -19,6 +19,7 @@ const vi: Record<string, string> = {
   "nav.domains": "Tên miền",
   "nav.wallet": "Ví & Nạp tiền",
   "nav.invoices": "Hoá đơn",
+  "nav.quotes": "Báo giá",
   "nav.support": "Hỗ trợ",
   "nav.kb": "Kiến thức",
   "nav.downloads": "Tải xuống",
@@ -55,6 +56,7 @@ const en: Record<string, string> = {
   "nav.domains": "Domains",
   "nav.wallet": "Wallet & Top-up",
   "nav.invoices": "Invoices",
+  "nav.quotes": "Quotes",
   "nav.support": "Support",
   "nav.kb": "Knowledgebase",
   "nav.downloads": "Downloads",
@@ -107,6 +109,9 @@ import enSrvMisc from "./en/srvMisc";
 import enFixups from "./en/fixups";
 import enBilling from "./en/billing";
 import enUpgradeUi from "./en/upgradeUi";
+import enQuotes from "./en/quotes";
+import enQuotesUi from "./en/quotesUi";
+import enQuotesAdminUi from "./en/quotesAdminUi";
 
 Object.assign(
   DICTS.en,
@@ -115,6 +120,7 @@ Object.assign(
   enAdminConfig, enAdminConfig2, enAuth, enServerPages,
   enApiAdmin, enApiServices, enApiMisc, enEmails,
   enUiPublic, enUiMisc, enSrvNotif, enSrvMisc, enFixups, enBilling, enUpgradeUi,
+  enQuotes, enQuotesUi, enQuotesAdminUi,
 );
 
 export function translate(locale: Locale, key: string): string {

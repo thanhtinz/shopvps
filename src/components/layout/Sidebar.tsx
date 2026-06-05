@@ -15,6 +15,7 @@ const nav = [
   { section: "section.finance", items: [
     { href: "/wallet", label: "nav.wallet", icon: "M20 12V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h6 M16 16h6 M19 13v6" },
     { href: "/invoices", label: "nav.invoices", icon: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" },
+    { href: "/quotes", label: "nav.quotes", icon: "M9 11l3 3 8-8 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" },
   ]},
   { section: "section.manage", items: [
     { href: "/tickets", label: "nav.support", icon: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },

@@ -10,6 +10,7 @@ const nav = [
   { section: "Quản lý", items: [
     { href:"/admin/users", label:"Người dùng", icon:"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z" },
     { href:"/admin/orders", label:"Đơn hàng", icon:"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 002 2h2a2 2 0 002-2 M9 5a2 2 0 012-2h2a2 2 0 012 2" },
+    { href:"/admin/quotes", label:"Báo giá", icon:"M9 11l3 3 8-8 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" },
     { href:"/admin/transactions", label:"Giao dịch", icon:"M12 22V12 M12 12l-3-3 M12 12l3-3" },
     { href:"/admin/reports", label:"Báo cáo", icon:"M3 3v18h18 M7 16l4-4 3 3 5-6" },
     { href:"/admin/payment-gateways", label:"Cổng thanh toán", icon:"M1 4h22v16H1z M1 10h22" },
