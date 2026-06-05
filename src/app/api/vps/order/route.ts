@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { packageId, os, billingCycle, hostname, couponCode } = await req.json();
+  const { packageId, os, billingCycle, hostname, couponCode, region } = await req.json();
   if (!packageId || !os || !hostname)
     return NextResponse.json({ error: "Thiếu thông tin" }, { status: 400 });
 
@@ -94,6 +94,7 @@ export async function POST(req: NextRequest) {
         providerId: pkg.providerId,
         hostname,
         os,
+        region: region || null,
         status: "PENDING",
         billingCycle,
         price: pkg.priceMonthly,

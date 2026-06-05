@@ -31,7 +31,7 @@ export const vpsWorker = new Worker(
       const serverInfo = await provider.createServer({
         hostname: order.hostname,
         planId: order.package.slug,
-        regionId: "sgp", // default region
+        regionId: order.region || process.env.DEFAULT_VPS_REGION || "sgp",
         osId: order.os,
         password,
       });

@@ -149,6 +149,7 @@ model VpsOrder {
   providerVpsId String?
   hostname      String
   ipAddress     String?
+  region        String?
   rootPassword  String?      @db.Text
   os            String
   status        VpsStatus    @default(PENDING)
@@ -699,6 +700,7 @@ enum NotificationType {
   DANGER
   PAYMENT
   VPS
+  HOSTING
   SYSTEM
 }
 

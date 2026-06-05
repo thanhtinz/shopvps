@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { queueHostingProvision } from "@/lib/workers";
+import { queueHostingProvision, scheduleAutoRenew } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { encrypt } from "@/lib/encrypt";
 import crypto from "crypto";
@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
   }
 
   await queueHostingProvision(result.id);
+  await scheduleAutoRenew(result.id, "hosting", expiresAt);
 
   return NextResponse.json({
     success: true,

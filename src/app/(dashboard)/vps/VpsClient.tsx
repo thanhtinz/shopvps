@@ -48,7 +48,7 @@ export default function VpsClient({ orders }: { orders: any[] }) {
           <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.03em", marginBottom: 2 }}>Máy chủ VPS</h1>
           <p style={{ color: "var(--text-muted)", fontSize: 13 }}>{orders.length} VPS trong tài khoản</p>
         </div>
-        <button style={{
+        <button onClick={() => router.push("/vps/new")} style={{
           display: "flex", alignItems: "center", gap: 7, padding: "9px 16px",
           background: "var(--accent)", border: "none", borderRadius: "var(--radius-md)",
           color: "white", fontSize: 13, fontWeight: 600, cursor: "pointer",
@@ -67,7 +67,7 @@ export default function VpsClient({ orders }: { orders: any[] }) {
           <div style={{ marginBottom:16, display:"flex", justifyContent:"center" }}><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12H2M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7M2 19h20M5 19v-4M19 19v-4"/></svg></div>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>Chưa có VPS nào</h3>
           <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 24 }}>Mua VPS đầu tiên để bắt đầu</p>
-          <button style={{ padding: "10px 24px", background: "var(--accent)", border: "none", borderRadius: "var(--radius-md)", color: "white", fontWeight: 600, cursor: "pointer" }}>
+          <button onClick={() => router.push("/vps/new")} style={{ padding: "10px 24px", background: "var(--accent)", border: "none", borderRadius: "var(--radius-md)", color: "white", fontWeight: 600, cursor: "pointer" }}>
             Mua VPS ngay
           </button>
         </div>

@@ -41,7 +41,7 @@ export const hostingWorker = new Worker(
       await prisma.notification.create({
         data: {
           userId: order.userId,
-          type: "SUCCESS",
+          type: "HOSTING",
           title: "Hosting đã sẵn sàng!",
           content: `Tài khoản hosting cho ${order.domain} đã được khởi tạo thành công.`,
         },

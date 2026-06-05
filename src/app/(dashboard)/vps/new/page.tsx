@@ -23,6 +23,15 @@ const CYCLES = [
   { key:"ANNUAL", label:"1 năm", discount:"20%" },
 ];
 
+const REGIONS = [
+  { id:"sgp", label:"Singapore" },
+  { id:"hkg", label:"Hong Kong" },
+  { id:"nrt", label:"Tokyo" },
+  { id:"fra", label:"Frankfurt" },
+  { id:"ewr", label:"New York" },
+  { id:"lax", label:"Los Angeles" },
+];
+
 export default function BuyVpsPage() {
   const router = useRouter();
   const [packages, setPackages] = useState<any[]>([]);
@@ -30,6 +39,7 @@ export default function BuyVpsPage() {
   const [selectedProvider, setSelectedProvider] = useState<string>("all");
   const [selectedPkg, setSelectedPkg] = useState<string>("");
   const [selectedOS, setSelectedOS] = useState<string>("ubuntu-22-04");
+  const [selectedRegion, setSelectedRegion] = useState<string>("sgp");
   const [billingCycle, setBillingCycle] = useState<string>("MONTHLY");
   const [hostname, setHostname] = useState("");
   const [couponCode, setCouponCode] = useState("");
@@ -75,7 +85,7 @@ export default function BuyVpsPage() {
     if (!selectedOS) { setError("Vui lòng chọn hệ điều hành"); return; }
     if (!hostname.trim()) { setError("Vui lòng nhập hostname"); return; }
     setOrdering(true); setError("");
-    const res = await fetch("/api/vps/order", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ packageId: selectedPkg, os: selectedOS, billingCycle, hostname: hostname.trim(), couponCode: couponResult?.valid ? couponCode : undefined }) });
+    const res = await fetch("/api/vps/order", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ packageId: selectedPkg, os: selectedOS, region: selectedRegion, billingCycle, hostname: hostname.trim(), couponCode: couponResult?.valid ? couponCode : undefined }) });
     const data = await res.json();
     if (data.success) { router.push("/vps"); }
     else { setError(data.error || "Đã có lỗi xảy ra"); setOrdering(false); }
@@ -176,6 +186,21 @@ export default function BuyVpsPage() {
                   <span style={{ fontSize:18 }}>{os.icon}</span>
                   <span style={{ fontSize:12, fontWeight:600, textAlign:"left" }}>{os.label}</span>
                 </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Region selection */}
+          <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"20px", marginBottom:16 }}>
+            <h3 style={{ fontSize:13, fontWeight:700, color:"var(--text-primary)", marginBottom:12 }}>Khu vực</h3>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+              {REGIONS.map(r => (
+                <button key={r.id} onClick={()=>setSelectedRegion(r.id)} style={{
+                  padding:"10px 12px", borderRadius:"var(--radius-md)", border:`1.5px solid ${selectedRegion===r.id?"var(--accent)":"var(--border)"}`,
+                  background:selectedRegion===r.id?"var(--accent-soft)":"var(--bg-elevated)",
+                  color:selectedRegion===r.id?"var(--accent)":"var(--text-secondary)", cursor:"pointer", transition:"all 0.12s",
+                  fontSize:12.5, fontWeight:600, textAlign:"left",
+                }}>{r.label}</button>
               ))}
             </div>
           </div>

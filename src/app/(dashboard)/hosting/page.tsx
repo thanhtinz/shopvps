@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -12,6 +13,7 @@ const statusColor: Record<string,"green"|"yellow"|"red"|"blue"> = { ACTIVE:"gree
 const statusLabel: Record<string,string> = { ACTIVE:"Đang hoạt động", PENDING:"Đang tạo", SUSPENDED:"Tạm dừng", TERMINATED:"Đã xoá" };
 
 export default function HostingPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +34,7 @@ export default function HostingPage() {
           <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:2 }}>Hosting</h1>
           <p style={{ color:"var(--text-muted)", fontSize:13 }}>{orders.length} gói hosting</p>
         </div>
-        <button style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>
+        <button onClick={()=>router.push("/hosting/new")} style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>
           <Icon d="M12 5v14 M5 12h14"/> Mua Hosting mới
         </button>
       </div>
@@ -42,7 +44,7 @@ export default function HostingPage() {
           <div style={{ marginBottom:16, display:"flex", justifyContent:"center" }}><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
           <h3 style={{ fontSize:16, fontWeight:700, color:"var(--text-primary)", marginBottom:8 }}>Chưa có Hosting nào</h3>
           <p style={{ color:"var(--text-muted)", fontSize:13, marginBottom:24 }}>Mua gói hosting đầu tiên để triển khai website</p>
-          <button style={{ padding:"10px 24px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, cursor:"pointer" }}>Mua Hosting ngay</button>
+          <button onClick={()=>router.push("/hosting/new")} style={{ padding:"10px 24px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, cursor:"pointer" }}>Mua Hosting ngay</button>
         </div>
       )}
 
