@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import AddonPicker from "@/components/AddonPicker";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
@@ -48,6 +49,8 @@ export default function BuyVpsPage() {
   const [ordering, setOrdering] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [addonIds, setAddonIds] = useState<string[]>([]);
+  const [addonMonthly, setAddonMonthly] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -68,7 +71,8 @@ export default function BuyVpsPage() {
     return Number(pkg.priceMonthly) * (m[billingCycle] || 1);
   }
 
-  const basePrice = getPrice();
+  const months = ({ MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 } as Record<string, number>)[billingCycle] || 1;
+  const basePrice = getPrice() + addonMonthly * months;
   const discount = couponResult?.data?.discount || 0;
   const finalPrice = Math.max(0, basePrice - discount);
 
@@ -85,7 +89,7 @@ export default function BuyVpsPage() {
     if (!selectedOS) { setError("Vui lòng chọn hệ điều hành"); return; }
     if (!hostname.trim()) { setError("Vui lòng nhập hostname"); return; }
     setOrdering(true); setError("");
-    const res = await fetch("/api/vps/order", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ packageId: selectedPkg, os: selectedOS, region: selectedRegion, billingCycle, hostname: hostname.trim(), couponCode: couponResult?.valid ? couponCode : undefined }) });
+    const res = await fetch("/api/vps/order", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ packageId: selectedPkg, os: selectedOS, region: selectedRegion, billingCycle, hostname: hostname.trim(), couponCode: couponResult?.valid ? couponCode : undefined, addonIds }) });
     const data = await res.json();
     if (data.success) { router.push("/vps"); }
     else { setError(data.error || "Đã có lỗi xảy ra"); setOrdering(false); }
@@ -204,6 +208,8 @@ export default function BuyVpsPage() {
               ))}
             </div>
           </div>
+
+          <AddonPicker scope="vps" selected={addonIds} onChange={(ids, m) => { setAddonIds(ids); setAddonMonthly(m); }} />
 
           {/* Hostname */}
           <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"20px" }}>

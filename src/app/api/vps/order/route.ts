@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { packageId, os, billingCycle, hostname, couponCode, region } = await req.json();
+  const { packageId, os, billingCycle, hostname, couponCode, region, addonIds } = await req.json();
   if (!packageId || !os || !hostname)
     return NextResponse.json({ error: "Thiếu thông tin" }, { status: 400 });
 
@@ -30,6 +30,14 @@ export async function POST(req: NextRequest) {
 
   // Discount nếu billing cycle dài
   if (billingCycle === "ANNUAL" && pkg.priceYearly) price = Number(pkg.priceYearly);
+
+  // Add-ons (configurable options), priced per cycle and added to the order total.
+  let addonsData: { id: string; name: string; price: number }[] = [];
+  if (Array.isArray(addonIds) && addonIds.length) {
+    const addons = await prisma.addon.findMany({ where: { id: { in: addonIds }, isActive: true, scope: { in: ["vps", "both"] } } });
+    addonsData = addons.map((a) => ({ id: a.id, name: a.name, price: Number(a.priceMonthly) * months }));
+    price += addonsData.reduce((s, a) => s + a.price, 0);
+  }
 
   // Apply coupon
   let discount = 0;
@@ -106,6 +114,7 @@ export async function POST(req: NextRequest) {
         price: pkg.priceMonthly,
         expiresAt,
         autoRenew: true,
+        addons: addonsData.length ? addonsData : undefined,
       },
     });
 

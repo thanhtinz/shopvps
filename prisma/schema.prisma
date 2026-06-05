@@ -162,6 +162,7 @@ model VpsOrder {
   expiresAt     DateTime?
   autoRenew     Boolean      @default(true)
   renewReminderAt DateTime?
+  addons          Json?
   notes         String?      @db.Text
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -251,6 +252,7 @@ model HostingOrder {
   expiresAt      DateTime?
   autoRenew      Boolean       @default(true)
   renewReminderAt DateTime?
+  addons          Json?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -553,6 +555,24 @@ model Announcement {
   updatedAt DateTime  @updatedAt
 
   @@map("announcements")
+}
+
+// ============================================================
+// PRODUCT ADD-ONS (configurable options at order time)
+// ============================================================
+
+model Addon {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  scope        String   @default("both") // vps | hosting | both
+  priceMonthly Decimal  @db.Decimal(15, 2)
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("addons")
 }
 
 // ============================================================

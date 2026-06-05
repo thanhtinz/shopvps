@@ -22,6 +22,7 @@ const nav = [
     { href:"/admin/hosting-packages", label:"Gói Hosting", icon:"M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" },
     { href:"/admin/domains", label:"Tên miền", icon:"M12 2a10 10 0 100 20A10 10 0 0012 2z M2 12h20 M12 2a15 15 0 010 20 M12 2a15 15 0 000 20" },
     { href:"/admin/tlds", label:"Bảng giá TLD", icon:"M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },
+    { href:"/admin/addons", label:"Add-on", icon:"M12 2v20 M2 12h20" },
     { href:"/admin/servers", label:"WHM Servers", icon:"M2 2h20v8H2z M2 14h20v8H2z M6 6h.01 M6 18h.01" },
     { href:"/admin/coupons", label:"Coupon", icon:"M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z M7 7h.01" },
   ]},

@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { packageId, domain, billingCycle, couponCode } = await req.json();
+  const { packageId, domain, billingCycle, couponCode, addonIds } = await req.json();
   if (!packageId || !domain) return NextResponse.json({ error: "Thiếu thông tin" }, { status: 400 });
 
   const pkg = await prisma.hostingPackage.findUnique({
@@ -29,6 +29,14 @@ export async function POST(req: NextRequest) {
   const months = cycleMultiplier[billingCycle] || 1;
   let price = Number(pkg.priceMonthly) * months;
   if (billingCycle === "ANNUAL" && pkg.priceYearly) price = Number(pkg.priceYearly);
+
+  // Add-ons (configurable options), priced per cycle.
+  let addonsData: { id: string; name: string; price: number }[] = [];
+  if (Array.isArray(addonIds) && addonIds.length) {
+    const addons = await prisma.addon.findMany({ where: { id: { in: addonIds }, isActive: true, scope: { in: ["hosting", "both"] } } });
+    addonsData = addons.map((a) => ({ id: a.id, name: a.name, price: Number(a.priceMonthly) * months }));
+    price += addonsData.reduce((s, a) => s + a.price, 0);
+  }
 
   // Coupon
   let discount = 0;
@@ -89,6 +97,7 @@ export async function POST(req: NextRequest) {
         domain, cpanelUsername, cpanelPassword: cpanelPasswordEnc,
         status: "PENDING", billingCycle,
         price: pkg.priceMonthly, expiresAt, autoRenew: true,
+        addons: addonsData.length ? addonsData : undefined,
       },
     });
 
