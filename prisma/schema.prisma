@@ -388,6 +388,33 @@ model PaymentGateway {
   @@map("payment_gateways")
 }
 
+model Download {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String   @default("Chung")
+  url         String
+  count       Int      @default(0)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("downloads")
+}
+
+model GiftCode {
+  id         String    @id @default(cuid())
+  code       String    @unique
+  amount     Decimal   @db.Decimal(15, 2)
+  isActive   Boolean   @default(true)
+  redeemedBy String?
+  redeemedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@map("gift_codes")
+}
+
 model EmailTemplate {
   id        String   @id @default(cuid())
   key       String   @unique // e.g. renewal_reminder, deposit_success

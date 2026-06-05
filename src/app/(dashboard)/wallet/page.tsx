@@ -28,6 +28,9 @@ export default function WalletPage() {
   const [result, setResult] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState("");
+  const [giftCode, setGiftCode] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
+  const [giftMsg, setGiftMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -73,6 +76,19 @@ export default function WalletPage() {
     setResult(d.data);
   }
 
+  async function redeemCode(e: React.FormEvent) {
+    e.preventDefault(); if (!giftCode.trim() || redeeming) return;
+    setRedeeming(true); setGiftMsg(null);
+    const res = await fetch("/api/wallet/redeem", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: giftCode.trim() }) });
+    const d = await res.json();
+    setRedeeming(false);
+    if (res.ok) {
+      setGiftMsg({ ok: true, text: d.message || "Đổi mã thành công!" });
+      setGiftCode("");
+      fetch("/api/wallet/balance").then(r => r.json()).then(b => setBalance(b.data));
+    } else setGiftMsg({ ok: false, text: d.error || "Mã không hợp lệ" });
+  }
+
   const txTypeLabel: Record<string, string> = { DEPOSIT: "Nạp tiền", PURCHASE: "Thanh toán", REFUND: "Hoàn tiền", BONUS: "Thưởng", COMMISSION: "Hoa hồng", WITHDRAWAL: "Rút" };
   const txColor: Record<string, "green"|"red"|"yellow"|"blue"> = { DEPOSIT: "green", PURCHASE: "yellow", REFUND: "blue", BONUS: "green", COMMISSION: "blue", WITHDRAWAL: "red" };
 
@@ -98,6 +114,13 @@ export default function WalletPage() {
           <div style={{ fontSize: 30, fontWeight: 900, color: "var(--text-primary)", letterSpacing: "-0.04em" }}>{formatCurrency(balance?.affiliateBalance || 0)}</div>
         </div>
       </div>
+
+      {/* Redeem gift code */}
+      <form onSubmit={redeemCode} style={{ display: "flex", gap: 10, marginBottom: 20, alignItems: "center" }}>
+        <input value={giftCode} onChange={e => setGiftCode(e.target.value.toUpperCase())} placeholder="Nhập mã quà tặng / credit..." style={{ flex: 1, background: "var(--bg-surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 14px", color: "var(--text-primary)", fontSize: 13, outline: "none", fontFamily: "var(--font-mono)" }} />
+        <button type="submit" disabled={redeeming || !giftCode.trim()} style={{ padding: "10px 18px", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", color: "var(--accent)", fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>{redeeming ? "..." : "Đổi mã"}</button>
+      </form>
+      {giftMsg && <div style={{ marginTop: -10, marginBottom: 16, fontSize: 12.5, color: giftMsg.ok ? "var(--green)" : "var(--red)" }}>{giftMsg.text}</div>}
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: 4, background: "var(--bg-elevated)", borderRadius: "var(--radius-md)", padding: 4, width: "fit-content", marginBottom: 20 }}>
