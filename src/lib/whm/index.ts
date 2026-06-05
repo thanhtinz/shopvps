@@ -6,6 +6,7 @@ export interface WHMClient {
   suspendAccount(username: string, reason?: string): Promise<void>;
   unsuspendAccount(username: string): Promise<void>;
   terminateAccount(username: string): Promise<void>;
+  changePackage(username: string, plan: string): Promise<void>;
   changePassword(username: string, password: string): Promise<void>;
   getAccountInfo(username: string): Promise<AccountInfo>;
   createSSO(username: string): Promise<string>;
@@ -75,6 +76,10 @@ export class WHMClientImpl implements WHMClient {
 
   async terminateAccount(username: string) {
     await this.call("removeacct", { username });
+  }
+
+  async changePackage(username: string, plan: string) {
+    await this.call("changepackage", { user: username, pkg: plan });
   }
 
   async changePassword(username: string, password: string) {

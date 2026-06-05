@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { changeServicePackage } from "@/lib/upgrade";
+import { changeHostingPackageAtProvider } from "@/lib/billing-provider";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -23,6 +24,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     };
     return NextResponse.json({ error: msg[res.reason || ""] || t("Không thể đổi gói") }, { status: 400 });
   }
+
+  // Best-effort: switch the cPanel account to the new WHM package (by name).
+  if (res.packageName) await changeHostingPackageAtProvider(id, res.packageName);
 
   const { t: tn } = await getUserT(session.user.id);
   await prisma.notification.create({

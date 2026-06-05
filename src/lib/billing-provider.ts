@@ -55,6 +55,18 @@ export const suspendHostingAtProvider = (id: string, reason?: string) => hosting
 export const reactivateHostingAtProvider = (id: string) => hostingAction(id, "unsuspendAccount");
 export const terminateHostingAtProvider = (id: string) => hostingAction(id, "terminateAccount");
 
+/** Switch the cPanel account to a new WHM package (by plan name). Best-effort. */
+export async function changeHostingPackageAtProvider(orderId: string, planName: string) {
+  try {
+    const order = await prisma.hostingOrder.findUnique({ where: { id: orderId }, include: { server: true } });
+    if (!order || !order.cpanelUsername || !planName) return;
+    const whm = getWHMClient(order.server);
+    await whm.changePackage(order.cpanelUsername, planName);
+  } catch (e) {
+    console.error(`[Billing] Hosting changePackage failed for ${orderId}:`, e);
+  }
+}
+
 /** Lift provider-side suspension for services reactivated by an invoice payment. */
 export async function reactivateServices(reactivated: { vps: string[]; hosting: string[] }) {
   for (const id of reactivated.vps) await reactivateVpsAtProvider(id);

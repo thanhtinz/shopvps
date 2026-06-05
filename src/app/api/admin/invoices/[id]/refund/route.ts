@@ -10,15 +10,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { t, locale } = await getServerT();
   if (!await isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await params;
-  const { note } = await req.json().catch(() => ({ note: undefined }));
+  const { note, amount } = await req.json().catch(() => ({ note: undefined, amount: undefined }));
+  const amt = amount != null && amount !== "" ? Number(amount) : undefined;
+  if (amt != null && !(amt > 0)) return NextResponse.json({ error: t("Số tiền hoàn không hợp lệ") }, { status: 400 });
 
-  const res = await refundInvoice(id, note, locale);
+  const res = await refundInvoice(id, note, locale, amt);
   if (!res.ok) {
     const msg: Record<string, string> = {
       NOT_FOUND: t("Hoá đơn không tồn tại"),
       NOT_REFUNDABLE: t("Chỉ hoàn được hoá đơn đã thanh toán"),
+      INVALID_AMOUNT: t("Số tiền hoàn không hợp lệ"),
     };
     return NextResponse.json({ error: msg[res.reason || ""] || t("Không thể hoàn tiền") }, { status: 400 });
   }
-  return NextResponse.json({ success: true, data: { amount: res.amount }, message: t("Đã hoàn tiền hoá đơn") });
+  return NextResponse.json({ success: true, data: { amount: res.amount, partial: res.partial }, message: t("Đã hoàn tiền hoá đơn") });
 }

@@ -15,5 +15,9 @@ const m: Record<string, string> = {
   "Chưa có hoá đơn nào": "No invoices yet",
   "Xác nhận hoàn tiền hoá đơn này? Số tiền sẽ được cộng vào ví khách.": "Refund this invoice? The amount will be credited to the customer's wallet.",
   "Lý do (tuỳ chọn)": "Reason (optional)",
+  "Hoàn tiền một phần hoá đơn": "Partial refund of invoice",
+  "Hoàn một phần": "Partial refund",
+  "Số tiền hoàn không hợp lệ": "Invalid refund amount",
+  "Số tiền hoàn (để trống = hoàn toàn bộ)": "Refund amount (blank = full refund)",
 };
 export default m;

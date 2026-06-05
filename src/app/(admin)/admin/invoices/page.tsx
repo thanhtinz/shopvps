@@ -18,12 +18,16 @@ export default function AdminInvoicesPage() {
   const statusColor: Record<string, "green" | "red" | "yellow" | "gray"> = { PAID: "green", UNPAID: "red", CANCELLED: "gray", REFUNDED: "yellow" };
   const statusLabel: Record<string, string> = { PAID: t("Đã thanh toán"), UNPAID: t("Chưa thanh toán"), CANCELLED: t("Đã huỷ"), REFUNDED: t("Đã hoàn") };
 
-  async function refund(id: string) {
+  async function refund(id: string, total: number) {
     if (!confirm(t("Xác nhận hoàn tiền hoá đơn này? Số tiền sẽ được cộng vào ví khách."))) return;
+    const raw = prompt(t("Số tiền hoàn (để trống = hoàn toàn bộ)"), String(total));
+    if (raw === null) return; // cancelled
+    const amount = raw.trim() === "" ? undefined : Number(raw.replace(/[^\d.]/g, ""));
+    if (amount != null && !(amount > 0)) { alert(t("Số tiền hoàn không hợp lệ")); return; }
     const note = prompt(t("Lý do (tuỳ chọn)")) || undefined;
     setBusyId(id);
     try {
-      const res = await fetch(`/api/admin/invoices/${id}/refund`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ note }) });
+      const res = await fetch(`/api/admin/invoices/${id}/refund`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ note, amount }) });
       const data = await res.json();
       if (data.success) load();
       else alert(data.error);
@@ -63,7 +67,7 @@ export default function AdminInvoicesPage() {
                 <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--text-muted)", whiteSpace: "nowrap" }}>{formatDate(inv.createdAt)}</td>
                 <td style={{ padding: "12px 14px", textAlign: "right" }}>
                   {inv.status === "PAID" && (
-                    <button onClick={() => refund(inv.id)} disabled={busyId === inv.id} style={{ padding: "5px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-elevated)", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: busyId === inv.id ? "not-allowed" : "pointer", opacity: busyId === inv.id ? 0.6 : 1 }}>
+                    <button onClick={() => refund(inv.id, Number(inv.total))} disabled={busyId === inv.id} style={{ padding: "5px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-elevated)", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: busyId === inv.id ? "not-allowed" : "pointer", opacity: busyId === inv.id ? 0.6 : 1 }}>
                       {busyId === inv.id ? t("Đang hoàn...") : t("Hoàn tiền")}
                     </button>
                   )}
