@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pick, generateInvoiceNumber, generateAffiliateCode, getBillingCycleLabel } from "./utils";
+import { pick, generateInvoiceNumber, generateAffiliateCode, getBillingCycleLabel, addMonths, nextExpiry, CYCLE_MONTHS } from "./utils";
 
 describe("pick (mass-assignment guard)", () => {
   it("keeps only whitelisted keys", () => {
@@ -42,5 +42,33 @@ describe("getBillingCycleLabel", () => {
   });
   it("falls back to the raw value for unknown cycles", () => {
     expect(getBillingCycleLabel("WEEKLY")).toBe("WEEKLY");
+  });
+});
+
+describe("billing date helpers", () => {
+  it("addMonths advances the month without mutating the input", () => {
+    const base = new Date("2024-01-15T00:00:00Z");
+    const out = addMonths(base, 3);
+    expect(out.getMonth()).toBe((base.getMonth() + 3) % 12);
+    expect(base.toISOString()).toBe("2024-01-15T00:00:00.000Z"); // unchanged
+  });
+
+  it("CYCLE_MONTHS maps each billing cycle", () => {
+    expect(CYCLE_MONTHS.MONTHLY).toBe(1);
+    expect(CYCLE_MONTHS.QUARTERLY).toBe(3);
+    expect(CYCLE_MONTHS.SEMI_ANNUAL).toBe(6);
+    expect(CYCLE_MONTHS.ANNUAL).toBe(12);
+  });
+
+  it("nextExpiry extends from a future expiry (stacking), not from now", () => {
+    const now = new Date("2024-06-01T00:00:00Z");
+    const future = new Date("2024-06-20T00:00:00Z");
+    expect(nextExpiry(future, 1, now).toISOString()).toBe("2024-07-20T00:00:00.000Z");
+  });
+
+  it("nextExpiry extends from now when already expired", () => {
+    const now = new Date("2024-06-01T00:00:00Z");
+    const past = new Date("2024-05-01T00:00:00Z");
+    expect(nextExpiry(past, 1, now).toISOString()).toBe("2024-07-01T00:00:00.000Z");
   });
 });

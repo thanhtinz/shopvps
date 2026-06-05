@@ -4,6 +4,7 @@ import "./lib/workers/vps.worker";
 import "./lib/workers/hosting.worker";
 import "./lib/workers/autorenew.worker";
 import "./lib/workers/reminder.worker";
+import "./lib/workers/billing.worker";
 
 console.log(" Workers started");
 console.log("  → Email worker");
@@ -11,6 +12,7 @@ console.log("  → VPS provisioning worker");
 console.log("  → Hosting provisioning worker");
 console.log("  → Auto-renew worker");
 console.log("  → Renewal reminder worker");
+console.log("  → Billing worker (invoices + dunning)");
 
 // Keep process alive
 process.on("SIGTERM", async () => {

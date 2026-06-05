@@ -22,6 +22,12 @@ const SECTIONS = [
     { key:"tax_rate", label:"Thuế suất VAT (%) — 0 để tắt. Giá đã bao gồm VAT" },
     { key:"tax_label", label:"Tên thuế (vd: VAT)" },
   ]},
+  { title:"Billing tự động", fields:[
+    { key:"billing_invoice_lead_days", label:"Tạo hoá đơn trước hạn (số ngày, mặc định 7)" },
+    { key:"billing_auto_pay", label:"Tự động trừ ví để gia hạn (true/false, mặc định true)" },
+    { key:"billing_suspend_grace_days", label:"Tạm dừng sau khi quá hạn (số ngày, mặc định 3)" },
+    { key:"billing_terminate_days", label:"Huỷ dịch vụ sau khi quá hạn (số ngày, mặc định 15)" },
+  ]},
   { title:"Hệ thống", fields:[
     { key:"maintenance_mode", label:"Chế độ bảo trì (true/false)" },
     { key:"demo_mode", label:"Chế độ Demo (true/false)" },

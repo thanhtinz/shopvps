@@ -9,10 +9,23 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [payingId, setPayingId] = useState<string | null>(null);
+  const [payError, setPayError] = useState("");
 
-  useEffect(() => {
+  function load() {
     fetch("/api/invoices").then(r=>r.json()).then(d=>{ setInvoices(d.data?.items||[]); setTotal(d.data?.total||0); setLoading(false); });
-  }, []);
+  }
+  useEffect(() => { load(); }, []);
+
+  async function payInvoice(id: string) {
+    setPayError(""); setPayingId(id);
+    try {
+      const res = await fetch(`/api/invoices/${id}/pay`, { method: "POST" });
+      const data = await res.json();
+      if (data.success) load();
+      else setPayError(data.error || t("Không thể thanh toán hoá đơn"));
+    } finally { setPayingId(null); }
+  }
 
   const statusColor: Record<string,"green"|"red"|"yellow"|"gray"> = { PAID:"green", UNPAID:"red", CANCELLED:"gray", REFUNDED:"yellow" };
   const statusLabel: Record<string,string> = { PAID:t("Đã thanh toán"), UNPAID:t("Chưa thanh toán"), CANCELLED:t("Đã huỷ"), REFUNDED:t("Đã hoàn") };
@@ -22,6 +35,8 @@ export default function InvoicesPage() {
   return (
     <div style={{ maxWidth:900, margin:"0 auto" }}>
       <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:20 }}>{t("Hoá đơn")} ({total})</h1>
+
+      {payError && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"10px 14px", color:"var(--red)", fontSize:13, marginBottom:16 }}>{payError}</div>}
 
       {invoices.length === 0 ? (
         <div style={{ textAlign:"center", padding:"80px 20px", background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-xl)" }}>
@@ -57,12 +72,19 @@ export default function InvoicesPage() {
                   <td style={{ padding:"12px 16px", fontSize:14, fontWeight:800, color:"var(--text-primary)" }}>{formatCurrency(inv.total)}</td>
                   <td style={{ padding:"12px 16px" }}><Badge color={statusColor[inv.status]||"gray"}>{statusLabel[inv.status]||inv.status}</Badge></td>
                   <td style={{ padding:"12px 16px" }}>
-                    <button onClick={()=>window.open(`/api/invoices/pdf?id=${inv.id}`, "_blank")} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:"var(--text-secondary)", fontSize:12, cursor:"pointer" }}
-                      onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--accent)";(e.currentTarget as HTMLElement).style.color="var(--accent)";}}
-                      onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--border)";(e.currentTarget as HTMLElement).style.color="var(--text-secondary)";}}
-                    >
-                      {t("Xuất PDF")}
-                    </button>
+                    <div style={{ display:"flex", gap:8, justifyContent:"flex-end" }}>
+                      {inv.status === "UNPAID" && (
+                        <button onClick={()=>payInvoice(inv.id)} disabled={payingId===inv.id} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"none", background:"var(--accent)", color:"white", fontSize:12, fontWeight:600, cursor:payingId===inv.id?"not-allowed":"pointer", opacity:payingId===inv.id?0.6:1 }}>
+                          {payingId===inv.id ? t("Đang thanh toán...") : t("Thanh toán")}
+                        </button>
+                      )}
+                      <button onClick={()=>window.open(`/api/invoices/pdf?id=${inv.id}`, "_blank")} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:"var(--text-secondary)", fontSize:12, cursor:"pointer" }}
+                        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--accent)";(e.currentTarget as HTMLElement).style.color="var(--accent)";}}
+                        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--border)";(e.currentTarget as HTMLElement).style.color="var(--text-secondary)";}}
+                      >
+                        {t("Xuất PDF")}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

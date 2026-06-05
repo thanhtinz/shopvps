@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { queueVpsProvision } from "@/lib/workers";
-import { scheduleAutoRenew } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
@@ -196,9 +195,8 @@ export async function POST(req: NextRequest) {
 
   // Queue provisioning
   await queueVpsProvision(result.order.id);
-
-  // Schedule auto-renew
-  await scheduleAutoRenew(result.order.id, "vps", expiresAt);
+  // Renewal is handled by the billing worker: it generates a renewal invoice as
+  // expiry approaches and (when auto-pay is on) settles it from the wallet.
 
   return NextResponse.json({
     success: true,

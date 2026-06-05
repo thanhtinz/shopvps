@@ -5,6 +5,22 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Number of months in each billing cycle. */
+export const CYCLE_MONTHS: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 };
+
+/** Return a copy of `base` advanced by `months` months. */
+export function addMonths(base: Date, months: number): Date {
+  const d = new Date(base);
+  d.setMonth(d.getMonth() + months);
+  return d;
+}
+
+/** Extend from the current expiry when it is still in the future, else from now. */
+export function nextExpiry(currentExpiry: Date | null | undefined, months: number, now: Date = new Date()): Date {
+  const from = currentExpiry && currentExpiry > now ? new Date(currentExpiry) : new Date(now);
+  return addMonths(from, months);
+}
+
 /**
  * Whitelist-pick only the allowed keys from an (untrusted) request body.
  * Prevents mass-assignment of fields the client should not control.

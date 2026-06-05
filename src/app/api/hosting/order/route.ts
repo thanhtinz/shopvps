@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { queueHostingProvision, scheduleAutoRenew } from "@/lib/workers";
+import { queueHostingProvision } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
   }
 
   await queueHostingProvision(result.id);
-  await scheduleAutoRenew(result.id, "hosting", expiresAt);
+  // Renewal handled by the billing worker (invoice generation + optional auto-pay).
 
   return NextResponse.json({
     success: true,
