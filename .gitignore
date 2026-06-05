@@ -32,3 +32,6 @@ prisma/migrations/dev.db
 # Misc
 *.pem
 .vercel
+
+# TypeScript build info
+*.tsbuildinfo
