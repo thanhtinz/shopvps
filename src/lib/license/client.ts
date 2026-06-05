@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { getHardwareFingerprint } from "./fingerprint";
 import { getLicenseEndpoint } from "./endpoint";
 
@@ -55,6 +56,9 @@ export async function verifyLicense(opts: {
         version: VERSION,
         domain,
         hw_fingerprint: getHardwareFingerprint(),
+        // Anti-replay fields documented by the license server contract.
+        timestamp: Date.now(),
+        nonce: crypto.randomBytes(16).toString("hex"),
       }),
       signal: controller.signal,
     });

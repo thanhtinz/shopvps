@@ -20,7 +20,8 @@ export async function POST(req: NextRequest) {
         DOMAIN_MISMATCH: `Domain '${domain}' không được phép dùng key này`,
         VERSION_NOT_LICENSED: "Phiên bản này không được cấp phép",
         HW_MISMATCH: "Phần cứng server không khớp",
-        WRONG_PRODUCT: "Key này không phải cho ShopVPS",
+        PRODUCT_MISMATCH: "Key này không phải cho ShopVPS",
+        RATE_LIMITED: "Quá nhiều yêu cầu, vui lòng thử lại sau",
         LICENSE_SERVER_UNREACHABLE: "Không thể kết nối máy chủ license",
       };
       return NextResponse.json({ valid: false, error: messages[result.reason || ""] || result.reason });
