@@ -6,21 +6,21 @@ import axios from "axios";
 
 async function isAdmin(s: any): Promise<boolean> { return s && ["ADMIN","SUPER_ADMIN"].includes((s.user as any)?.role); }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!await isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  await prisma.hostingServer.update({ where: { id: params.id }, data: { isActive: false } });
+  await prisma.hostingServer.update({ where: { id: (await params).id }, data: { isActive: false } });
   return NextResponse.json({ success: true });
 }
 
 // Test WHM connection
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!await isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { action } = await req.json();
 
   if (action === "test") {
-    const server = await prisma.hostingServer.findUnique({ where: { id: params.id } });
+    const server = await prisma.hostingServer.findUnique({ where: { id: (await params).id } });
     if (!server) return NextResponse.json({ error: "Server không tồn tại" }, { status: 404 });
     try {
       const token = decrypt(server.whmToken);

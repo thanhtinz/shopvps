@@ -10,7 +10,7 @@ export async function GET() {
   if (!await isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const servers = await prisma.hostingServer.findMany({ orderBy: { createdAt: "desc" } });
   // Mask WHM token
-  const masked = servers.map(s => ({ ...s, whmToken: "••••••••" }));
+  const masked = servers.map((s: any) => ({ ...s, whmToken: "••••••••" }));
   return NextResponse.json({ success: true, data: masked });
 }
 

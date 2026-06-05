@@ -29,13 +29,16 @@ export async function POST(req: NextRequest) {
 
   // Coupon
   let discount = 0;
+  let appliedCouponId: string | null = null;
   if (couponCode) {
     const coupon = await prisma.coupon.findFirst({ where: { code: couponCode.toUpperCase(), isActive: true } });
     if (coupon && (!coupon.expiresAt || coupon.expiresAt > new Date())) {
       if (coupon.type === "PERCENTAGE") discount = Math.floor(price * Number(coupon.value) / 100);
       else discount = Number(coupon.value);
       if (coupon.maxDiscount) discount = Math.min(discount, Number(coupon.maxDiscount));
-      await prisma.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
+      // Defer the usage increment into the transaction below so it is not
+      // applied when the order ultimately fails (e.g. insufficient balance).
+      appliedCouponId = coupon.id;
     }
   }
 
@@ -53,8 +56,17 @@ export async function POST(req: NextRequest) {
   expiresAt.setMonth(expiresAt.getMonth() + months);
   const invoiceNumber = generateInvoiceNumber();
 
-  const result = await prisma.$transaction(async (tx: any) => {
-    await tx.user.update({ where: { id: session.user.id }, data: { balance: { decrement: finalPrice } } });
+  let result;
+  try {
+    result = await prisma.$transaction(async (tx: any) => {
+    // Atomic, race-safe balance deduction.
+    const deducted = await tx.user.updateMany({
+      where: { id: session.user.id, balance: { gte: finalPrice } },
+      data: { balance: { decrement: finalPrice } },
+    });
+    if (deducted.count === 0) throw new Error("INSUFFICIENT_BALANCE");
+    const fresh = await tx.user.findUnique({ where: { id: session.user.id }, select: { balance: true } });
+    const balanceAfter = Number(fresh!.balance);
 
     const order = await tx.hostingOrder.create({
       data: {
@@ -77,13 +89,23 @@ export async function POST(req: NextRequest) {
     await tx.transaction.create({
       data: {
         userId: session.user.id, type: "PURCHASE", amount: finalPrice,
-        balanceBefore: Number(user!.balance), balanceAfter: Number(user!.balance) - finalPrice,
+        balanceBefore: balanceAfter + finalPrice, balanceAfter,
         description: `Mua Hosting ${domain}`, status: "COMPLETED", reference: invoiceNumber,
       },
     });
 
+    if (appliedCouponId) {
+      await tx.coupon.update({ where: { id: appliedCouponId }, data: { usedCount: { increment: 1 } } });
+    }
+
     return order;
-  });
+    });
+  } catch (e: any) {
+    if (e?.message === "INSUFFICIENT_BALANCE")
+      return NextResponse.json({ error: "Số dư không đủ" }, { status: 400 });
+    console.error("Hosting order error:", e);
+    return NextResponse.json({ error: "Không thể tạo đơn hàng" }, { status: 500 });
+  }
 
   await queueHostingProvision(result.id);
 

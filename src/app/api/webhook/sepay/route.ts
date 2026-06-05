@@ -7,15 +7,22 @@ export async function POST(req: NextRequest) {
     const body = await req.text();
     const signature = req.headers.get("x-sepay-signature") || "";
 
-    // Verify signature
-    if (process.env.SEPAY_WEBHOOK_SECRET) {
-      const isValid = verifySePayWebhook(body, signature, process.env.SEPAY_WEBHOOK_SECRET);
-      if (!isValid) {
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-      }
+    // Verify signature — required. Refuse to process unsigned/misconfigured calls.
+    const secret = process.env.SEPAY_WEBHOOK_SECRET;
+    if (!secret) {
+      console.error("SePay webhook: SEPAY_WEBHOOK_SECRET not configured — rejecting");
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
+    }
+    if (!verifySePayWebhook(body, signature, secret)) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    const payload = JSON.parse(body);
+    let payload: any;
+    try {
+      payload = JSON.parse(body);
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
 
     // Only process incoming transfers
     if (payload.transferType !== "in") {
@@ -64,22 +71,25 @@ export async function POST(req: NextRequest) {
     }
 
     const totalCredit = amount + bonusAmount;
-    const newBalance = Number(user.balance) + totalCredit;
 
-    // Update balance & create transaction atomically
+    // Update balance & create transaction atomically. The balance is
+    // incremented atomically (not read-modify-write) to stay correct under
+    // concurrent webhooks.
     await prisma.$transaction(async (tx: any) => {
-      await tx.user.update({
+      const updated = await tx.user.update({
         where: { id: userId },
-        data: { balance: newBalance },
+        data: { balance: { increment: totalCredit } },
+        select: { balance: true },
       });
+      const balanceAfter = Number(updated.balance);
 
       await tx.transaction.create({
         data: {
           userId,
           type: "DEPOSIT",
           amount,
-          balanceBefore: Number(user.balance),
-          balanceAfter: newBalance,
+          balanceBefore: balanceAfter - totalCredit,
+          balanceAfter,
           description: `Nạp tiền qua ngân hàng${bonusAmount > 0 ? ` (bonus ${bonusAmount.toLocaleString("vi-VN")}đ)` : ""}`,
           reference,
           status: "COMPLETED",
@@ -98,7 +108,11 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
+    // Unique-constraint collision on `reference` => already processed (race).
+    if (error?.code === "P2002") {
+      return NextResponse.json({ success: true });
+    }
     console.error("SePay webhook error:", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }

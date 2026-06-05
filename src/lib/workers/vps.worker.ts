@@ -5,10 +5,7 @@ import { getVpsProvider } from "@/lib/vps-providers";
 import { decrypt, encrypt } from "@/lib/encrypt";
 import crypto from "crypto";
 
-const connection = { url: process.env.REDIS_URL || "redis://localhost:6379" }; // @ts-ignore
-const _fakeRedis = {
-  maxRetriesPerRequest: null,
-});
+const connection = { url: process.env.REDIS_URL || "redis://localhost:6379" };
 
 export const vpsWorker = new Worker(
   "vps-provision",

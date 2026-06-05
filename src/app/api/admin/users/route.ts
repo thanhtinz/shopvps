@@ -26,11 +26,34 @@ export async function PATCH(req: NextRequest) {
   if (!session || !["ADMIN","SUPER_ADMIN"].includes((session.user as any).role))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { userId, action, value } = await req.json();
+  if (!userId) return NextResponse.json({ error: "Thiếu userId" }, { status: 400 });
+
   if (action === "toggle_status") {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    await prisma.user.update({ where: { id: userId }, data: { status: user?.status === "ACTIVE" ? "BANNED" : "ACTIVE" } });
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { status: true } });
+    if (!user) return NextResponse.json({ error: "User không tồn tại" }, { status: 404 });
+    await prisma.user.update({ where: { id: userId }, data: { status: user.status === "ACTIVE" ? "BANNED" : "ACTIVE" } });
   } else if (action === "adjust_balance") {
-    await prisma.user.update({ where: { id: userId }, data: { balance: { increment: value } } });
+    if (typeof value !== "number" || !Number.isFinite(value) || value === 0)
+      return NextResponse.json({ error: "Giá trị điều chỉnh không hợp lệ" }, { status: 400 });
+    // Adjust and record an audit transaction in one atomic step.
+    await prisma.$transaction(async (tx: any) => {
+      const updated = await tx.user.update({
+        where: { id: userId },
+        data: { balance: { increment: value } },
+        select: { balance: true },
+      });
+      const balanceAfter = Number(updated.balance);
+      await tx.transaction.create({
+        data: {
+          userId, type: "ADJUSTMENT", amount: value,
+          balanceBefore: balanceAfter - value, balanceAfter,
+          description: `Admin điều chỉnh số dư bởi ${(session.user as any).email || "admin"}`,
+          status: "COMPLETED",
+        },
+      });
+    });
+  } else {
+    return NextResponse.json({ error: "Hành động không hợp lệ" }, { status: 400 });
   }
   return NextResponse.json({ success: true });
 }

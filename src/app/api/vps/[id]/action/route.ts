@@ -8,12 +8,12 @@ import { decrypt } from "@/lib/encrypt";
 
 type Action = "power_on" | "power_off" | "restart" | "rebuild" | "change_password";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { action, osId, password } = await req.json();
-  const vpsId = params.id;
+  const vpsId = (await params).id;
 
   const vps = await prisma.vpsOrder.findFirst({
     where: { id: vpsId, userId: session.user.id },

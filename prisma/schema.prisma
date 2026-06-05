@@ -269,7 +269,7 @@ model Transaction {
   balanceBefore Decimal           @db.Decimal(15, 2)
   balanceAfter  Decimal           @db.Decimal(15, 2)
   description   String?
-  reference     String?
+  reference     String?           @unique
   status        TransactionStatus @default(PENDING)
   metadata      Json?
   createdAt     DateTime          @default(now())

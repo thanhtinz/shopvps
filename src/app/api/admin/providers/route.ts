@@ -9,7 +9,7 @@ export async function GET() {
   const session = await auth();
   if (!await isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const providers = await prisma.vpsProvider.findMany({ orderBy: { name: "asc" } });
-  return NextResponse.json({ success: true, data: providers.map(p => ({ ...p, apiKey: p.apiKey ? "••••••••" : null })) });
+  return NextResponse.json({ success: true, data: providers.map((p: any) => ({ ...p, apiKey: p.apiKey ? "••••••••" : null })) });
 }
 
 export async function POST(req: NextRequest) {

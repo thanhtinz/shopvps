@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   if (!invoice) return new NextResponse("Not found", { status: 404 });
 
   const settings = await prisma.setting.findMany({ where: { key: { in: ["app_name", "app_url"] } } });
-  const s = Object.fromEntries(settings.map(x => [x.key, x.value]));
+  const s = Object.fromEntries(settings.map((x: any) => [x.key, x.value]));
   const appName = s.app_name || "ShopVPS";
 
   const formatVND = (n: number) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);

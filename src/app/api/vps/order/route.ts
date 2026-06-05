@@ -69,12 +69,22 @@ export async function POST(req: NextRequest) {
   const invoiceNumber = generateInvoiceNumber();
 
   // Transaction
-  const result = await prisma.$transaction(async (tx: any) => {
-    // Deduct balance
-    await tx.user.update({
-      where: { id: session.user.id },
+  let result;
+  try {
+    result = await prisma.$transaction(async (tx: any) => {
+    // Deduct balance atomically, only if still sufficient (prevents the
+    // check-then-act race where two concurrent orders both pass the balance
+    // check above and overdraw the account).
+    const deducted = await tx.user.updateMany({
+      where: { id: session.user.id, balance: { gte: finalPrice } },
       data: { balance: { decrement: finalPrice } },
     });
+    if (deducted.count === 0) throw new Error("INSUFFICIENT_BALANCE");
+    const fresh = await tx.user.findUnique({
+      where: { id: session.user.id },
+      select: { balance: true },
+    });
+    const balanceAfter = Number(fresh!.balance);
 
     // Create VPS order
     const order = await tx.vpsOrder.create({
@@ -121,8 +131,8 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         type: "PURCHASE",
         amount: finalPrice,
-        balanceBefore: Number(user!.balance),
-        balanceAfter: Number(user!.balance) - finalPrice,
+        balanceBefore: balanceAfter + finalPrice,
+        balanceAfter,
         description: `Mua VPS ${hostname} - ${pkg.name}`,
         status: "COMPLETED",
         reference: invoiceNumber,
@@ -149,7 +159,13 @@ export async function POST(req: NextRequest) {
     });
 
     return { order, invoice };
-  });
+    });
+  } catch (e: any) {
+    if (e?.message === "INSUFFICIENT_BALANCE")
+      return NextResponse.json({ error: "Số dư không đủ. Vui lòng nạp thêm tiền." }, { status: 400 });
+    console.error("VPS order error:", e);
+    return NextResponse.json({ error: "Không thể tạo đơn hàng" }, { status: 500 });
+  }
 
   // Queue provisioning
   await queueVpsProvision(result.order.id);

@@ -14,7 +14,7 @@ export default function LicenseErrorPage() {
           width: 80, height: 80, borderRadius: "50%",
           background: "rgba(239,68,68,0.1)", border: "2px solid rgba(239,68,68,0.3)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          margin: "0 auto 24px", fontSize: 36, display:"none",
+          margin: "0 auto 24px", fontSize: 36,
         }}></div>
 
         <h1 style={{ color: "#f1f5f9", fontSize: 24, fontWeight: 700, margin: "0 0 12px", letterSpacing: "-0.02em" }}>

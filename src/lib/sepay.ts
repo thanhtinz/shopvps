@@ -15,17 +15,20 @@ export interface SePayWebhookPayload {
   description: string;
 }
 
-// Verify webhook signature from SePay
+// Verify webhook signature from SePay (timing-safe comparison)
 export function verifySePayWebhook(
   payload: string,
   signature: string,
   secret: string
 ): boolean {
-  const hmac = crypto
+  const expected = crypto
     .createHmac("sha256", secret)
     .update(payload)
     .digest("hex");
-  return hmac === signature;
+  const a = Buffer.from(expected, "utf8");
+  const b = Buffer.from(signature || "", "utf8");
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
 // Parse deposit reference from transaction content
