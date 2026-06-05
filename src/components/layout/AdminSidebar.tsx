@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocale } from "@/components/LocaleProvider";
 
 const nav = [
   { section: null, items: [
@@ -50,6 +51,7 @@ function NavIcon({ d }: { d: string }) {
 
 export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
+  const { t } = useLocale();
   const isActive = (href: string) => href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
   return (
@@ -66,7 +68,7 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
       <nav style={{ flex:1, overflowY:"auto", padding:"10px 8px" }}>
         {nav.map((g, gi) => (
           <div key={gi} style={{ marginBottom:2 }}>
-            {g.section && <div style={{ padding:"10px 10px 3px", fontSize:10, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.1em", textTransform:"uppercase" }}>{g.section}</div>}
+            {g.section && <div style={{ padding:"10px 10px 3px", fontSize:10, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.1em", textTransform:"uppercase" }}>{t(g.section)}</div>}
             {g.items.map(item => {
               const active = isActive(item.href);
               return (
@@ -76,7 +78,7 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
                 >
                   {active && <div style={{ position:"absolute", left:0, top:"22%", bottom:"22%", width:3, background:"#ef4444", borderRadius:"0 3px 3px 0" }}/>}
                   <span style={{ opacity:active?1:0.65, flexShrink:0 }}><NavIcon d={item.icon}/></span>
-                  {item.label}
+                  {t(item.label)}
                 </Link>
               );
             })}
@@ -89,7 +91,7 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
           onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background="transparent"}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          Về User Dashboard
+          {t("Về User Dashboard")}
         </Link>
       </div>
     </aside>

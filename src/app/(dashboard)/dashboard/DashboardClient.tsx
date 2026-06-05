@@ -4,6 +4,7 @@ import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import { useLocale } from "@/components/LocaleProvider";
 
 function Icon({ d, size = 16 }: { d: string; size?: number }) {
   return (
@@ -23,13 +24,14 @@ function SectionTitle({ children, action }: { children: string; action?: React.R
 }
 
 export default function DashboardClient({ data, userName }: { data: any; userName: string }) {
+  const { t } = useLocale();
   const txTypeColor: Record<string, "green" | "red" | "blue" | "yellow"> = {
     DEPOSIT: "green", WITHDRAWAL: "red", PURCHASE: "yellow",
     REFUND: "blue", BONUS: "green", COMMISSION: "blue",
   };
   const txTypeLabel: Record<string, string> = {
-    DEPOSIT: "Nạp tiền", WITHDRAWAL: "Rút tiền", PURCHASE: "Thanh toán",
-    REFUND: "Hoàn tiền", BONUS: "Thưởng", COMMISSION: "Hoa hồng",
+    DEPOSIT: t("Nạp tiền"), WITHDRAWAL: t("Rút tiền"), PURCHASE: t("Thanh toán"),
+    REFUND: t("Hoàn tiền"), BONUS: t("Thưởng"), COMMISSION: t("Hoa hồng"),
   };
 
   return (
@@ -40,41 +42,41 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
       {/* Welcome */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.03em", marginBottom: 4 }}>
-          Chào {userName} 
+          {t("Chào")} {userName}
         </h1>
         <p style={{ color: "var(--text-secondary)", fontSize: 13.5 }}>
-          Tổng quan hệ thống của bạn hôm nay
+          {t("Tổng quan hệ thống của bạn hôm nay")}
         </p>
       </div>
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 28 }}>
         <StatCard
-          title="Số dư ví"
+          title={t("Số dư ví")}
           value={formatCurrency(data.user?.balance || 0)}
-          sub="Khả dụng"
-          trend={{ value: "Ví hoa hồng: " + formatCurrency(data.user?.affiliateBalance || 0), up: true }}
+          sub={t("Khả dụng")}
+          trend={{ value: t("Ví hoa hồng:") + " " + formatCurrency(data.user?.affiliateBalance || 0), up: true }}
           color="var(--accent)"
           icon={<Icon d="M20 12V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h6 M16 16h6 M19 13v6" />}
         />
         <StatCard
-          title="VPS đang hoạt động"
+          title={t("VPS đang hoạt động")}
           value={String(data.vpsCount)}
-          sub="máy chủ"
+          sub={t("máy chủ")}
           color="var(--cyan)"
           icon={<Icon d="M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7 M2 19h20 M5 19v-4 M19 19v-4" />}
         />
         <StatCard
-          title="Hosting đang hoạt động"
+          title={t("Hosting đang hoạt động")}
           value={String(data.hostingCount)}
-          sub="gói hosting"
+          sub={t("gói hosting")}
           color="var(--purple)"
           icon={<Icon d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />}
         />
         <StatCard
-          title="Ticket chưa xử lý"
+          title={t("Ticket chưa xử lý")}
           value={String(data.openTickets)}
-          sub="ticket"
+          sub={t("ticket")}
           color={data.openTickets > 0 ? "var(--yellow)" : "var(--green)"}
           icon={<Icon d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />}
         />
@@ -88,13 +90,13 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
 
           {/* Quick actions */}
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
-            <SectionTitle>Thao tác nhanh</SectionTitle>
+            <SectionTitle>{t("Thao tác nhanh")}</SectionTitle>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
               {[
-                { href: "/vps", label: "Mua VPS", icon: "M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7 M2 19h20 M5 19v-4 M19 19v-4", color: "var(--cyan)" },
-                { href: "/hosting", label: "Mua Hosting", icon: "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16", color: "var(--purple)" },
-                { href: "/wallet", label: "Nạp tiền", icon: "M20 12V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h6 M16 16h6 M19 13v6", color: "var(--green)" },
-                { href: "/tickets", label: "Tạo ticket", icon: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z", color: "var(--yellow)" },
+                { href: "/vps", label: t("Mua VPS"), icon: "M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7 M2 19h20 M5 19v-4 M19 19v-4", color: "var(--cyan)" },
+                { href: "/hosting", label: t("Mua Hosting"), icon: "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16", color: "var(--purple)" },
+                { href: "/wallet", label: t("Nạp tiền"), icon: "M20 12V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h6 M16 16h6 M19 13v6", color: "var(--green)" },
+                { href: "/tickets", label: t("Tạo ticket"), icon: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z", color: "var(--yellow)" },
               ].map(a => (
                 <Link key={a.href} href={a.href} style={{
                   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -118,12 +120,12 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
           {/* Recent transactions */}
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
             <SectionTitle
-              action={<Link href="/wallet" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none" }}>Xem tất cả →</Link>}
-            >Giao dịch gần đây</SectionTitle>
+              action={<Link href="/wallet" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none" }}>{t("Xem tất cả")} →</Link>}
+            >{t("Giao dịch gần đây")}</SectionTitle>
 
             {data.recentTx.length === 0 ? (
               <div style={{ textAlign: "center", padding: "32px 0", color: "var(--text-muted)", fontSize: 13 }}>
-                Chưa có giao dịch nào
+                {t("Chưa có giao dịch nào")}
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -172,13 +174,13 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
 
           {/* VPS summary */}
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
-            <SectionTitle action={<Link href="/vps" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none" }}>Quản lý →</Link>}>
-              Dịch vụ của bạn
+            <SectionTitle action={<Link href="/vps" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none" }}>{t("Quản lý")} →</Link>}>
+              {t("Dịch vụ của bạn")}
             </SectionTitle>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { label: "VPS đang chạy", value: data.vpsCount, icon: "M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7 M2 19h20", color: "var(--cyan)" },
-                { label: "Hosting active", value: data.hostingCount, icon: "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z", color: "var(--purple)" },
+                { label: t("VPS đang chạy"), value: data.vpsCount, icon: "M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7 M2 19h20", color: "var(--cyan)" },
+                { label: t("Hosting active"), value: data.hostingCount, icon: "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z", color: "var(--purple)" },
               ].map(item => (
                 <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: "var(--bg-elevated)", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
                   <div style={{ width: 32, height: 32, borderRadius: "var(--radius-md)", background: `${item.color}18`, display: "flex", alignItems: "center", justifyContent: "center", color: item.color, flexShrink: 0 }}>
@@ -193,12 +195,12 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
 
           {/* Wallet summary */}
           <div style={{ background: "linear-gradient(135deg, rgba(79,124,255,0.12), rgba(124,58,237,0.08))", border: "1px solid rgba(79,124,255,0.2)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>Số dư hiện tại</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{t("Số dư hiện tại")}</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.03em", marginBottom: 4 }}>
               {formatCurrency(data.user?.balance || 0)}
             </div>
             <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 16 }}>
-              Ví hoa hồng: {formatCurrency(data.user?.affiliateBalance || 0)}
+              {t("Ví hoa hồng:")} {formatCurrency(data.user?.affiliateBalance || 0)}
             </div>
             <Link href="/wallet" style={{
               display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px",
@@ -210,7 +212,7 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = "1"}
             >
               <Icon d="M20 12V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h6 M16 16h6 M19 13v6" size={14} />
-              Nạp tiền
+              {t("Nạp tiền")}
             </Link>
           </div>
 
@@ -218,9 +220,9 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--green-soft)", borderRadius: "var(--radius-lg)", padding: "16px 20px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--green)", animation: "pulse-ring 2s infinite" }} />
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--green)" }}>License hợp lệ</span>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--green)" }}>{t("License hợp lệ")}</span>
             </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Hệ thống hoạt động bình thường</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{t("Hệ thống hoạt động bình thường")}</div>
           </div>
         </div>
       </div>

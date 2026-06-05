@@ -3,17 +3,19 @@ import { useState, useEffect, useRef } from "react";
 import Badge from "@/components/ui/Badge";
 import { formatDate } from "@/lib/utils";
 import { getSocket } from "@/lib/socketClient";
+import { useLocale } from "@/components/LocaleProvider";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
 }
 
 const prioColor: Record<string,"green"|"yellow"|"red"|"blue"> = { LOW:"green", MEDIUM:"blue", HIGH:"yellow", URGENT:"red" };
-const prioLabel: Record<string,string> = { LOW:"Thấp", MEDIUM:"Trung bình", HIGH:"Cao", URGENT:"Khẩn cấp" };
 const statusColor: Record<string,"blue"|"yellow"|"gray"> = { OPEN:"blue", IN_PROGRESS:"yellow", CLOSED:"gray" };
-const statusLabel: Record<string,string> = { OPEN:"Đang mở", IN_PROGRESS:"Đang xử lý", CLOSED:"Đã đóng" };
 
 export default function TicketsPage() {
+  const { t: tr } = useLocale();
+  const prioLabel: Record<string,string> = { LOW:tr("Thấp"), MEDIUM:tr("Trung bình"), HIGH:tr("Cao"), URGENT:tr("Khẩn cấp") };
+  const statusLabel: Record<string,string> = { OPEN:tr("Đang mở"), IN_PROGRESS:tr("Đang xử lý"), CLOSED:tr("Đã đóng") };
   const [tickets, setTickets] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -85,11 +87,11 @@ export default function TicketsPage() {
     <div style={{ maxWidth:1100, margin:"0 auto" }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <div>
-          <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:2 }}>Hỗ trợ</h1>
-          <p style={{ color:"var(--text-muted)", fontSize:13 }}>{tickets.filter(t=>t.status!=="CLOSED").length} ticket đang mở</p>
+          <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:2 }}>{tr("Hỗ trợ")}</h1>
+          <p style={{ color:"var(--text-muted)", fontSize:13 }}>{tickets.filter(t=>t.status!=="CLOSED").length} {tr("ticket đang mở")}</p>
         </div>
         <button onClick={()=>setShowNew(true)} style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>
-          <Icon d="M12 5v14 M5 12h14"/> Tạo ticket mới
+          <Icon d="M12 5v14 M5 12h14"/> {tr("Tạo ticket mới")}
         </button>
       </div>
 
@@ -103,7 +105,7 @@ export default function TicketsPage() {
             {tickets.length === 0 && (
               <div style={{ textAlign:"center", padding:"60px 20px", color:"var(--text-muted)", fontSize:13 }}>
                 <div style={{ marginBottom:12, display:"flex", justifyContent:"center" }}><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-                Chưa có ticket nào
+                {tr("Chưa có ticket nào")}
               </div>
             )}
             {tickets.map(t => (
@@ -146,7 +148,7 @@ export default function TicketsPage() {
                   {selected.status !== "CLOSED" && (
                     <span style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, color:"var(--text-muted)" }}>
                       <span style={{ width:7, height:7, borderRadius:"50%", background:"var(--green)", animation:"pulse 1.8s infinite" }}/>
-                      Trực tuyến
+                      {tr("Trực tuyến")}
                     </span>
                   )}
                 </div>
@@ -165,7 +167,7 @@ export default function TicketsPage() {
                   </div>
                   <div style={{ maxWidth:"70%" }}>
                     <div style={{ fontSize:11, color:"var(--text-muted)", marginBottom:4, textAlign: msg.isAdmin?"left":"right" }}>
-                      {msg.isAdmin?"Admin":"Bạn"} · {formatDate(msg.createdAt)}
+                      {msg.isAdmin?tr("Admin"):tr("Bạn")} · {formatDate(msg.createdAt)}
                     </div>
                     <div style={{
                       padding:"10px 14px", borderRadius: msg.isAdmin?"4px 12px 12px 12px":"12px 4px 12px 12px",
@@ -177,7 +179,7 @@ export default function TicketsPage() {
                 </div>
               ))}
               {messages.length === 0 && (
-                <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)", fontSize:13 }}>Chưa có tin nhắn nào</div>
+                <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)", fontSize:13 }}>{tr("Chưa có tin nhắn nào")}</div>
               )}
               <div ref={bottomRef}/>
             </div>
@@ -185,14 +187,14 @@ export default function TicketsPage() {
             {/* Input */}
             {selected.status !== "CLOSED" ? (
               <form onSubmit={sendMessage} style={{ padding:"14px 20px", borderTop:"1px solid var(--border)", display:"flex", gap:10 }}>
-                <input value={newMsg} onChange={e=>setNewMsg(e.target.value)} placeholder="Nhập tin nhắn..." style={{ flex:1, background:"var(--bg-elevated)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 14px", color:"var(--text-primary)", fontSize:13.5, outline:"none", fontFamily:"inherit" }}
+                <input value={newMsg} onChange={e=>setNewMsg(e.target.value)} placeholder={tr("Nhập tin nhắn...")} style={{ flex:1, background:"var(--bg-elevated)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 14px", color:"var(--text-primary)", fontSize:13.5, outline:"none", fontFamily:"inherit" }}
                   onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
                 <button type="submit" disabled={sending||!newMsg.trim()} style={{ padding:"10px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", cursor:newMsg.trim()?"pointer":"not-allowed", opacity:newMsg.trim()?1:0.5 }}>
                   <Icon d="M22 2L11 13 M22 2L15 22 11 13 2 9z"/>
                 </button>
               </form>
             ) : (
-              <div style={{ padding:"14px 20px", borderTop:"1px solid var(--border)", textAlign:"center", color:"var(--text-muted)", fontSize:13 }}>Ticket đã đóng</div>
+              <div style={{ padding:"14px 20px", borderTop:"1px solid var(--border)", textAlign:"center", color:"var(--text-muted)", fontSize:13 }}>{tr("Ticket đã đóng")}</div>
             )}
           </div>
         )}
@@ -202,9 +204,9 @@ export default function TicketsPage() {
       {showNew && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:50 }} onClick={()=>setShowNew(false)}>
           <div style={{ background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-xl)", padding:"28px", width:480, maxWidth:"90vw" }} onClick={e=>e.stopPropagation()}>
-            <h3 style={{ fontSize:16, fontWeight:700, color:"var(--text-primary)", marginBottom:20 }}>Tạo ticket mới</h3>
+            <h3 style={{ fontSize:16, fontWeight:700, color:"var(--text-primary)", marginBottom:20 }}>{tr("Tạo ticket mới")}</h3>
             <form onSubmit={createTicket}>
-              {[{ label:"Tiêu đề", val:newSubject, set:setNewSubject, ph:"Mô tả vấn đề ngắn gọn..." }].map(f=>(
+              {[{ label:tr("Tiêu đề"), val:newSubject, set:setNewSubject, ph:tr("Mô tả vấn đề ngắn gọn...") }].map(f=>(
                 <div key={f.label} style={{ marginBottom:14 }}>
                   <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>{f.label}</label>
                   <input value={f.val} onChange={e=>f.set(e.target.value)} placeholder={f.ph} required style={{ width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--text-primary)", fontSize:13.5, outline:"none", fontFamily:"inherit" }}
@@ -213,14 +215,14 @@ export default function TicketsPage() {
               ))}
               {departments.length > 0 && (
                 <div style={{ marginBottom:14 }}>
-                  <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Phòng ban</label>
+                  <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>{tr("Phòng ban")}</label>
                   <select value={newDept} onChange={e=>setNewDept(e.target.value)} style={{ width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--text-primary)", fontSize:13.5, outline:"none" }}>
                     {departments.map((d:any)=><option key={d.id} value={d.name}>{d.name}</option>)}
                   </select>
                 </div>
               )}
               <div style={{ marginBottom:14 }}>
-                <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Mức độ ưu tiên</label>
+                <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>{tr("Mức độ ưu tiên")}</label>
                 <div style={{ display:"flex", gap:8 }}>
                   {["LOW","MEDIUM","HIGH","URGENT"].map(p=>(
                     <button key={p} type="button" onClick={()=>setNewPrio(p)} style={{ flex:1, padding:"8px 4px", borderRadius:"var(--radius-md)", border:"1.5px solid "+(newPrio===p?"var(--accent)":"var(--border)"), background:newPrio===p?"var(--accent-soft)":"var(--bg-surface)", color:newPrio===p?"var(--accent)":"var(--text-secondary)", fontSize:12, fontWeight:600, cursor:"pointer" }}>
@@ -230,13 +232,13 @@ export default function TicketsPage() {
                 </div>
               </div>
               <div style={{ marginBottom:20 }}>
-                <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Nội dung</label>
-                <textarea value={newContent} onChange={e=>setNewContent(e.target.value)} placeholder="Mô tả chi tiết vấn đề..." required rows={4} style={{ width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--text-primary)", fontSize:13.5, outline:"none", resize:"vertical", fontFamily:"inherit" }}
+                <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>{tr("Nội dung")}</label>
+                <textarea value={newContent} onChange={e=>setNewContent(e.target.value)} placeholder={tr("Mô tả chi tiết vấn đề...")} required rows={4} style={{ width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--text-primary)", fontSize:13.5, outline:"none", resize:"vertical", fontFamily:"inherit" }}
                   onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
               </div>
               <div style={{ display:"flex", gap:10 }}>
-                <button type="button" onClick={()=>setShowNew(false)} style={{ flex:1, padding:"10px", background:"var(--bg-hover)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", cursor:"pointer", fontSize:13 }}>Huỷ</button>
-                <button type="submit" style={{ flex:2, padding:"10px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, cursor:"pointer", fontSize:13 }}>Tạo ticket →</button>
+                <button type="button" onClick={()=>setShowNew(false)} style={{ flex:1, padding:"10px", background:"var(--bg-hover)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", cursor:"pointer", fontSize:13 }}>{tr("Huỷ")}</button>
+                <button type="submit" style={{ flex:2, padding:"10px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, cursor:"pointer", fontSize:13 }}>{tr("Tạo ticket →")}</button>
               </div>
             </form>
           </div>

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useLocale } from "@/components/LocaleProvider";
 
 const inputStyle = { width:"100%", boxSizing:"border-box" as const, background:"var(--bg-elevated)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--text-primary)", fontSize:13, outline:"none", fontFamily:"inherit" };
 
@@ -29,6 +30,7 @@ const SECTIONS = [
 ];
 
 export default function AdminSettingsPage() {
+  const { t } = useLocale();
   const [settings, setSettings] = useState<Record<string,string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,15 +50,15 @@ export default function AdminSettingsPage() {
 
   return (
     <div style={{ maxWidth:700 }}>
-      <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:24 }}>Cài đặt hệ thống</h1>
+      <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:24 }}>{t("Cài đặt hệ thống")}</h1>
       <form onSubmit={save}>
         {SECTIONS.map(section=>(
           <div key={section.title} style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"20px", marginBottom:16 }}>
-            <h3 style={{ fontSize:13.5, fontWeight:700, color:"var(--text-primary)", marginBottom:16, paddingBottom:10, borderBottom:"1px solid var(--border)" }}>{section.title}</h3>
+            <h3 style={{ fontSize:13.5, fontWeight:700, color:"var(--text-primary)", marginBottom:16, paddingBottom:10, borderBottom:"1px solid var(--border)" }}>{t(section.title)}</h3>
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {section.fields.map(f=>(
                 <div key={f.key}>
-                  <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:5 }}>{f.label}</label>
+                  <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:5 }}>{t(f.label)}</label>
                   <input value={settings[f.key]||""} onChange={e=>setSettings(p=>({...p,[f.key]:e.target.value}))} style={inputStyle}
                     onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
                 </div>
@@ -64,9 +66,9 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         ))}
-        {saved && <div style={{ background:"var(--green-soft)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:"var(--radius-md)", padding:"10px 14px", color:"var(--green)", fontSize:13, marginBottom:14 }}>&#10003; Đã lưu cài đặt!</div>}
+        {saved && <div style={{ background:"var(--green-soft)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:"var(--radius-md)", padding:"10px 14px", color:"var(--green)", fontSize:13, marginBottom:14 }}>&#10003; {t("Đã lưu cài đặt!")}</div>}
         <button type="submit" disabled={saving} style={{ padding:"11px 24px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:700, cursor:"pointer" }}>
-          {saving?"Đang lưu...":"Lưu cài đặt →"}
+          {saving?t("Đang lưu..."):t("Lưu cài đặt →")}
         </button>
       </form>
     </div>

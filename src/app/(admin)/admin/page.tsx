@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { formatCurrency } from "@/lib/utils";
 import RevenueChart from "@/components/admin/RevenueChart";
+import { useLocale } from "@/components/LocaleProvider";
 
 const ICON_PATHS: Record<string,string> = {
   users: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z",
@@ -30,6 +31,7 @@ function StatBox({ title, value, icon, color }: { title: string; value: string |
 }
 
 export default function AdminDashboard() {
+  const { t } = useLocale();
   const [stats, setStats] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,16 +61,16 @@ export default function AdminDashboard() {
     <div style={{ maxWidth:1200, margin:"0 auto" }}>
       <div style={{ marginBottom:28 }}>
         <h1 style={{ fontSize:22, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:4 }}>Admin Dashboard</h1>
-        <p style={{ color:"var(--text-muted)", fontSize:13 }}>Tổng quan hệ thống</p>
+        <p style={{ color:"var(--text-muted)", fontSize:13 }}>{t("Tổng quan hệ thống")}</p>
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:14, marginBottom:28 }}>
-        <StatBox title="Tổng người dùng" value={stats?.totalUsers||0} icon="users" color="var(--accent)"/>
-        <StatBox title="VPS đang hoạt động" value={stats?.activeVps||0} icon="server" color="var(--cyan)"/>
-        <StatBox title="Hosting đang hoạt động" value={stats?.activeHosting||0} icon="globe" color="var(--purple)"/>
-        <StatBox title="Ticket chờ xử lý" value={stats?.pendingTickets||0} icon="ticket" color="var(--yellow)"/>
-        <StatBox title="Doanh thu hôm nay" value={formatCurrency(stats?.todayRevenue||0)} icon="trending" color="var(--green)"/>
-        <StatBox title="Tổng số dư ví" value={formatCurrency(stats?.totalBalance||0)} icon="wallet" color="var(--accent)"/>
+        <StatBox title={t("Tổng người dùng")} value={stats?.totalUsers||0} icon="users" color="var(--accent)"/>
+        <StatBox title={t("VPS đang hoạt động")} value={stats?.activeVps||0} icon="server" color="var(--cyan)"/>
+        <StatBox title={t("Hosting đang hoạt động")} value={stats?.activeHosting||0} icon="globe" color="var(--purple)"/>
+        <StatBox title={t("Ticket chờ xử lý")} value={stats?.pendingTickets||0} icon="ticket" color="var(--yellow)"/>
+        <StatBox title={t("Doanh thu hôm nay")} value={formatCurrency(stats?.todayRevenue||0)} icon="trending" color="var(--green)"/>
+        <StatBox title={t("Tổng số dư ví")} value={formatCurrency(stats?.totalBalance||0)} icon="wallet" color="var(--accent)"/>
       </div>
 
       <RevenueChart />
@@ -76,14 +78,14 @@ export default function AdminDashboard() {
       {/* Users table */}
       <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", overflow:"hidden" }}>
         <div style={{ padding:"16px 20px", borderBottom:"1px solid var(--border)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <span style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)" }}>Người dùng gần đây</span>
-          <a href="/admin/users" style={{ fontSize:12, color:"var(--accent)", textDecoration:"none" }}>Xem tất cả →</a>
+          <span style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)" }}>{t("Người dùng gần đây")}</span>
+          <a href="/admin/users" style={{ fontSize:12, color:"var(--accent)", textDecoration:"none" }}>{t("Xem tất cả →")}</a>
         </div>
         <div style={{ overflowX:"auto" }}>
           <table style={{ width:"100%", borderCollapse:"collapse" }}>
             <thead>
               <tr style={{ borderBottom:"1px solid var(--border)" }}>
-                {["Người dùng","Email","Số dư","Trạng thái","Ngày tạo","Thao tác"].map(h=>(
+                {[t("Người dùng"),t("Email"),t("Số dư"),t("Trạng thái"),t("Ngày tạo"),t("Thao tác")].map(h=>(
                   <th key={h} style={{ padding:"11px 16px", textAlign:"left", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.06em", textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
                 ))}
               </tr>
@@ -109,13 +111,13 @@ export default function AdminDashboard() {
                   <td style={{ padding:"12px 16px", fontSize:13, fontWeight:600, color:"var(--text-primary)" }}>{formatCurrency(u.balance)}</td>
                   <td style={{ padding:"12px 16px" }}>
                     <span style={{ padding:"2px 8px", borderRadius:99, fontSize:11.5, fontWeight:600, background:u.status==="ACTIVE"?"var(--green-soft)":"var(--red-soft)", color:u.status==="ACTIVE"?"var(--green)":"var(--red)" }}>
-                      {u.status==="ACTIVE"?"Hoạt động":"Bị khoá"}
+                      {u.status==="ACTIVE"?t("Hoạt động"):t("Bị khoá")}
                     </span>
                   </td>
                   <td style={{ padding:"12px 16px", fontSize:12, color:"var(--text-muted)", whiteSpace:"nowrap" }}>{new Date(u.createdAt).toLocaleDateString("vi-VN")}</td>
                   <td style={{ padding:"12px 16px" }}>
                     <button onClick={()=>toggleUser(u.id)} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:u.status==="ACTIVE"?"var(--red)":"var(--green)", fontSize:12, cursor:"pointer", fontWeight:600 }}>
-                      {u.status==="ACTIVE"?"Khoá":"Mở khoá"}
+                      {u.status==="ACTIVE"?t("Khoá"):t("Mở khoá")}
                     </button>
                   </td>
                 </tr>

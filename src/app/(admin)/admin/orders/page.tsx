@@ -2,8 +2,10 @@
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function AdminOrdersPage() {
+  const { t: tr } = useLocale();
   const [orders, setOrders] = useState<any[]>([]);
   const [type, setType] = useState<"vps"|"hosting">("vps");
   const [loading, setLoading] = useState(true);
@@ -15,12 +17,12 @@ export default function AdminOrdersPage() {
   }, [type]);
 
   const statusColor: Record<string,"green"|"yellow"|"red"|"blue"> = { ACTIVE:"green", PENDING:"yellow", SUSPENDED:"red", TERMINATED:"red", REBUILDING:"blue" };
-  const statusLabel: Record<string,string> = { ACTIVE:"Đang chạy", PENDING:"Đang tạo", SUSPENDED:"Tạm dừng", TERMINATED:"Đã xoá", REBUILDING:"Rebuild" };
+  const statusLabel: Record<string,string> = { ACTIVE:tr("Đang chạy"), PENDING:tr("Đang tạo"), SUSPENDED:tr("Tạm dừng"), TERMINATED:tr("Đã xoá"), REBUILDING:tr("Rebuild") };
 
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
-        <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>Đơn hàng ({total})</h1>
+        <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>{tr("Đơn hàng")} ({total})</h1>
         <div style={{ display:"flex", gap:4, background:"var(--bg-elevated)", borderRadius:"var(--radius-md)", padding:4 }}>
           {(["vps","hosting"] as const).map(t=>(
             <button key={t} onClick={()=>setType(t)} style={{ padding:"7px 16px", borderRadius:"var(--radius-sm)", border:"none", cursor:"pointer", fontSize:13, fontWeight:600, background:type===t?"var(--bg-surface)":"transparent", color:type===t?"var(--text-primary)":"var(--text-muted)" }}>
@@ -35,7 +37,7 @@ export default function AdminOrdersPage() {
           <table style={{ width:"100%", borderCollapse:"collapse" }}>
             <thead>
               <tr style={{ borderBottom:"1px solid var(--border)" }}>
-                {["Khách hàng","Dịch vụ","Giá","Trạng thái","Ngày tạo"].map(h=>(
+                {[tr("Khách hàng"),tr("Dịch vụ"),tr("Giá"),tr("Trạng thái"),tr("Ngày tạo")].map(h=>(
                   <th key={h} style={{ padding:"11px 16px", textAlign:"left", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.05em", textTransform:"uppercase" }}>{h}</th>
                 ))}
               </tr>

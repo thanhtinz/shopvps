@@ -2,8 +2,10 @@
 import { useState, useEffect, useCallback } from "react";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function AdminUsersPage() {
+  const { t } = useLocale();
   const [users, setUsers] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
@@ -26,7 +28,7 @@ export default function AdminUsersPage() {
 
   async function setRole(id: string, role: string) {
     const res = await fetch("/api/admin/users", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ userId:id, action:"set_role", value:role }) });
-    if (!res.ok) { const d = await res.json().catch(()=>({})); alert(d.error || "Lỗi"); return; }
+    if (!res.ok) { const d = await res.json().catch(()=>({})); alert(d.error || t("Lỗi")); return; }
     loadUsers();
   }
 
@@ -40,10 +42,10 @@ export default function AdminUsersPage() {
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-        <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>Người dùng ({total})</h1>
+        <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>{t("Người dùng")} ({total})</h1>
         <div style={{ display:"flex", gap:10 }}>
-          <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==="Enter"&&loadUsers(search)} placeholder="Tìm tên, email..." style={{ padding:"8px 12px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-primary)", fontSize:13, outline:"none", width:220 }} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
-          <button onClick={()=>loadUsers(search)} style={{ padding:"8px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, cursor:"pointer" }}>Tìm</button>
+          <input value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==="Enter"&&loadUsers(search)} placeholder={t("Tìm tên, email...")} style={{ padding:"8px 12px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-primary)", fontSize:13, outline:"none", width:220 }} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
+          <button onClick={()=>loadUsers(search)} style={{ padding:"8px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, cursor:"pointer" }}>{t("Tìm")}</button>
         </div>
       </div>
 
@@ -52,7 +54,7 @@ export default function AdminUsersPage() {
           <table style={{ width:"100%", borderCollapse:"collapse" }}>
             <thead>
               <tr style={{ borderBottom:"1px solid var(--border)" }}>
-                {["Người dùng","Role","Số dư","Trạng thái","Ngày tạo","Thao tác"].map(h=>(
+                {[t("Người dùng"),t("Role"),t("Số dư"),t("Trạng thái"),t("Ngày tạo"),t("Thao tác")].map(h=>(
                   <th key={h} style={{ padding:"11px 16px", textAlign:"left", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.05em", textTransform:"uppercase" }}>{h}</th>
                 ))}
               </tr>
@@ -90,16 +92,16 @@ export default function AdminUsersPage() {
                       </button>
                     )}
                   </td>
-                  <td style={{ padding:"12px 16px" }}><Badge color={u.status==="ACTIVE"?"green":"red"}>{u.status==="ACTIVE"?"Hoạt động":"Bị khoá"}</Badge></td>
+                  <td style={{ padding:"12px 16px" }}><Badge color={u.status==="ACTIVE"?"green":"red"}>{u.status==="ACTIVE"?t("Hoạt động"):t("Bị khoá")}</Badge></td>
                   <td style={{ padding:"12px 16px", fontSize:12, color:"var(--text-muted)" }}>{formatDate(u.createdAt)}</td>
                   <td style={{ padding:"12px 16px" }}>
                     <div style={{ display:"flex", gap:6 }}>
                       <button onClick={()=>toggleUser(u.id)} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:u.status==="ACTIVE"?"var(--red)":"var(--green)", fontSize:12, cursor:"pointer", fontWeight:600 }}>
-                        {u.status==="ACTIVE"?"Khoá":"Mở khoá"}
+                        {u.status==="ACTIVE"?t("Khoá"):t("Mở khoá")}
                       </button>
                       {u.role!=="SUPER_ADMIN" && (
                         <button onClick={()=>setRole(u.id, u.role==="ADMIN"?"USER":"ADMIN")} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:u.role==="ADMIN"?"var(--text-muted)":"var(--accent)", fontSize:12, cursor:"pointer", fontWeight:600 }}>
-                          {u.role==="ADMIN"?"Gỡ Admin":"Cấp Admin"}
+                          {u.role==="ADMIN"?t("Gỡ Admin"):t("Cấp Admin")}
                         </button>
                       )}
                     </div>

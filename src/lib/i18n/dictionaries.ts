@@ -82,6 +82,28 @@ const en: Record<string, string> = {
 
 const DICTS: Record<Locale, Record<string, string>> = { vi, en };
 
+// Merge per-group English maps (keyed by the Vietnamese literal). These are
+// filled incrementally; missing keys fall back to the Vietnamese key itself.
+import enCommon from "./en/common";
+import enUserServices from "./en/userServices";
+import enUserBilling from "./en/userBilling";
+import enUserAccount from "./en/userAccount";
+import enAdminCore from "./en/adminCore";
+import enAdminCore2 from "./en/adminCore2";
+import enAdminCatalog from "./en/adminCatalog";
+import enAdminPromo from "./en/adminPromo";
+import enAdminConfig from "./en/adminConfig";
+import enAdminConfig2 from "./en/adminConfig2";
+import enAuth from "./en/auth";
+import enServerPages from "./en/serverPages";
+
+Object.assign(
+  DICTS.en,
+  enCommon, enUserServices, enUserBilling, enUserAccount,
+  enAdminCore, enAdminCore2, enAdminCatalog, enAdminPromo,
+  enAdminConfig, enAdminConfig2, enAuth, enServerPages,
+);
+
 export function translate(locale: Locale, key: string): string {
   return DICTS[locale]?.[key] ?? DICTS.vi[key] ?? key;
 }

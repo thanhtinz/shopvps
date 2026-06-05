@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import AddonPicker from "@/components/AddonPicker";
+import { useLocale } from "@/components/LocaleProvider";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p, i) => <path key={i} d={i === 0 ? p : "M" + p} />)}</svg>;
@@ -17,6 +18,7 @@ const CYCLES = [
 
 export default function BuyHostingPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [packages, setPackages] = useState<any[]>([]);
   const [selectedPkg, setSelectedPkg] = useState<string>("");
   const [billingCycle, setBillingCycle] = useState<string>("MONTHLY");
@@ -56,13 +58,13 @@ export default function BuyHostingPage() {
   }
 
   async function order() {
-    if (!selectedPkg) { setError("Vui lòng chọn gói hosting"); return; }
-    if (!domain.trim()) { setError("Vui lòng nhập tên miền"); return; }
+    if (!selectedPkg) { setError(t("Vui lòng chọn gói hosting")); return; }
+    if (!domain.trim()) { setError(t("Vui lòng nhập tên miền")); return; }
     setOrdering(true); setError("");
     const res = await fetch("/api/hosting/order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ packageId: selectedPkg, domain: domain.trim().toLowerCase(), billingCycle, couponCode: couponResult?.valid ? couponCode : undefined, addonIds }) });
     const data = await res.json();
     if (data.success) { router.push("/hosting"); }
-    else { setError(data.error || "Đã có lỗi xảy ra"); setOrdering(false); }
+    else { setError(data.error || t("Đã có lỗi xảy ra")); setOrdering(false); }
   }
 
   if (loading) return (
@@ -78,8 +80,8 @@ export default function BuyHostingPage() {
           <Icon d="M19 12H5 M12 19l-7-7 7-7" />
         </button>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.03em" }}>Mua Hosting mới</h1>
-          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Chọn gói và thanh toán từ ví</p>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.03em" }}>{t("Mua Hosting mới")}</h1>
+          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("Chọn gói và thanh toán từ ví")}</p>
         </div>
       </div>
 
@@ -87,7 +89,7 @@ export default function BuyHostingPage() {
         <div>
           {/* Packages */}
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px", marginBottom: 16 }}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Chọn gói Hosting</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>{t("Chọn gói Hosting")}</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {packages.map(p => (
                 <div key={p.id} onClick={() => setSelectedPkg(p.id)} style={{
@@ -108,16 +110,16 @@ export default function BuyHostingPage() {
                     </div>
                   </div>
                   <div style={{ fontSize: 13, color: "var(--text-muted)", flexShrink: 0 }}>{p.server?.name}</div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: selectedPkg === p.id ? "var(--accent)" : "var(--text-primary)", flexShrink: 0 }}>{formatCurrency(p.priceMonthly)}<span style={{ fontSize: 11, fontWeight: 400 }}>/tháng</span></div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: selectedPkg === p.id ? "var(--accent)" : "var(--text-primary)", flexShrink: 0 }}>{formatCurrency(p.priceMonthly)}<span style={{ fontSize: 11, fontWeight: 400 }}>{t("/tháng")}</span></div>
                 </div>
               ))}
-              {packages.length === 0 && <div style={{ textAlign: "center", padding: "24px", color: "var(--text-muted)", fontSize: 13 }}>Không có gói nào</div>}
+              {packages.length === 0 && <div style={{ textAlign: "center", padding: "24px", color: "var(--text-muted)", fontSize: 13 }}>{t("Không có gói nào")}</div>}
             </div>
           </div>
 
           {/* Billing cycle */}
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px", marginBottom: 16 }}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Chu kỳ thanh toán</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>{t("Chu kỳ thanh toán")}</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
               {CYCLES.map(c => (
                 <button key={c.key} onClick={() => setBillingCycle(c.key)} style={{
@@ -125,8 +127,8 @@ export default function BuyHostingPage() {
                   background: billingCycle === c.key ? "var(--accent-soft)" : "var(--bg-elevated)",
                   color: billingCycle === c.key ? "var(--accent)" : "var(--text-secondary)", cursor: "pointer", transition: "all 0.12s",
                 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700 }}>{c.label}</div>
-                  {c.discount && <div style={{ fontSize: 11, color: "var(--green)", marginTop: 2, fontWeight: 600 }}>Tiết kiệm {c.discount}</div>}
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{t(c.label)}</div>
+                  {c.discount && <div style={{ fontSize: 11, color: "var(--green)", marginTop: 2, fontWeight: 600 }}>{t("Tiết kiệm")} {c.discount}</div>}
                 </button>
               ))}
             </div>
@@ -136,17 +138,17 @@ export default function BuyHostingPage() {
 
           {/* Domain */}
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Tên miền</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>{t("Tên miền")}</h3>
             <input value={domain} onChange={e => setDomain(e.target.value)} placeholder="example.com" style={{ width: "100%", background: "var(--bg-elevated)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 14px", color: "var(--text-primary)", fontSize: 14, outline: "none", fontFamily: "var(--font-mono)" }}
               onFocus={e => e.target.style.borderColor = "rgba(79,124,255,0.5)"} onBlur={e => e.target.style.borderColor = "var(--border)"} />
-            <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 6 }}>Tên miền sẽ được trỏ tới tài khoản cPanel của bạn</div>
+            <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 6 }}>{t("Tên miền sẽ được trỏ tới tài khoản cPanel của bạn")}</div>
           </div>
         </div>
 
         {/* Order summary */}
         <div style={{ position: "sticky", top: 24 }}>
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
-            <h3 style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}>Tóm tắt đơn hàng</h3>
+            <h3 style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}>{t("Tóm tắt đơn hàng")}</h3>
 
             {pkg ? (
               <>
@@ -158,34 +160,34 @@ export default function BuyHostingPage() {
 
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <input value={couponCode} onChange={e => setCouponCode(e.target.value.toUpperCase())} placeholder="Mã giảm giá" style={{ flex: 1, background: "var(--bg-elevated)", border: `1.5px solid ${couponResult?.valid ? "rgba(34,197,94,0.4)" : couponResult?.valid === false ? "rgba(239,68,68,0.4)" : "var(--border)"}`, borderRadius: "var(--radius-md)", padding: "8px 12px", color: "var(--text-primary)", fontSize: 13, outline: "none", fontFamily: "var(--font-mono)" }} />
+                    <input value={couponCode} onChange={e => setCouponCode(e.target.value.toUpperCase())} placeholder={t("Mã giảm giá")} style={{ flex: 1, background: "var(--bg-elevated)", border: `1.5px solid ${couponResult?.valid ? "rgba(34,197,94,0.4)" : couponResult?.valid === false ? "rgba(239,68,68,0.4)" : "var(--border)"}`, borderRadius: "var(--radius-md)", padding: "8px 12px", color: "var(--text-primary)", fontSize: 13, outline: "none", fontFamily: "var(--font-mono)" }} />
                     <button onClick={checkCoupon} disabled={couponLoading || !couponCode.trim()} style={{ padding: "8px 14px", background: "var(--bg-hover)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", color: "var(--text-secondary)", fontSize: 12.5, cursor: "pointer", fontWeight: 600 }}>
-                      {couponLoading ? "..." : "Áp dụng"}
+                      {couponLoading ? "..." : t("Áp dụng")}
                     </button>
                   </div>
-                  {couponResult?.valid && <div style={{ fontSize: 12, color: "var(--green)", marginTop: 5 }}>&#10003; Giảm {formatCurrency(couponResult.data.discount)}</div>}
+                  {couponResult?.valid && <div style={{ fontSize: 12, color: "var(--green)", marginTop: 5 }}>&#10003; {t("Giảm")} {formatCurrency(couponResult.data.discount)}</div>}
                   {couponResult?.valid === false && <div style={{ fontSize: 12, color: "var(--red)", marginTop: 5 }}>&#10007; {couponResult.error}</div>}
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingBottom: 12, marginBottom: 12, borderBottom: "1px solid var(--border)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5 }}>
-                    <span style={{ color: "var(--text-muted)" }}>Giá gốc</span>
+                    <span style={{ color: "var(--text-muted)" }}>{t("Giá gốc")}</span>
                     <span style={{ color: "var(--text-secondary)" }}>{formatCurrency(basePrice)}</span>
                   </div>
                   {discount > 0 && (
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5 }}>
-                      <span style={{ color: "var(--text-muted)" }}>Giảm giá</span>
+                      <span style={{ color: "var(--text-muted)" }}>{t("Giảm giá")}</span>
                       <span style={{ color: "var(--green)" }}>-{formatCurrency(discount)}</span>
                     </div>
                   )}
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14 }}>Tổng cộng</span>
+                  <span style={{ fontWeight: 700, fontSize: 14 }}>{t("Tổng cộng")}</span>
                   <span style={{ fontWeight: 900, fontSize: 18, color: "var(--accent)", letterSpacing: "-0.02em" }}>{formatCurrency(finalPrice)}</span>
                 </div>
               </>
             ) : (
-              <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)", fontSize: 13 }}>Chọn gói hosting để xem giá</div>
+              <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)", fontSize: 13 }}>{t("Chọn gói hosting để xem giá")}</div>
             )}
 
             {error && <div style={{ background: "var(--red-soft)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "var(--radius-md)", padding: "9px 12px", color: "var(--red)", fontSize: 12.5, marginBottom: 12 }}>⚠ {error}</div>}
@@ -196,9 +198,9 @@ export default function BuyHostingPage() {
               color: "white", fontSize: 14, fontWeight: 700,
               cursor: (ordering || !selectedPkg || !domain.trim()) ? "not-allowed" : "pointer",
             }}>
-              {ordering ? "Đang xử lý..." : `Đặt mua — ${formatCurrency(finalPrice)}`}
+              {ordering ? t("Đang xử lý...") : `${t("Đặt mua")} — ${formatCurrency(finalPrice)}`}
             </button>
-            <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 11.5, marginTop: 10 }}>Thanh toán từ ví · cPanel được tạo tự động</p>
+            <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 11.5, marginTop: 10 }}>{t("Thanh toán từ ví · cPanel được tạo tự động")}</p>
           </div>
         </div>
       </div>

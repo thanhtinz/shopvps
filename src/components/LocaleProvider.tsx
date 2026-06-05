@@ -11,13 +11,18 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem("locale") as Locale | null;
-      if (saved === "vi" || saved === "en") { setLoc(saved); document.documentElement.lang = saved; }
+      if (saved === "vi" || saved === "en") {
+        setLoc(saved);
+        document.documentElement.lang = saved;
+        document.cookie = `locale=${saved};path=/;max-age=31536000;samesite=lax`;
+      }
     } catch {}
   }, []);
 
   const setLocale = useCallback((l: Locale) => {
     setLoc(l);
     try { localStorage.setItem("locale", l); } catch {}
+    document.cookie = `locale=${l};path=/;max-age=31536000;samesite=lax`;
     document.documentElement.lang = l;
   }, []);
 

@@ -2,17 +2,19 @@
 import { useState, useEffect, useCallback } from "react";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 
-const STATUS = [
-  { key: "PENDING", label: "Chờ duyệt" },
-  { key: "PAID", label: "Đã trả" },
-  { key: "CANCELLED", label: "Đã huỷ" },
-  { key: "", label: "Tất cả" },
-];
 const statusColor: Record<string, "green"|"yellow"|"red"|"gray"> = { PENDING: "yellow", APPROVED: "green", PAID: "green", CANCELLED: "red" };
-const statusLabel: Record<string, string> = { PENDING: "Chờ duyệt", APPROVED: "Đã duyệt", PAID: "Đã trả", CANCELLED: "Đã huỷ" };
 
 export default function AdminCommissionsPage() {
+  const { t } = useLocale();
+  const STATUS = [
+    { key: "PENDING", label: t("Chờ duyệt") },
+    { key: "PAID", label: t("Đã trả") },
+    { key: "CANCELLED", label: t("Đã huỷ") },
+    { key: "", label: t("Tất cả") },
+  ];
+  const statusLabel: Record<string, string> = { PENDING: t("Chờ duyệt"), APPROVED: t("Đã duyệt"), PAID: t("Đã trả"), CANCELLED: t("Đã huỷ") };
   const [items, setItems] = useState<any[]>([]);
   const [status, setStatus] = useState("PENDING");
   const [loading, setLoading] = useState(true);
@@ -40,8 +42,8 @@ export default function AdminCommissionsPage() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.03em" }}>Hoa hồng affiliate</h1>
-          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Đang chờ duyệt: <strong style={{ color: "var(--yellow)" }}>{formatCurrency(pendingTotal)}</strong></p>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.03em" }}>{t("Hoa hồng affiliate")}</h1>
+          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("Đang chờ duyệt")}: <strong style={{ color: "var(--yellow)" }}>{formatCurrency(pendingTotal)}</strong></p>
         </div>
         <div style={{ display: "flex", gap: 4, background: "var(--bg-elevated)", borderRadius: "var(--radius-md)", padding: 4 }}>
           {STATUS.map(s => (
@@ -54,12 +56,12 @@ export default function AdminCommissionsPage() {
 
       <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
         {loading ? <div className="skeleton" style={{ height: 300, margin: 16, borderRadius: "var(--radius-md)" }} /> : items.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)", fontSize: 13 }}>Không có hoa hồng nào</div>
+          <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)", fontSize: 13 }}>{t("Không có hoa hồng nào")}</div>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                {["Người nhận", "Loại", "Số tiền", "Trạng thái", "Ngày", "Thao tác"].map(h => (
+                {[t("Người nhận"), t("Loại"), t("Số tiền"), t("Trạng thái"), t("Ngày"), t("Thao tác")].map(h => (
                   <th key={h} style={{ padding: "11px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase" }}>{h}</th>
                 ))}
               </tr>
@@ -79,10 +81,10 @@ export default function AdminCommissionsPage() {
                     {c.status === "PENDING" ? (
                       <div style={{ display: "flex", gap: 6 }}>
                         <button onClick={() => act(c.id, "approve")} disabled={!!busy} style={{ padding: "5px 12px", borderRadius: "var(--radius-sm)", border: "none", background: "var(--green)", color: "white", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-                          {busy === c.id + "approve" ? "..." : "Duyệt"}
+                          {busy === c.id + "approve" ? "..." : t("Duyệt")}
                         </button>
                         <button onClick={() => act(c.id, "reject")} disabled={!!busy} style={{ padding: "5px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-elevated)", color: "var(--red)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-                          {busy === c.id + "reject" ? "..." : "Từ chối"}
+                          {busy === c.id + "reject" ? "..." : t("Từ chối")}
                         </button>
                       </div>
                     ) : <span style={{ fontSize: 12, color: "var(--text-muted)" }}>—</span>}

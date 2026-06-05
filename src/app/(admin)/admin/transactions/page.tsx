@@ -2,11 +2,12 @@
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 
 const typeColor: Record<string,"green"|"red"|"yellow"|"blue"> = { DEPOSIT:"green", PURCHASE:"yellow", REFUND:"blue", BONUS:"green", COMMISSION:"blue", WITHDRAWAL:"red", ADJUSTMENT:"gray" as any };
-const typeLabel: Record<string,string> = { DEPOSIT:"Nạp tiền", PURCHASE:"Thanh toán", REFUND:"Hoàn tiền", BONUS:"Thưởng", COMMISSION:"Hoa hồng", WITHDRAWAL:"Rút", ADJUSTMENT:"Điều chỉnh" };
-
 export default function AdminTransactionsPage() {
+  const { t } = useLocale();
+  const typeLabel: Record<string,string> = { DEPOSIT:t("Nạp tiền"), PURCHASE:t("Thanh toán"), REFUND:t("Hoàn tiền"), BONUS:t("Thưởng"), COMMISSION:t("Hoa hồng"), WITHDRAWAL:t("Rút"), ADJUSTMENT:t("Điều chỉnh") };
   const [txs, setTxs] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [filter, setFilter] = useState("");
@@ -20,9 +21,9 @@ export default function AdminTransactionsPage() {
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
-        <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>Giao dịch ({total})</h1>
+        <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>{t("Giao dịch")} ({total})</h1>
         <select value={filter} onChange={e=>setFilter(e.target.value)} style={{ padding:"8px 12px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-primary)", fontSize:13, cursor:"pointer", outline:"none" }}>
-          <option value="">Tất cả loại</option>
+          <option value="">{t("Tất cả loại")}</option>
           {Object.entries(typeLabel).map(([k,v])=><option key={k} value={k}>{v}</option>)}
         </select>
       </div>
@@ -33,7 +34,7 @@ export default function AdminTransactionsPage() {
             <table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead>
                 <tr style={{ borderBottom:"1px solid var(--border)" }}>
-                  {["Thời gian","Người dùng","Loại","Số tiền","Số dư sau","Mô tả"].map(h=>(
+                  {[t("Thời gian"),t("Người dùng"),t("Loại"),t("Số tiền"),t("Số dư sau"),t("Mô tả")].map(h=>(
                     <th key={h} style={{ padding:"11px 14px", textAlign:"left", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.05em", textTransform:"uppercase", whiteSpace:"nowrap" }}>{h}</th>
                   ))}
                 </tr>

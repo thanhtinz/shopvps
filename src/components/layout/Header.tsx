@@ -2,10 +2,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAppearance } from "@/components/AppearanceProvider";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function Header({ title }: { title?: string }) {
   const [showNotif, setShowNotif] = useState(false);
   const { appearance, update } = useAppearance();
+  const { t } = useLocale();
 
   return (
     <header style={{
@@ -20,7 +22,7 @@ export default function Header({ title }: { title?: string }) {
 
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         {/* Theme toggle */}
-        <button onClick={() => update({ theme: appearance.theme === "dark" ? "light" : "dark" })} aria-label="Đổi giao diện sáng/tối" title="Sáng / Tối" style={{ width: 34, height: 34, borderRadius: "var(--radius-md)", background: "transparent", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}
+        <button onClick={() => update({ theme: appearance.theme === "dark" ? "light" : "dark" })} aria-label={t("Đổi giao diện sáng/tối")} title={t("Sáng / Tối")} style={{ width: 34, height: 34, borderRadius: "var(--radius-md)", background: "transparent", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
         >
@@ -56,13 +58,13 @@ export default function Header({ title }: { title?: string }) {
               overflow: "hidden",
             }}>
               <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>Thông báo</span>
-                <button style={{ fontSize: 11, color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>Đọc tất cả</button>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{t("Thông báo")}</span>
+                <button style={{ fontSize: 11, color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>{t("Đọc tất cả")}</button>
               </div>
               {[
-                { title: "Nạp tiền thành công", desc: "+500,000đ vào ví", time: "2 phút trước", color: "var(--green)" },
-                { title: "VPS sắp hết hạn", desc: "VPS #1234 hết hạn sau 3 ngày", time: "1 giờ trước", color: "var(--yellow)" },
-                { title: "Ticket #45 đã phản hồi", desc: "Admin đã trả lời ticket của bạn", time: "3 giờ trước", color: "var(--accent)" },
+                { title: t("Nạp tiền thành công"), desc: t("+500,000đ vào ví"), time: t("2 phút trước"), color: "var(--green)" },
+                { title: t("VPS sắp hết hạn"), desc: t("VPS #1234 hết hạn sau 3 ngày"), time: t("1 giờ trước"), color: "var(--yellow)" },
+                { title: t("Ticket #45 đã phản hồi"), desc: t("Admin đã trả lời ticket của bạn"), time: t("3 giờ trước"), color: "var(--accent)" },
               ].map((n, i) => (
                 <div key={i} style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", cursor: "pointer" }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"}
@@ -79,7 +81,7 @@ export default function Header({ title }: { title?: string }) {
                 </div>
               ))}
               <Link href="/notifications" style={{ display: "block", padding: "12px", textAlign: "center", fontSize: 12, color: "var(--accent)", textDecoration: "none" }}>
-                Xem tất cả thông báo
+                {t("Xem tất cả thông báo")}
               </Link>
             </div>
           )}

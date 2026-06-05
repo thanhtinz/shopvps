@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { formatCurrency } from "@/lib/utils";
 import Badge from "@/components/ui/Badge";
+import { useLocale } from "@/components/LocaleProvider";
 
 function Icon({ d, size = 14 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
@@ -10,6 +11,7 @@ function Icon({ d, size = 14 }: { d: string; size?: number }) {
 const inputStyle = { width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--text-primary)", fontSize:13, outline:"none", fontFamily:"inherit" };
 
 export default function AdminVpsPackagesPage() {
+  const { t } = useLocale();
   const [packages, setPackages] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,9 +43,9 @@ export default function AdminVpsPackagesPage() {
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
-        <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>Gói VPS</h1>
+        <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>{t("Gói VPS")}</h1>
         <button onClick={()=>setShowForm(true)} style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>
-          <Icon d="M12 5v14 M5 12h14"/> Thêm gói mới
+          <Icon d="M12 5v14 M5 12h14"/> {t("Thêm gói mới")}
         </button>
       </div>
 
@@ -51,7 +53,7 @@ export default function AdminVpsPackagesPage() {
         <table style={{ width:"100%", borderCollapse:"collapse" }}>
           <thead>
             <tr style={{ borderBottom:"1px solid var(--border)" }}>
-              {["Tên gói","Provider","Cấu hình","Giá/tháng","Trạng thái","Thao tác"].map(h=>(
+              {[t("Tên gói"),t("Provider"),t("Cấu hình"),t("Giá/tháng"),t("Trạng thái"),t("Thao tác")].map(h=>(
                 <th key={h} style={{ padding:"11px 16px", textAlign:"left", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.05em", textTransform:"uppercase" }}>{h}</th>
               ))}
             </tr>
@@ -73,10 +75,10 @@ export default function AdminVpsPackagesPage() {
                   </div>
                 </td>
                 <td style={{ padding:"12px 16px", fontSize:13, fontWeight:700, color:"var(--text-primary)" }}>{formatCurrency(pkg.priceMonthly)}</td>
-                <td style={{ padding:"12px 16px" }}><Badge color={pkg.isActive?"green":"gray"}>{pkg.isActive?"Hoạt động":"Ẩn"}</Badge></td>
+                <td style={{ padding:"12px 16px" }}><Badge color={pkg.isActive?"green":"gray"}>{pkg.isActive?t("Hoạt động"):t("Ẩn")}</Badge></td>
                 <td style={{ padding:"12px 16px" }}>
                   <button onClick={()=>toggleActive(pkg.id, pkg.isActive)} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:pkg.isActive?"var(--red)":"var(--green)", fontSize:12, cursor:"pointer", fontWeight:600 }}>
-                    {pkg.isActive?"Ẩn":"Hiện"}
+                    {pkg.isActive?t("Ẩn"):t("Hiện")}
                   </button>
                 </td>
               </tr>
@@ -88,17 +90,17 @@ export default function AdminVpsPackagesPage() {
       {showForm && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:50 }} onClick={()=>setShowForm(false)}>
           <div style={{ background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-xl)", padding:"28px", width:520, maxWidth:"90vw", maxHeight:"85vh", overflowY:"auto" }} onClick={e=>e.stopPropagation()}>
-            <h3 style={{ fontSize:16, fontWeight:700, color:"var(--text-primary)", marginBottom:20 }}>Thêm gói VPS mới</h3>
+            <h3 style={{ fontSize:16, fontWeight:700, color:"var(--text-primary)", marginBottom:20 }}>{t("Thêm gói VPS mới")}</h3>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
               {[
-                { label:"Tên gói", key:"name", type:"text", ph:"Cloud Compute 1" },
-                { label:"Slug", key:"slug", type:"text", ph:"vc2-1c-1gb" },
-                { label:"CPU (vCore)", key:"cpu", type:"number", ph:"1" },
-                { label:"RAM (GB)", key:"ram", type:"number", ph:"1" },
-                { label:"Storage (GB)", key:"storage", type:"number", ph:"25" },
-                { label:"Bandwidth (GB)", key:"bandwidth", type:"number", ph:"1000" },
-                { label:"Giá/tháng (VNĐ)", key:"priceMonthly", type:"number", ph:"99000" },
-                { label:"Giá/năm (VNĐ)", key:"priceYearly", type:"number", ph:"990000" },
+                { label:t("Tên gói"), key:"name", type:"text", ph:"Cloud Compute 1" },
+                { label:t("Slug"), key:"slug", type:"text", ph:"vc2-1c-1gb" },
+                { label:t("CPU (vCore)"), key:"cpu", type:"number", ph:"1" },
+                { label:t("RAM (GB)"), key:"ram", type:"number", ph:"1" },
+                { label:t("Storage (GB)"), key:"storage", type:"number", ph:"25" },
+                { label:t("Bandwidth (GB)"), key:"bandwidth", type:"number", ph:"1000" },
+                { label:t("Giá/tháng (VNĐ)"), key:"priceMonthly", type:"number", ph:"99000" },
+                { label:t("Giá/năm (VNĐ)"), key:"priceYearly", type:"number", ph:"990000" },
               ].map(f=>(
                 <div key={f.key}>
                   <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:5 }}>{f.label}</label>
@@ -108,9 +110,9 @@ export default function AdminVpsPackagesPage() {
               ))}
             </div>
             <div style={{ display:"flex", gap:10, marginTop:4 }}>
-              <button onClick={()=>setShowForm(false)} style={{ flex:1, padding:"10px", background:"var(--bg-hover)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", cursor:"pointer", fontSize:13 }}>Huỷ</button>
+              <button onClick={()=>setShowForm(false)} style={{ flex:1, padding:"10px", background:"var(--bg-hover)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", cursor:"pointer", fontSize:13 }}>{t("Huỷ")}</button>
               <button onClick={save} disabled={saving} style={{ flex:2, padding:"10px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, cursor:"pointer", fontSize:13 }}>
-                {saving?"Đang lưu...":"Tạo gói →"}
+                {saving?t("Đang lưu..."):t("Tạo gói →")}
               </button>
             </div>
           </div>
