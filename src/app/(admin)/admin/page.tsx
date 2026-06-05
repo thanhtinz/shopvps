@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { formatCurrency } from "@/lib/utils";
+import RevenueChart from "@/components/admin/RevenueChart";
 
 const ICON_PATHS: Record<string,string> = {
   users: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z",
@@ -69,6 +70,8 @@ export default function AdminDashboard() {
         <StatBox title="Doanh thu hôm nay" value={formatCurrency(stats?.todayRevenue||0)} icon="trending" color="var(--green)"/>
         <StatBox title="Tổng số dư ví" value={formatCurrency(stats?.totalBalance||0)} icon="wallet" color="var(--accent)"/>
       </div>
+
+      <RevenueChart />
 
       {/* Users table */}
       <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", overflow:"hidden" }}>
