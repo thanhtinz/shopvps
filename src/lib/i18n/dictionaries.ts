@@ -118,6 +118,7 @@ import enQuotesUi from "./en/quotesUi";
 import enQuotesAdminUi from "./en/quotesAdminUi";
 import enStoreUi from "./en/storeUi";
 import enCartUi from "./en/cartUi";
+import enCouponsUi from "./en/couponsUi";
 
 Object.assign(
   DICTS.en,
@@ -126,7 +127,7 @@ Object.assign(
   enAdminConfig, enAdminConfig2, enAuth, enServerPages,
   enApiAdmin, enApiServices, enApiMisc, enEmails,
   enUiPublic, enUiMisc, enSrvNotif, enSrvMisc, enFixups, enBilling, enUpgradeUi,
-  enQuotes, enQuotesUi, enQuotesAdminUi, enStoreUi, enCartUi,
+  enQuotes, enQuotesUi, enQuotesAdminUi, enStoreUi, enCartUi, enCouponsUi,
 );
 
 export function translate(locale: Locale, key: string): string {

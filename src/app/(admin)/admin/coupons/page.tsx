@@ -11,19 +11,26 @@ export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ code:"", type:"PERCENTAGE", value:"", minOrder:"", maxDiscount:"", usageLimit:"", expiresAt:"" });
+  const emptyForm = { code:"", type:"PERCENTAGE", value:"", minOrder:"", maxDiscount:"", usageLimit:"", expiresAt:"", productType:"", packageIds:[] as string[] };
+  const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [vpsPkgs, setVpsPkgs] = useState<any[]>([]);
+  const [hostingPkgs, setHostingPkgs] = useState<any[]>([]);
 
   useEffect(() => {
     fetch("/api/admin/coupons").then(r=>r.json()).then(d=>{ setCoupons(d.data||[]); setLoading(false); });
+    fetch("/api/vps/packages").then(r=>r.json()).then(d=>setVpsPkgs(d.data||[]));
+    fetch("/api/hosting/packages").then(r=>r.json()).then(d=>setHostingPkgs(d.data||[]));
   }, []);
+
+  const scopePkgs = form.productType==="VPS" ? vpsPkgs : form.productType==="HOSTING" ? hostingPkgs : [];
 
   async function save(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setError("");
-    const res = await fetch("/api/admin/coupons", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ...form, value:parseFloat(form.value), minOrder:form.minOrder?parseFloat(form.minOrder):null, maxDiscount:form.maxDiscount?parseFloat(form.maxDiscount):null, usageLimit:form.usageLimit?parseInt(form.usageLimit):null }) });
+    const res = await fetch("/api/admin/coupons", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ...form, value:parseFloat(form.value), minOrder:form.minOrder?parseFloat(form.minOrder):null, maxDiscount:form.maxDiscount?parseFloat(form.maxDiscount):null, usageLimit:form.usageLimit?parseInt(form.usageLimit):null, productType:form.productType||null, packageIds:form.productType?form.packageIds:[] }) });
     const data = await res.json();
-    if (data.success) { setCoupons(p=>[data.data,...p]); setShowForm(false); setForm({ code:"", type:"PERCENTAGE", value:"", minOrder:"", maxDiscount:"", usageLimit:"", expiresAt:"" }); }
+    if (data.success) { setCoupons(p=>[data.data,...p]); setShowForm(false); setForm(emptyForm); }
     else setError(data.error);
     setSaving(false);
   }
@@ -64,6 +71,9 @@ export default function AdminCouponsPage() {
               >
                 <td style={{ padding:"12px 14px" }}>
                   <span style={{ fontFamily:"var(--font-mono)", fontSize:13.5, fontWeight:700, color:"var(--accent)", background:"var(--accent-soft)", padding:"3px 8px", borderRadius:6 }}>{c.code}</span>
+                  <div style={{ fontSize:10.5, color:"var(--text-muted)", marginTop:4 }}>
+                    {c.productType ? `${c.productType==="VPS"?t("Chỉ VPS"):t("Chỉ Hosting")}${c.packageIds?.length?` · ${c.packageIds.length} ${t("gói")}`:""}` : t("Tất cả sản phẩm")}
+                  </div>
                 </td>
                 <td style={{ padding:"12px 14px" }}><Badge color={c.type==="PERCENTAGE"?"blue":"green"}>{c.type==="PERCENTAGE"?"%":t("Cố định")}</Badge></td>
                 <td style={{ padding:"12px 14px", fontSize:13, fontWeight:700, color:"var(--text-primary)" }}>
@@ -119,6 +129,28 @@ export default function AdminCouponsPage() {
                   <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:5 }}>{t("Ngày hết hạn")}</label>
                   <input type="datetime-local" value={form.expiresAt} onChange={e=>setForm(p=>({...p,expiresAt:e.target.value}))} style={{ ...inputStyle, colorScheme:"dark" }} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
                 </div>
+                <div style={{ gridColumn:"1/-1" }}>
+                  <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:5 }}>{t("Áp dụng cho")}</label>
+                  <select value={form.productType} onChange={e=>setForm(p=>({...p,productType:e.target.value,packageIds:[]}))} style={{ ...inputStyle, cursor:"pointer" }}>
+                    <option value="">{t("Tất cả sản phẩm")}</option>
+                    <option value="VPS">{t("Chỉ VPS")}</option>
+                    <option value="HOSTING">{t("Chỉ Hosting")}</option>
+                  </select>
+                </div>
+                {form.productType && (
+                  <div style={{ gridColumn:"1/-1" }}>
+                    <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:5 }}>{t("Giới hạn theo gói (bỏ trống = mọi gói)")}</label>
+                    <div style={{ maxHeight:140, overflowY:"auto", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"8px 10px", display:"flex", flexDirection:"column", gap:6 }}>
+                      {scopePkgs.length===0 && <span style={{ fontSize:12, color:"var(--text-muted)" }}>{t("Không có gói nào")}</span>}
+                      {scopePkgs.map((pkg:any)=>(
+                        <label key={pkg.id} style={{ display:"flex", alignItems:"center", gap:8, fontSize:12.5, color:"var(--text-secondary)", cursor:"pointer" }}>
+                          <input type="checkbox" checked={form.packageIds.includes(pkg.id)} onChange={e=>setForm(p=>({...p,packageIds:e.target.checked?[...p.packageIds,pkg.id]:p.packageIds.filter(x=>x!==pkg.id)}))}/>
+                          {pkg.name} <span style={{ color:"var(--text-muted)" }}>· {formatCurrency(pkg.priceMonthly)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               {error && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:13, marginBottom:14 }}>⚠ {error}</div>}
               <div style={{ display:"flex", gap:10 }}>

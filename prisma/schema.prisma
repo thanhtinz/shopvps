@@ -461,6 +461,8 @@ model Coupon {
   usageLimit  Int?
   usedCount   Int        @default(0)
   isActive    Boolean    @default(true)
+  productType String?
+  packageIds  String[]   @default([])
   expiresAt   DateTime?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt

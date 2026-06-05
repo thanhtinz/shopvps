@@ -7,10 +7,11 @@ import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
 import { encrypt } from "@/lib/encrypt";
 import { getServerT, getUserT } from "@/lib/i18n/server";
+import { validateCoupon } from "@/lib/coupons";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
-  const { t } = await getServerT();
+  const { t, locale } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -40,25 +41,18 @@ export async function POST(req: NextRequest) {
     price += addonsData.reduce((s, a) => s + a.price, 0);
   }
 
-  // Coupon
+  // Coupon (shared validator enforces product scope + limits)
   let discount = 0;
   let appliedCouponId: string | null = null;
   let appliedCouponLimit: number | null = null;
   if (couponCode) {
-    const coupon = await prisma.coupon.findFirst({ where: { code: couponCode.toUpperCase(), isActive: true } });
-    if (coupon && (!coupon.expiresAt || coupon.expiresAt > new Date())) {
-      if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit)
-        return NextResponse.json({ error: t("Coupon đã hết lượt dùng") }, { status: 400 });
-      if (coupon.minOrder && price < Number(coupon.minOrder))
-        return NextResponse.json({ error: `Đơn tối thiểu ${coupon.minOrder}đ` }, { status: 400 });
-      if (coupon.type === "PERCENTAGE") discount = Math.floor(price * Number(coupon.value) / 100);
-      else discount = Number(coupon.value);
-      if (coupon.maxDiscount) discount = Math.min(discount, Number(coupon.maxDiscount));
-      // Defer the usage increment into the transaction below so it is not
-      // applied when the order ultimately fails (e.g. insufficient balance).
-      appliedCouponId = coupon.id;
-      appliedCouponLimit = coupon.usageLimit;
-    }
+    const cres = await validateCoupon(couponCode, { orderAmount: price, productType: "HOSTING", packageId }, locale);
+    if (!cres.valid) return NextResponse.json({ error: cres.error }, { status: 400 });
+    discount = cres.discount;
+    // Defer the usage increment into the transaction below so it is not
+    // applied when the order ultimately fails (e.g. insufficient balance).
+    appliedCouponId = cres.coupon.id;
+    appliedCouponLimit = cres.coupon.usageLimit;
   }
 
   const finalPrice = Math.max(0, price - discount);

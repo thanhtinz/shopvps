@@ -5,6 +5,7 @@ import { pick } from "@/lib/utils";
 
 const COUPON_FIELDS = [
   "code", "type", "value", "minOrder", "maxDiscount", "usageLimit", "isActive", "expiresAt",
+  "productType", "packageIds",
 ] as const;
 
 async function isAdmin(s: any) { return s && ["ADMIN","SUPER_ADMIN"].includes((s.user as any).role); }

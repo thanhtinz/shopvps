@@ -6,9 +6,10 @@ import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
 import { getServerT, getUserT } from "@/lib/i18n/server";
+import { validateCoupon } from "@/lib/coupons";
 
 export async function POST(req: NextRequest) {
-  const { t } = await getServerT();
+  const { t, locale } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -40,27 +41,14 @@ export async function POST(req: NextRequest) {
     price += addonsData.reduce((s, a) => s + a.price, 0);
   }
 
-  // Apply coupon
+  // Apply coupon (shared validator enforces product scope + limits)
   let discount = 0;
   let coupon = null;
   if (couponCode) {
-    coupon = await prisma.coupon.findFirst({
-      where: { code: couponCode.toUpperCase(), isActive: true },
-    });
-    if (coupon) {
-      if (coupon.expiresAt && coupon.expiresAt < new Date())
-        return NextResponse.json({ error: t("Coupon đã hết hạn") }, { status: 400 });
-      if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit)
-        return NextResponse.json({ error: t("Coupon đã hết lượt dùng") }, { status: 400 });
-      if (coupon.minOrder && price < Number(coupon.minOrder))
-        return NextResponse.json({ error: `Đơn tối thiểu ${coupon.minOrder}đ` }, { status: 400 });
-      if (coupon.type === "PERCENTAGE") {
-        discount = Math.floor(price * Number(coupon.value) / 100);
-        if (coupon.maxDiscount) discount = Math.min(discount, Number(coupon.maxDiscount));
-      } else {
-        discount = Number(coupon.value);
-      }
-    }
+    const cres = await validateCoupon(couponCode, { orderAmount: price, productType: "VPS", packageId }, locale);
+    if (!cres.valid) return NextResponse.json({ error: cres.error }, { status: 400 });
+    coupon = cres.coupon;
+    discount = cres.discount;
   }
 
   const finalPrice = Math.max(0, price - discount);
