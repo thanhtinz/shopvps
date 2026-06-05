@@ -48,7 +48,7 @@ function NavIcon({ d }: { d: string }) {
   return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
 }
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const isActive = (href: string) => href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
@@ -70,7 +70,7 @@ export default function AdminSidebar() {
             {g.items.map(item => {
               const active = isActive(item.href);
               return (
-                <Link key={item.href} href={item.href} style={{ display:"flex", alignItems:"center", gap:9, padding:"8px 10px", borderRadius:"var(--radius-md)", marginBottom:1, textDecoration:"none", color:active?"#ef4444":"var(--text-secondary)", background:active?"rgba(239,68,68,0.1)":"transparent", fontWeight:active?600:400, fontSize:13, transition:"all 0.12s", position:"relative" }}
+                <Link key={item.href} href={item.href} onClick={onClose} style={{ display:"flex", alignItems:"center", gap:9, padding:"8px 10px", borderRadius:"var(--radius-md)", marginBottom:1, textDecoration:"none", color:active?"#ef4444":"var(--text-secondary)", background:active?"rgba(239,68,68,0.1)":"transparent", fontWeight:active?600:400, fontSize:13, transition:"all 0.12s", position:"relative" }}
                   onMouseEnter={e=>{ if(!active){(e.currentTarget as HTMLElement).style.background="var(--bg-hover)";(e.currentTarget as HTMLElement).style.color="var(--text-primary)";} }}
                   onMouseLeave={e=>{ if(!active){(e.currentTarget as HTMLElement).style.background="transparent";(e.currentTarget as HTMLElement).style.color="var(--text-secondary)";} }}
                 >

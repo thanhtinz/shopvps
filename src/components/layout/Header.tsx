@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useAppearance } from "@/components/AppearanceProvider";
 
 export default function Header({ title }: { title?: string }) {
   const [showNotif, setShowNotif] = useState(false);
+  const { appearance, update } = useAppearance();
 
   return (
     <header style={{
@@ -17,6 +19,16 @@ export default function Header({ title }: { title?: string }) {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        {/* Theme toggle */}
+        <button onClick={() => update({ theme: appearance.theme === "dark" ? "light" : "dark" })} aria-label="Đổi giao diện sáng/tối" title="Sáng / Tối" style={{ width: 34, height: 34, borderRadius: "var(--radius-md)", background: "transparent", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
+        >
+          {appearance.theme === "dark"
+            ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
+            : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>}
+        </button>
+
         {/* Search */}
         <button style={{ width: 34, height: 34, borderRadius: "var(--radius-md)", background: "transparent", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
