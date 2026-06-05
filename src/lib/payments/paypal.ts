@@ -1,3 +1,4 @@
+import { translate } from "@/lib/i18n/dictionaries";
 import type { GatewayModule } from "./types";
 
 // PayPal base URL for the configured environment.
@@ -26,7 +27,8 @@ export const paypalGateway: GatewayModule = {
   auto: true,
   createsPendingTxn: true,
   async initiate(ctx) {
-    if (!ctx.config?.clientId || !ctx.config?.secret) throw new Error("PayPal chưa được cấu hình");
+    const t = (k: string) => translate(ctx.locale, k);
+    if (!ctx.config?.clientId || !ctx.config?.secret) throw new Error(t("PayPal chưa được cấu hình"));
     const base = paypalBase(ctx.config);
     const token = await paypalToken(ctx.config);
     const value = ctx.amountCurrency.toFixed(ctx.currency.decimals);
@@ -46,7 +48,7 @@ export const paypalGateway: GatewayModule = {
     });
     const data = await res.json();
     const approve = data?.links?.find((l: any) => l.rel === "approve")?.href;
-    if (!res.ok || !approve) throw new Error(data?.message || "Không tạo được đơn PayPal");
+    if (!res.ok || !approve) throw new Error(data?.message || t("Không tạo được đơn PayPal"));
     return { kind: "redirect", url: approve };
   },
 };

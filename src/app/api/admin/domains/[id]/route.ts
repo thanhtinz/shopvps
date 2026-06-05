@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -30,7 +30,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       exp.setFullYear(exp.getFullYear() + (domain.years || 1));
       data.expiresAt = exp;
     }
-    await prisma.notification.create({ data: { userId: domain.userId, type: "SUCCESS", title: "Tên miền đã kích hoạt", content: `Tên miền ${domain.domain} đã được kích hoạt.` } });
+    const { t: tn } = await getUserT(domain.userId);
+    await prisma.notification.create({ data: { userId: domain.userId, type: "SUCCESS", title: tn("Tên miền đã kích hoạt"), content: `${tn("Tên miền")} ${domain.domain} ${tn("đã được kích hoạt.")}` } });
   }
 
   const item = await prisma.domainOrder.update({ where: { id }, data });

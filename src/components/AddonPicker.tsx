@@ -1,10 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { formatCurrency } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 
 // Reusable add-on selector for the VPS/Hosting order pages. Reports the selected
 // ids and their combined MONTHLY price; the parent multiplies by the cycle.
 export default function AddonPicker({ scope, selected, onChange }: { scope: "vps" | "hosting"; selected: string[]; onChange: (ids: string[], monthlyTotal: number) => void }) {
+  const { t } = useLocale();
   const [addons, setAddons] = useState<any[]>([]);
 
   useEffect(() => { fetch(`/api/addons?scope=${scope}`).then(r => r.json()).then(d => setAddons(d.data || [])).catch(() => {}); }, [scope]);
@@ -19,7 +21,7 @@ export default function AddonPicker({ scope, selected, onChange }: { scope: "vps
 
   return (
     <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "18px 20px", marginBottom: 16 }}>
-      <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Tuỳ chọn thêm (add-on)</div>
+      <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>{t("Tuỳ chọn thêm (add-on)")}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {addons.map((a) => {
           const on = selected.includes(a.id);
@@ -30,7 +32,7 @@ export default function AddonPicker({ scope, selected, onChange }: { scope: "vps
                 <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{a.name}</span>
                 {a.description && <span style={{ display: "block", fontSize: 11.5, color: "var(--text-muted)" }}>{a.description}</span>}
               </span>
-              <span style={{ fontSize: 12.5, color: "var(--text-secondary)", fontWeight: 600 }}>+{formatCurrency(Number(a.priceMonthly))}/th</span>
+              <span style={{ fontSize: 12.5, color: "var(--text-secondary)", fontWeight: 600 }}>+{formatCurrency(Number(a.priceMonthly))}{t("/th")}</span>
             </label>
           );
         })}

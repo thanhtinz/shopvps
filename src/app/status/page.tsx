@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useLocale } from "@/components/LocaleProvider";
 
 const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
   OPERATIONAL:   { label: "Hoạt động bình thường", color: "#22c55e", dot: "#22c55e" },
@@ -18,6 +19,7 @@ const impactConfig: Record<string, { label: string; color: string }> = {
 };
 
 export default function StatusPage() {
+  const { t } = useLocale();
   const [data, setData] = useState<{ services: any[]; incidents: any[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +43,7 @@ export default function StatusPage() {
           </div>
           <span style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.02em" }}>ShopVPS</span>
         </Link>
-        <span style={{ fontSize: 12, color: "#4a5568" }}>Cập nhật mỗi 30s</span>
+        <span style={{ fontSize: 12, color: "#4a5568" }}>{t("Cập nhật mỗi 30s")}</span>
       </div>
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px" }}>
@@ -57,7 +59,7 @@ export default function StatusPage() {
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#e8edf5", marginBottom: 2 }}>
-              {loading ? "Đang tải..." : allOperational ? "Tất cả hệ thống hoạt động bình thường" : "Một số hệ thống đang gặp sự cố"}
+              {loading ? t("Đang tải...") : allOperational ? t("Tất cả hệ thống hoạt động bình thường") : t("Một số hệ thống đang gặp sự cố")}
             </div>
             <div style={{ fontSize: 13, color: "#8896aa" }}>{new Date().toLocaleDateString("vi-VN", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
           </div>
@@ -66,7 +68,7 @@ export default function StatusPage() {
         {/* Services */}
         <div style={{ background: "rgba(13,17,23,0.8)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden", marginBottom: 28 }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#e8edf5" }}>Trạng thái dịch vụ</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#e8edf5" }}>{t("Trạng thái dịch vụ")}</span>
           </div>
           {loading ? (
             [...Array(5)].map((_, i) => (
@@ -85,7 +87,7 @@ export default function StatusPage() {
                     <span style={{ fontSize: 14, fontWeight: 500 }}>{svc.name}</span>
                     {svc.description && <span style={{ fontSize: 12, color: "#4a5568" }}>{svc.description}</span>}
                   </div>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: cfg.color }}>{cfg.label}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: cfg.color }}>{t(cfg.label)}</span>
                 </div>
               );
             })
@@ -95,7 +97,7 @@ export default function StatusPage() {
         {/* Active incidents */}
         {data?.incidents && data.incidents.length > 0 && (
           <div style={{ marginBottom: 28 }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: "#e8edf5", marginBottom: 12 }}>Sự cố đang diễn ra</h2>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: "#e8edf5", marginBottom: 12 }}>{t("Sự cố đang diễn ra")}</h2>
             {data.incidents.map(inc => {
               const impact = impactConfig[inc.impact] || impactConfig.MINOR;
               return (
@@ -106,7 +108,7 @@ export default function StatusPage() {
                       <div style={{ fontSize: 12, color: "#8896aa" }}>{inc.service?.name}</div>
                     </div>
                     <span style={{ padding: "3px 10px", borderRadius: 99, fontSize: 11.5, fontWeight: 600, background: `${impact.color}18`, color: impact.color }}>
-                      {impact.label}
+                      {t(impact.label)}
                     </span>
                   </div>
                   {inc.updates?.[0] && (
@@ -127,12 +129,12 @@ export default function StatusPage() {
               <div key={i} style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 22, fontWeight: 900, color: "#4f7cff", letterSpacing: "-0.03em" }}>{v}</div>
                 <div style={{ fontSize: 11.5, color: "#4a5568", marginTop: 2 }}>
-                  {["Uptime 30 ngày", "Latency trung bình", "Monitoring"][i]}
+                  {[t("Uptime 30 ngày"), t("Latency trung bình"), t("Monitoring")][i]}
                 </div>
               </div>
             ))}
           </div>
-          <Link href="/login" style={{ fontSize: 13, color: "#4f7cff", textDecoration: "none" }}>Đăng nhập vào dashboard →</Link>
+          <Link href="/login" style={{ fontSize: 13, color: "#4f7cff", textDecoration: "none" }}>{t("Đăng nhập vào dashboard →")}</Link>
         </div>
       </div>
     </div>

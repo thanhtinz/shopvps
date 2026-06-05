@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resolveTld } from "@/lib/domains";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { t } = await getServerT();
@@ -29,7 +29,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const base = domain.expiresAt && domain.expiresAt > new Date() ? new Date(domain.expiresAt) : new Date();
         base.setFullYear(base.getFullYear() + years);
         await tx.domainOrder.update({ where: { id }, data: { expiresAt: base } });
-        await tx.transaction.create({ data: { userId: session.user.id, type: "PURCHASE", amount: price, balanceBefore: balanceAfter + price, balanceAfter, description: `Gia hạn tên miền ${domain.domain} (${years} năm)`, status: "COMPLETED" } });
+        const { t: tn } = await getUserT(session.user.id);
+        await tx.transaction.create({ data: { userId: session.user.id, type: "PURCHASE", amount: price, balanceBefore: balanceAfter + price, balanceAfter, description: `${tn("Gia hạn tên miền")} ${domain.domain} (${years} ${tn("năm")})`, status: "COMPLETED" } });
       });
       return NextResponse.json({ success: true });
     } catch (e: any) {

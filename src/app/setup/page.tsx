@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/components/LocaleProvider";
 
 type Step = 1 | 2 | 3;
 
@@ -11,6 +12,7 @@ interface VerifyResult {
 }
 
 export default function SetupPage() {
+  const { t } = useLocale();
   const [step, setStep] = useState<Step>(1);
   const [licenseKey, setLicenseKey] = useState("");
   const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
@@ -23,7 +25,7 @@ export default function SetupPage() {
 
   async function handleVerifyKey() {
     if (!licenseKey.trim()) {
-      setError("Vui lòng nhập license key");
+      setError(t("Vui lòng nhập license key"));
       return;
     }
     setError("");
@@ -36,13 +38,13 @@ export default function SetupPage() {
       });
       const data = await res.json();
       if (!data.valid) {
-        setError(data.error || "License key không hợp lệ");
+        setError(data.error || t("License key không hợp lệ"));
         return;
       }
       setVerifyResult(data);
       setStep(2);
     } catch {
-      setError("Không thể kết nối đến máy chủ");
+      setError(t("Không thể kết nối đến máy chủ"));
     } finally {
       setLoading(false);
     }
@@ -50,7 +52,7 @@ export default function SetupPage() {
 
   async function handleComplete() {
     if (!adminName || !adminEmail || !adminPassword) {
-      setError("Vui lòng điền đầy đủ thông tin");
+      setError(t("Vui lòng điền đầy đủ thông tin"));
       return;
     }
     setError("");
@@ -63,13 +65,13 @@ export default function SetupPage() {
       });
       const data = await res.json();
       if (!data.success) {
-        setError(data.error || "Đã có lỗi xảy ra");
+        setError(data.error || t("Đã có lỗi xảy ra"));
         return;
       }
       setStep(3);
       setTimeout(() => { window.location.href = "/dashboard"; }, 2500);
     } catch {
-      setError("Không thể hoàn tất setup");
+      setError(t("Không thể hoàn tất setup"));
     } finally {
       setLoading(false);
     }
@@ -118,10 +120,10 @@ export default function SetupPage() {
             <span style={{ color: "#818cf8", fontSize: 13, fontWeight: 600, letterSpacing: "0.05em" }}>SHOPVPS</span>
           </div>
           <h1 style={{ color: "#f1f5f9", fontSize: 26, fontWeight: 700, margin: "0 0 8px", letterSpacing: "-0.03em" }}>
-            Thiết lập hệ thống
+            {t("Thiết lập hệ thống")}
           </h1>
           <p style={{ color: "#64748b", fontSize: 14, margin: 0 }}>
-            Cài đặt một lần duy nhất trước khi sử dụng
+            {t("Cài đặt một lần duy nhất trước khi sử dụng")}
           </p>
         </div>
 
@@ -129,8 +131,8 @@ export default function SetupPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 32 }}>
           {[
             { n: 1, label: "License" },
-            { n: 2, label: "Tài khoản" },
-            { n: 3, label: "Hoàn tất" },
+            { n: 2, label: t("Tài khoản") },
+            { n: 3, label: t("Hoàn tất") },
           ].map((s, i) => (
             <div key={s.n} style={{ display: "flex", alignItems: "center", flex: 1 }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: "0 0 auto" }}>
@@ -184,8 +186,8 @@ export default function SetupPage() {
                     </svg>
                   </div>
                   <div>
-                    <h2 style={{ color: "#f1f5f9", fontSize: 16, fontWeight: 600, margin: 0 }}>Nhập License Key</h2>
-                    <p style={{ color: "#475569", fontSize: 12, margin: 0 }}>Key được cung cấp khi bạn mua sản phẩm</p>
+                    <h2 style={{ color: "#f1f5f9", fontSize: 16, fontWeight: 600, margin: 0 }}>{t("Nhập License Key")}</h2>
+                    <p style={{ color: "#475569", fontSize: 12, margin: 0 }}>{t("Key được cung cấp khi bạn mua sản phẩm")}</p>
                   </div>
                 </div>
               </div>
@@ -226,7 +228,7 @@ export default function SetupPage() {
                   <path d="M12 6v6l4 2" stroke="#6366f1" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
                 <span style={{ color: "#818cf8", fontSize: 12 }}>
-                  Domain sẽ được tự động xác nhận từ URL hiện tại
+                  {t("Domain sẽ được tự động xác nhận từ URL hiện tại")}
                 </span>
               </div>
 
@@ -259,9 +261,9 @@ export default function SetupPage() {
                       <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" strokeWidth="3"/>
                       <path d="M12 2a10 10 0 0 1 10 10" stroke="#fff" strokeWidth="3" strokeLinecap="round"/>
                     </svg>
-                    Đang xác thực...
+                    {t("Đang xác thực...")}
                   </>
-                ) : "Xác thực License Key →"}
+                ) : t("Xác thực License Key →")}
               </button>
             </div>
           )}
@@ -278,10 +280,10 @@ export default function SetupPage() {
               }}>
                 <span style={{ color: "#34d399", fontSize: 16 }}>&#10003;</span>
                 <div>
-                  <div style={{ color: "#34d399", fontSize: 12, fontWeight: 600 }}>License hợp lệ</div>
+                  <div style={{ color: "#34d399", fontSize: 12, fontWeight: 600 }}>{t("License hợp lệ")}</div>
                   <div style={{ color: "#475569", fontSize: 11 }}>
                     Domain: {verifyResult.domain}
-                    {verifyResult.expiresAt && ` · Hết hạn: ${new Date(verifyResult.expiresAt).toLocaleDateString("vi-VN")}`}
+                    {verifyResult.expiresAt && ` · ${t("Hết hạn")}: ${new Date(verifyResult.expiresAt).toLocaleDateString("vi-VN")}`}
                   </div>
                 </div>
               </div>
@@ -297,13 +299,13 @@ export default function SetupPage() {
                   </svg>
                 </div>
                 <div>
-                  <h2 style={{ color: "#f1f5f9", fontSize: 16, fontWeight: 600, margin: 0 }}>Tạo tài khoản Admin</h2>
-                  <p style={{ color: "#475569", fontSize: 12, margin: 0 }}>Tài khoản quản trị hệ thống</p>
+                  <h2 style={{ color: "#f1f5f9", fontSize: 16, fontWeight: 600, margin: 0 }}>{t("Tạo tài khoản Admin")}</h2>
+                  <p style={{ color: "#475569", fontSize: 12, margin: 0 }}>{t("Tài khoản quản trị hệ thống")}</p>
                 </div>
               </div>
 
               {[
-                { label: "Họ tên", value: adminName, setter: setAdminName, placeholder: "Nguyễn Văn A", type: "text" },
+                { label: t("Họ tên"), value: adminName, setter: setAdminName, placeholder: t("Nguyễn Văn A"), type: "text" },
                 { label: "Email", value: adminEmail, setter: setAdminEmail, placeholder: "admin@yourdomain.com", type: "email" },
               ].map(field => (
                 <div key={field.label} style={{ marginBottom: 14 }}>
@@ -330,14 +332,14 @@ export default function SetupPage() {
 
               <div style={{ marginBottom: 20 }}>
                 <label style={{ display: "block", color: "#94a3b8", fontSize: 12, fontWeight: 500, marginBottom: 6, letterSpacing: "0.04em" }}>
-                  MẬT KHẨU
+                  {t("MẬT KHẨU")}
                 </label>
                 <div style={{ position: "relative" }}>
                   <input
                     type={showPassword ? "text" : "password"}
                     value={adminPassword}
                     onChange={e => setAdminPassword(e.target.value)}
-                    placeholder="Tối thiểu 8 ký tự"
+                    placeholder={t("Tối thiểu 8 ký tự")}
                     style={{
                       width: "100%", boxSizing: "border-box",
                       background: "rgba(255,255,255,0.04)",
@@ -379,7 +381,7 @@ export default function SetupPage() {
                     border: "1.5px solid rgba(255,255,255,0.08)",
                     borderRadius: 10, color: "#94a3b8", fontSize: 14, cursor: "pointer",
                   }}
-                >← Quay lại</button>
+                >← {t("Quay lại")}</button>
                 <button
                   onClick={handleComplete}
                   disabled={loading}
@@ -390,7 +392,7 @@ export default function SetupPage() {
                     color: "#fff", fontSize: 14, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
                   }}
                 >
-                  {loading ? "Đang hoàn tất..." : "Hoàn tất Setup →"}
+                  {loading ? t("Đang hoàn tất...") : t("Hoàn tất Setup →")}
                 </button>
               </div>
             </div>
@@ -406,10 +408,10 @@ export default function SetupPage() {
                 margin: "0 auto 20px", fontSize: 32,
               }}>&#10003;</div>
               <h2 style={{ color: "#f1f5f9", fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>
-                Setup hoàn tất!
+                {t("Setup hoàn tất!")}
               </h2>
               <p style={{ color: "#64748b", fontSize: 14, margin: "0 0 24px" }}>
-                Đang chuyển đến dashboard...
+                {t("Đang chuyển đến dashboard...")}
               </p>
               <div style={{
                 height: 3, background: "rgba(255,255,255,0.05)",

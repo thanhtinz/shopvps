@@ -3,6 +3,7 @@ import { Worker, Job } from "bullmq";
 import { prisma } from "@/lib/prisma";
 import { getWHMClient } from "@/lib/whm";
 import { decrypt } from "@/lib/encrypt";
+import { getUserT } from "@/lib/i18n/server";
 
 const connection = { url: process.env.REDIS_URL || "redis://localhost:6379" };
 
@@ -38,12 +39,13 @@ export const hostingWorker = new Worker(
         data: { status: "ACTIVE", startDate: new Date() },
       });
 
+      const { t } = await getUserT(order.userId);
       await prisma.notification.create({
         data: {
           userId: order.userId,
           type: "HOSTING",
-          title: "Hosting đã sẵn sàng!",
-          content: `Tài khoản hosting cho ${order.domain} đã được khởi tạo thành công.`,
+          title: t("Hosting đã sẵn sàng!"),
+          content: `${t("Tài khoản hosting cho")} ${order.domain} ${t("đã được khởi tạo thành công.")}`,
         },
       });
 

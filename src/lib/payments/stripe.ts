@@ -1,3 +1,4 @@
+import { translate } from "@/lib/i18n/dictionaries";
 import type { GatewayModule } from "./types";
 
 // Stripe Checkout via the REST API (no SDK dependency). Requires config:
@@ -8,8 +9,9 @@ export const stripeGateway: GatewayModule = {
   auto: true,
   createsPendingTxn: true,
   async initiate(ctx) {
+    const t = (k: string) => translate(ctx.locale, k);
     const secret = ctx.config?.secretKey;
-    if (!secret) throw new Error("Stripe chưa được cấu hình");
+    if (!secret) throw new Error(t("Stripe chưa được cấu hình"));
 
     const unit = Math.round(ctx.amountCurrency * Math.pow(10, ctx.currency.decimals));
     const body = new URLSearchParams();
@@ -22,7 +24,7 @@ export const stripeGateway: GatewayModule = {
     body.set("line_items[0][quantity]", "1");
     body.set("line_items[0][price_data][currency]", ctx.currency.code.toLowerCase());
     body.set("line_items[0][price_data][unit_amount]", String(unit));
-    body.set("line_items[0][price_data][product_data][name]", "Nạp tiền tài khoản");
+    body.set("line_items[0][price_data][product_data][name]", t("Nạp tiền tài khoản"));
 
     const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -30,7 +32,7 @@ export const stripeGateway: GatewayModule = {
       body,
     });
     const data = await res.json();
-    if (!res.ok || !data.url) throw new Error(data?.error?.message || "Không tạo được phiên Stripe");
+    if (!res.ok || !data.url) throw new Error(data?.error?.message || t("Không tạo được phiên Stripe"));
     return { kind: "redirect", url: data.url };
   },
 };

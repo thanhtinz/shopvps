@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { formatCurrency } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 
 type Daily = { date: string; revenue: number; deposits: number; newUsers: number };
 type Data = { daily: Daily[]; topPackages: { name: string; type: string; count: number }[]; todayRevenue: number; monthRevenue: number; totalRevenue: number };
@@ -11,6 +12,7 @@ function shortDate(iso: string) {
 }
 
 export default function RevenueChart() {
+  const { t } = useLocale();
   const [data, setData] = useState<Data | null>(null);
   const [hover, setHover] = useState<number | null>(null);
 
@@ -30,9 +32,9 @@ export default function RevenueChart() {
       {/* Revenue totals */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14, marginBottom:14 }}>
         {[
-          { label:"Doanh thu hôm nay", value:data.todayRevenue, color:"var(--green)" },
-          { label:"Doanh thu tháng này", value:data.monthRevenue, color:"var(--accent)" },
-          { label:"Tổng doanh thu", value:data.totalRevenue, color:"var(--purple)" },
+          { label:t("Doanh thu hôm nay"), value:data.todayRevenue, color:"var(--green)" },
+          { label:t("Doanh thu tháng này"), value:data.monthRevenue, color:"var(--accent)" },
+          { label:t("Tổng doanh thu"), value:data.totalRevenue, color:"var(--purple)" },
         ].map(s => (
           <div key={s.label} style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"16px 18px" }}>
             <div style={{ fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{s.label}</div>
@@ -45,10 +47,10 @@ export default function RevenueChart() {
         {/* Daily chart */}
         <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"18px 20px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-            <span style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)" }}>Doanh thu 30 ngày</span>
+            <span style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)" }}>{t("Doanh thu 30 ngày")}</span>
             <div style={{ display:"flex", gap:14, fontSize:11.5, color:"var(--text-muted)" }}>
-              <span style={{ display:"flex", alignItems:"center", gap:5 }}><i style={{ width:9, height:9, borderRadius:2, background:"var(--green)" }}/>Mua dịch vụ</span>
-              <span style={{ display:"flex", alignItems:"center", gap:5 }}><i style={{ width:9, height:9, borderRadius:2, background:"var(--accent)", opacity:0.45 }}/>Nạp tiền</span>
+              <span style={{ display:"flex", alignItems:"center", gap:5 }}><i style={{ width:9, height:9, borderRadius:2, background:"var(--green)" }}/>{t("Mua dịch vụ")}</span>
+              <span style={{ display:"flex", alignItems:"center", gap:5 }}><i style={{ width:9, height:9, borderRadius:2, background:"var(--accent)", opacity:0.45 }}/>{t("Nạp tiền")}</span>
             </div>
           </div>
           <div style={{ position:"relative" }}>
@@ -69,9 +71,9 @@ export default function RevenueChart() {
             {hover !== null && (
               <div style={{ position:"absolute", top:0, left:`${(hover/data.daily.length)*100}%`, transform:"translateX(-50%)", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"7px 10px", fontSize:11.5, pointerEvents:"none", whiteSpace:"nowrap", zIndex:2, boxShadow:"0 4px 12px rgba(0,0,0,0.15)" }}>
                 <div style={{ fontWeight:700, color:"var(--text-primary)", marginBottom:3 }}>{shortDate(data.daily[hover].date)}</div>
-                <div style={{ color:"var(--green)" }}>Mua: {formatCurrency(data.daily[hover].revenue)}</div>
-                <div style={{ color:"var(--accent)" }}>Nạp: {formatCurrency(data.daily[hover].deposits)}</div>
-                <div style={{ color:"var(--text-muted)" }}>User mới: {data.daily[hover].newUsers}</div>
+                <div style={{ color:"var(--green)" }}>{t("Mua:")} {formatCurrency(data.daily[hover].revenue)}</div>
+                <div style={{ color:"var(--accent)" }}>{t("Nạp:")} {formatCurrency(data.daily[hover].deposits)}</div>
+                <div style={{ color:"var(--text-muted)" }}>{t("User mới:")} {data.daily[hover].newUsers}</div>
               </div>
             )}
           </div>
@@ -84,9 +86,9 @@ export default function RevenueChart() {
 
         {/* Top packages */}
         <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"18px 20px" }}>
-          <div style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)", marginBottom:14 }}>Gói bán chạy</div>
+          <div style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)", marginBottom:14 }}>{t("Gói bán chạy")}</div>
           {data.topPackages.length === 0 ? (
-            <div style={{ fontSize:12.5, color:"var(--text-muted)", padding:"20px 0", textAlign:"center" }}>Chưa có dữ liệu</div>
+            <div style={{ fontSize:12.5, color:"var(--text-muted)", padding:"20px 0", textAlign:"center" }}>{t("Chưa có dữ liệu")}</div>
           ) : data.topPackages.map((p, i) => (
             <div key={i} style={{ marginBottom:12 }}>
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:12.5, marginBottom:4 }}>

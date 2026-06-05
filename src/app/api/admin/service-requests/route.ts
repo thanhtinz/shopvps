@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CYCLE_MONTHS } from "@/lib/proration";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -63,6 +63,7 @@ export async function PATCH(req: NextRequest) {
     await prisma.$transaction(async (tx: any) => {
       const r = await tx.serviceRequest.findUnique({ where: { id } });
       if (!r || r.status !== "PENDING") throw new Error("ALREADY_PROCESSED");
+      const { t: tn } = await getUserT(r.userId);
 
       const amt = Math.round(typeof amount === "number" && Number.isFinite(amount) ? amount : Number(r.amount)); // signed
 
@@ -83,7 +84,7 @@ export async function PATCH(req: NextRequest) {
             amount: Math.abs(amt),
             balanceBefore: amt > 0 ? balanceAfter + amt : balanceAfter - (-amt),
             balanceAfter,
-            description: `${r.type} dịch vụ ${r.serviceType.toUpperCase()}`,
+            description: `${r.type} ${tn("dịch vụ")} ${r.serviceType.toUpperCase()}`,
             status: "COMPLETED",
           },
         });
@@ -115,8 +116,8 @@ export async function PATCH(req: NextRequest) {
         data: {
           userId: r.userId,
           type: "INFO",
-          title: "Yêu cầu dịch vụ đã được xử lý",
-          content: `Yêu cầu ${r.type} dịch vụ ${r.serviceType.toUpperCase()} của bạn đã được duyệt.`,
+          title: tn("Yêu cầu dịch vụ đã được xử lý"),
+          content: `${tn("Yêu cầu")} ${r.type} ${tn("dịch vụ")} ${r.serviceType.toUpperCase()} ${tn("của bạn đã được duyệt.")}`,
         },
       });
     });

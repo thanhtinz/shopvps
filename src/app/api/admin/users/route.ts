@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -45,11 +45,12 @@ export async function PATCH(req: NextRequest) {
         select: { balance: true },
       });
       const balanceAfter = Number(updated.balance);
+      const { t: tn } = await getUserT(userId);
       await tx.transaction.create({
         data: {
           userId, type: "ADJUSTMENT", amount: value,
           balanceBefore: balanceAfter - value, balanceAfter,
-          description: `Admin điều chỉnh số dư bởi ${(session.user as any).email || "admin"}`,
+          description: `${tn("Admin điều chỉnh số dư bởi")} ${(session.user as any).email || "admin"}`,
           status: "COMPLETED",
         },
       });

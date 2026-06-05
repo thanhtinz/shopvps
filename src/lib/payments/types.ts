@@ -1,4 +1,5 @@
 import type { Currency } from "@/lib/currency";
+import type { Locale } from "@/lib/i18n/dictionaries";
 
 export interface InitiateContext {
   reference: string;
@@ -9,6 +10,7 @@ export interface InitiateContext {
   userEmail: string;
   appUrl: string;
   config: any;            // parsed gateway config (credentials/settings)
+  locale: Locale;         // recipient interface language for user-facing copy
 }
 
 export type InitiateResult =

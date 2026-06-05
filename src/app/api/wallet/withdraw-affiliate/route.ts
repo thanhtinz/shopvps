@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
   const { t } = await getServerT();
@@ -30,12 +30,13 @@ export async function POST(req: NextRequest) {
       });
       const balanceAfter = Number(fresh!.balance);
 
+      const { t: tn } = await getUserT(session.user.id);
       await tx.transaction.create({
         data: {
           userId: session.user.id, type: "COMMISSION", amount,
           balanceBefore: balanceAfter - amount,
           balanceAfter,
-          description: "Rút hoa hồng về ví chính", status: "COMPLETED",
+          description: tn("Rút hoa hồng về ví chính"), status: "COMPLETED",
         },
       });
     });

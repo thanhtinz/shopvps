@@ -4,10 +4,10 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCurrency, toBase } from "@/lib/currency";
 import { getGateway, parseConfig } from "@/lib/payments";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
-  const { t } = await getServerT();
+  const { t, locale } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -32,12 +32,13 @@ export async function POST(req: NextRequest) {
   // Pre-create a pending transaction for gateways that reconcile by reference.
   if (gw.createsPendingTxn) {
     const bal = Number(user?.balance || 0);
+    const { t: tn } = await getUserT(session.user.id);
     await prisma.transaction.create({
       data: {
         userId: session.user.id, type: "DEPOSIT", amount: amountBase,
         balanceBefore: bal, balanceAfter: bal, status: "PENDING",
         gateway: gw.code, currency: currency.code, currencyAmount: amt,
-        reference, description: `Nạp tiền qua ${gw.label}`,
+        reference, description: `${tn("Nạp tiền qua")} ${gw.label}`,
       },
     });
   }
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     const result = await gw.initiate({
       reference, amountBase, amountCurrency: amt, currency,
       userId: session.user.id, userEmail: user?.email || "", appUrl,
-      config: parseConfig(row.config),
+      config: parseConfig(row.config), locale,
     });
     return NextResponse.json({ success: true, data: { ...result, reference, auto: gw.auto } });
   } catch (e: any) {

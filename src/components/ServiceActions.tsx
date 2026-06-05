@@ -1,10 +1,12 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { formatCurrency } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 
 type Props = { serviceType: "vps" | "hosting"; orderId: string; currentPackageId: string; status: string };
 
 export default function ServiceActions({ serviceType, orderId, currentPackageId, status }: Props) {
+  const { t: tr } = useLocale();
   const [packages, setPackages] = useState<any[]>([]);
   const [pending, setPending] = useState<any>(null);
   const [modal, setModal] = useState<null | "change" | "cancel">(null);
@@ -35,8 +37,8 @@ export default function ServiceActions({ serviceType, orderId, currentPackageId,
     const res = await fetch("/api/services/request", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ serviceType, orderId, ...payload }) });
     const d = await res.json().catch(()=>({}));
     setBusy(false);
-    if (res.ok) { setModal(null); setDone("Đã gửi yêu cầu, admin sẽ xử lý sớm."); loadPending(); }
-    else alert(d.error || "Lỗi");
+    if (res.ok) { setModal(null); setDone(tr("Đã gửi yêu cầu, admin sẽ xử lý sớm.")); loadPending(); }
+    else alert(d.error || tr("Lỗi"));
   }
 
   function submitChange() {
@@ -50,22 +52,22 @@ export default function ServiceActions({ serviceType, orderId, currentPackageId,
 
   return (
     <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"18px 20px", marginTop:16 }}>
-      <div style={{ fontSize:13.5, fontWeight:700, color:"var(--text-primary)", marginBottom:12 }}>Quản lý dịch vụ</div>
+      <div style={{ fontSize:13.5, fontWeight:700, color:"var(--text-primary)", marginBottom:12 }}>{tr("Quản lý dịch vụ")}</div>
       {done && <div style={{ fontSize:12.5, color:"var(--green)", marginBottom:12 }}>{done}</div>}
       {pending ? (
         <div style={{ fontSize:13, color:"var(--text-secondary)", background:"var(--bg-elevated)", borderRadius:"var(--radius-md)", padding:"12px 14px" }}>
-          Đang có yêu cầu <b>{pending.type}</b> chờ admin duyệt.
+          {tr("Đang có yêu cầu")} <b>{pending.type}</b> {tr("chờ admin duyệt.")}
         </div>
       ) : (
         <div style={{ display:"flex", gap:10 }}>
-          <button onClick={()=>setModal("change")} style={{ padding:"9px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>Đổi gói</button>
-          <button onClick={()=>setModal("cancel")} style={{ padding:"9px 16px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--red)", fontSize:13, fontWeight:600, cursor:"pointer" }}>Yêu cầu huỷ</button>
+          <button onClick={()=>setModal("change")} style={{ padding:"9px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>{tr("Đổi gói")}</button>
+          <button onClick={()=>setModal("cancel")} style={{ padding:"9px 16px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--red)", fontSize:13, fontWeight:600, cursor:"pointer" }}>{tr("Yêu cầu huỷ")}</button>
         </div>
       )}
 
       {modal === "change" && (
-        <Modal onClose={()=>setModal(null)} title="Đổi gói dịch vụ">
-          <p style={{ fontSize:12.5, color:"var(--text-muted)", marginBottom:14 }}>Phí chênh lệch được tính theo thời gian còn lại của chu kỳ và trừ/hoàn vào ví khi admin duyệt.</p>
+        <Modal onClose={()=>setModal(null)} title={tr("Đổi gói dịch vụ")}>
+          <p style={{ fontSize:12.5, color:"var(--text-muted)", marginBottom:14 }}>{tr("Phí chênh lệch được tính theo thời gian còn lại của chu kỳ và trừ/hoàn vào ví khi admin duyệt.")}</p>
           <div style={{ display:"flex", flexDirection:"column", gap:8, maxHeight:260, overflowY:"auto", marginBottom:16 }}>
             {others.map(p=>(
               <label key={p.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 12px", border:`1.5px solid ${target===p.id?"var(--accent)":"var(--border)"}`, borderRadius:"var(--radius-md)", cursor:"pointer", background:target===p.id?"var(--accent-soft)":"transparent" }}>
@@ -73,20 +75,20 @@ export default function ServiceActions({ serviceType, orderId, currentPackageId,
                   <input type="radio" checked={target===p.id} onChange={()=>setTarget(p.id)}/>
                   <span style={{ fontSize:13, fontWeight:600, color:"var(--text-primary)" }}>{p.name}</span>
                 </span>
-                <span style={{ fontSize:12.5, color:"var(--text-secondary)" }}>{formatCurrency(Number(p.priceMonthly))}/th</span>
+                <span style={{ fontSize:12.5, color:"var(--text-secondary)" }}>{formatCurrency(Number(p.priceMonthly))}{tr("/th")}</span>
               </label>
             ))}
           </div>
-          <button onClick={submitChange} disabled={busy||!target} style={{ width:"100%", padding:"11px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, fontSize:13.5, cursor:target?"pointer":"not-allowed", opacity:target?1:0.5 }}>{busy?"Đang gửi...":"Gửi yêu cầu đổi gói"}</button>
+          <button onClick={submitChange} disabled={busy||!target} style={{ width:"100%", padding:"11px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, fontSize:13.5, cursor:target?"pointer":"not-allowed", opacity:target?1:0.5 }}>{busy?tr("Đang gửi..."):tr("Gửi yêu cầu đổi gói")}</button>
         </Modal>
       )}
 
       {modal === "cancel" && (
-        <Modal onClose={()=>setModal(null)} title="Yêu cầu huỷ dịch vụ">
+        <Modal onClose={()=>setModal(null)} title={tr("Yêu cầu huỷ dịch vụ")}>
           <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:16 }}>
             {[
-              { v:"END_OF_TERM", t:"Huỷ cuối kỳ", d:"Dịch vụ chạy đến hết hạn rồi ngừng, không hoàn tiền." },
-              { v:"IMMEDIATE", t:"Huỷ ngay", d:"Ngừng ngay, hoàn phần thời gian còn lại vào ví." },
+              { v:"END_OF_TERM", t:tr("Huỷ cuối kỳ"), d:tr("Dịch vụ chạy đến hết hạn rồi ngừng, không hoàn tiền.") },
+              { v:"IMMEDIATE", t:tr("Huỷ ngay"), d:tr("Ngừng ngay, hoàn phần thời gian còn lại vào ví.") },
             ].map(o=>(
               <label key={o.v} style={{ display:"flex", gap:10, padding:"11px 13px", border:`1.5px solid ${cancelMode===o.v?"var(--accent)":"var(--border)"}`, borderRadius:"var(--radius-md)", cursor:"pointer", background:cancelMode===o.v?"var(--accent-soft)":"transparent" }}>
                 <input type="radio" checked={cancelMode===o.v} onChange={()=>setCancelMode(o.v)} style={{ marginTop:3 }}/>
@@ -97,8 +99,8 @@ export default function ServiceActions({ serviceType, orderId, currentPackageId,
               </label>
             ))}
           </div>
-          <textarea value={reason} onChange={e=>setReason(e.target.value)} placeholder="Lý do huỷ (tuỳ chọn)..." rows={3} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--text-primary)", fontSize:13, outline:"none", resize:"vertical", marginBottom:16, fontFamily:"inherit" }}/>
-          <button onClick={()=>submit({ type:"CANCEL", cancelMode, note:reason })} disabled={busy} style={{ width:"100%", padding:"11px", background:"var(--red)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, fontSize:13.5, cursor:"pointer" }}>{busy?"Đang gửi...":"Gửi yêu cầu huỷ"}</button>
+          <textarea value={reason} onChange={e=>setReason(e.target.value)} placeholder={tr("Lý do huỷ (tuỳ chọn)...")} rows={3} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--text-primary)", fontSize:13, outline:"none", resize:"vertical", marginBottom:16, fontFamily:"inherit" }}/>
+          <button onClick={()=>submit({ type:"CANCEL", cancelMode, note:reason })} disabled={busy} style={{ width:"100%", padding:"11px", background:"var(--red)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, fontSize:13.5, cursor:"pointer" }}>{busy?tr("Đang gửi..."):tr("Gửi yêu cầu huỷ")}</button>
         </Modal>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifySePayWebhook, parseDepositReference } from "@/lib/sepay";
+import { getUserT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest) {
     // Update balance & create transaction atomically. The balance is
     // incremented atomically (not read-modify-write) to stay correct under
     // concurrent webhooks.
+    const { t } = await getUserT(userId);
     await prisma.$transaction(async (tx: any) => {
       const updated = await tx.user.update({
         where: { id: userId },
@@ -90,7 +92,7 @@ export async function POST(req: NextRequest) {
           amount,
           balanceBefore: balanceAfter - totalCredit,
           balanceAfter,
-          description: `Nạp tiền qua ngân hàng${bonusAmount > 0 ? ` (bonus ${bonusAmount.toLocaleString("vi-VN")}đ)` : ""}`,
+          description: `${t("Nạp tiền qua ngân hàng")}${bonusAmount > 0 ? ` (bonus ${bonusAmount.toLocaleString("vi-VN")}đ)` : ""}`,
           reference,
           status: "COMPLETED",
           metadata: { raw: payload, bonusAmount },
@@ -101,8 +103,8 @@ export async function POST(req: NextRequest) {
         data: {
           userId,
           type: "PAYMENT",
-          title: "Nạp tiền thành công",
-          content: `Tài khoản được cộng ${totalCredit.toLocaleString("vi-VN")}đ${bonusAmount > 0 ? ` (bao gồm bonus ${bonusAmount.toLocaleString("vi-VN")}đ)` : ""}`,
+          title: t("Nạp tiền thành công"),
+          content: `${t("Tài khoản được cộng")} ${totalCredit.toLocaleString("vi-VN")}đ${bonusAmount > 0 ? ` (${t("bao gồm bonus")} ${bonusAmount.toLocaleString("vi-VN")}đ)` : ""}`,
         },
       });
     });

@@ -100,6 +100,10 @@ import enApiAdmin from "./en/apiAdmin";
 import enApiServices from "./en/apiServices";
 import enApiMisc from "./en/apiMisc";
 import enEmails from "./en/emails";
+import enUiPublic from "./en/uiPublic";
+import enUiMisc from "./en/uiMisc";
+import enSrvNotif from "./en/srvNotif";
+import enSrvMisc from "./en/srvMisc";
 
 Object.assign(
   DICTS.en,
@@ -107,6 +111,7 @@ Object.assign(
   enAdminCore, enAdminCore2, enAdminCatalog, enAdminPromo,
   enAdminConfig, enAdminConfig2, enAuth, enServerPages,
   enApiAdmin, enApiServices, enApiMisc, enEmails,
+  enUiPublic, enUiMisc, enSrvNotif, enSrvMisc,
 );
 
 export function translate(locale: Locale, key: string): string {

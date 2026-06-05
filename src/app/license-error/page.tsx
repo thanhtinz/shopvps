@@ -1,6 +1,9 @@
 "use client";
 
+import { useLocale } from "@/components/LocaleProvider";
+
 export default function LicenseErrorPage() {
+  const { t } = useLocale();
   return (
     <div style={{
       minHeight: "100vh",
@@ -18,11 +21,10 @@ export default function LicenseErrorPage() {
         }}></div>
 
         <h1 style={{ color: "#f1f5f9", fontSize: 24, fontWeight: 700, margin: "0 0 12px", letterSpacing: "-0.02em" }}>
-          License không hợp lệ
+          {t("License không hợp lệ")}
         </h1>
         <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.6, margin: "0 0 32px" }}>
-          License key của hệ thống này đã hết hạn, bị thu hồi hoặc không còn hợp lệ.
-          Vui lòng liên hệ nhà cung cấp để được hỗ trợ.
+          {t("License key của hệ thống này đã hết hạn, bị thu hồi hoặc không còn hợp lệ. Vui lòng liên hệ nhà cung cấp để được hỗ trợ.")}
         </p>
 
         <div style={{
@@ -30,13 +32,13 @@ export default function LicenseErrorPage() {
           borderRadius: 12, padding: "16px 20px", marginBottom: 24, textAlign: "left",
         }}>
           <div style={{ color: "#f87171", fontSize: 12, fontWeight: 600, marginBottom: 8, letterSpacing: "0.05em" }}>
-            CÓ THỂ LÀ DO
+            {t("CÓ THỂ LÀ DO")}
           </div>
           {[
-            "License key đã hết hạn sử dụng",
-            "Domain không khớp với license đã đăng ký",
-            "License bị thu hồi do vi phạm điều khoản",
-            "Phần cứng server thay đổi (nếu bật HW binding)",
+            t("License key đã hết hạn sử dụng"),
+            t("Domain không khớp với license đã đăng ký"),
+            t("License bị thu hồi do vi phạm điều khoản"),
+            t("Phần cứng server thay đổi (nếu bật HW binding)"),
           ].map((item, i) => (
             <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, alignItems: "flex-start" }}>
               <span style={{ color: "#475569", marginTop: 1 }}>·</span>
@@ -55,7 +57,7 @@ export default function LicenseErrorPage() {
             textDecoration: "none", fontWeight: 500,
           }}
         >
-          Liên hệ hỗ trợ
+          {t("Liên hệ hỗ trợ")}
         </a>
       </div>
     </div>

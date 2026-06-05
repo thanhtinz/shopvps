@@ -4,6 +4,7 @@ import { queueEmail, renewQueue } from "./index";
 import { getVpsProvider } from "@/lib/vps-providers";
 import { getWHMClient } from "@/lib/whm";
 import { decrypt } from "@/lib/encrypt";
+import { getUserT } from "@/lib/i18n/server";
 
 const connection = { url: process.env.REDIS_URL || "redis://localhost:6379" };
 
@@ -80,11 +81,12 @@ async function renewVps(orderId: string) {
 
   const months = CYCLE_MONTHS[order.billingCycle] || 1;
   const price = Number(order.price) * months;
+  const { t } = await getUserT(order.userId);
 
-  const res = await chargeAndExtend("vps", orderId, order.userId, price, order.expiresAt, months, `Gia hạn VPS ${order.hostname}`);
+  const res = await chargeAndExtend("vps", orderId, order.userId, price, order.expiresAt, months, `${t("Gia hạn VPS")} ${order.hostname}`);
 
   if (res.ok) {
-    await prisma.notification.create({ data: { userId: order.userId, type: "VPS", title: "VPS đã gia hạn", content: `VPS ${order.hostname} đã được gia hạn ${months} tháng.` } });
+    await prisma.notification.create({ data: { userId: order.userId, type: "VPS", title: t("VPS đã gia hạn"), content: `VPS ${order.hostname} ${t("đã được gia hạn")} ${months} ${t("tháng.")}` } });
     if (res.newExpiry) await scheduleNext(orderId, "vps", res.newExpiry);
   } else {
     // Insufficient balance → suspend the VPS at the provider and in the DB.
@@ -95,7 +97,7 @@ async function renewVps(orderId: string) {
         await provider.powerOff(order.providerVpsId);
       }
     } catch (e) { console.error(`[Renew Worker] VPS suspend failed for ${orderId}:`, e); }
-    await prisma.notification.create({ data: { userId: order.userId, type: "VPS", title: "VPS bị tạm dừng", content: `VPS ${order.hostname} đã bị tạm dừng do không đủ số dư để gia hạn.` } });
+    await prisma.notification.create({ data: { userId: order.userId, type: "VPS", title: t("VPS bị tạm dừng"), content: `VPS ${order.hostname} ${t("đã bị tạm dừng do không đủ số dư để gia hạn.")}` } });
     if (order.user?.email) await queueEmail(order.user.email, "VPS bị tạm dừng", `<p>VPS <strong>${order.hostname}</strong> đã bị tạm dừng do không đủ số dư. Vui lòng nạp tiền và liên hệ hỗ trợ để kích hoạt lại.</p>`);
   }
 }
@@ -106,11 +108,12 @@ async function renewHosting(orderId: string) {
 
   const months = CYCLE_MONTHS[order.billingCycle] || 1;
   const price = Number(order.price) * months;
+  const { t } = await getUserT(order.userId);
 
-  const res = await chargeAndExtend("hosting", orderId, order.userId, price, order.expiresAt, months, `Gia hạn Hosting ${order.domain}`);
+  const res = await chargeAndExtend("hosting", orderId, order.userId, price, order.expiresAt, months, `${t("Gia hạn Hosting")} ${order.domain}`);
 
   if (res.ok) {
-    await prisma.notification.create({ data: { userId: order.userId, type: "HOSTING", title: "Hosting đã gia hạn", content: `Hosting ${order.domain} đã được gia hạn ${months} tháng.` } });
+    await prisma.notification.create({ data: { userId: order.userId, type: "HOSTING", title: t("Hosting đã gia hạn"), content: `Hosting ${order.domain} ${t("đã được gia hạn")} ${months} ${t("tháng.")}` } });
     if (res.newExpiry) await scheduleNext(orderId, "hosting", res.newExpiry);
   } else {
     // Insufficient balance → suspend the cPanel account.
@@ -121,7 +124,7 @@ async function renewHosting(orderId: string) {
         await whm.suspendAccount(order.cpanelUsername, "Không đủ số dư gia hạn");
       }
     } catch (e) { console.error(`[Renew Worker] Hosting suspend failed for ${orderId}:`, e); }
-    await prisma.notification.create({ data: { userId: order.userId, type: "HOSTING", title: "Hosting bị tạm dừng", content: `Hosting ${order.domain} đã bị tạm dừng do không đủ số dư để gia hạn.` } });
+    await prisma.notification.create({ data: { userId: order.userId, type: "HOSTING", title: t("Hosting bị tạm dừng"), content: `Hosting ${order.domain} ${t("đã bị tạm dừng do không đủ số dư để gia hạn.")}` } });
     if (order.user?.email) await queueEmail(order.user.email, "Hosting bị tạm dừng", `<p>Hosting <strong>${order.domain}</strong> đã bị tạm dừng do không đủ số dư. Vui lòng nạp tiền và liên hệ hỗ trợ để kích hoạt lại.</p>`);
   }
 }

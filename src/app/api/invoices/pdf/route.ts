@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
+
+  const { t } = await getServerT();
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
@@ -23,7 +26,7 @@ export async function GET(req: NextRequest) {
   const formatVND = (n: number) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>Hoá đơn ${invoice.invoiceNumber}</title>
+<title>${t("Hoá đơn")} ${invoice.invoiceNumber}</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: Arial, sans-serif; font-size: 14px; color: #1a1a1a; padding: 40px; max-width: 800px; margin: 0 auto; }
@@ -46,44 +49,44 @@ export async function GET(req: NextRequest) {
 <div class="header">
   <div><div class="logo">${appName}</div><div style="color:#666;font-size:13px;margin-top:4px">${s.app_url||""}</div></div>
   <div style="text-align:right">
-    <div class="invoice-title">HOÁ ĐƠN</div>
+    <div class="invoice-title">${t("HOÁ ĐƠN")}</div>
     <div class="invoice-meta">${invoice.invoiceNumber}</div>
-    <div style="margin-top:8px"><span class="status-badge">${invoice.status === "PAID" ? "Đã thanh toán" : invoice.status}</span></div>
+    <div style="margin-top:8px"><span class="status-badge">${invoice.status === "PAID" ? t("Đã thanh toán") : invoice.status}</span></div>
   </div>
 </div>
 
 <div style="display:flex;gap:40px;margin-bottom:32px">
   <div class="section" style="flex:1">
-    <div class="section-title">Thông tin khách hàng</div>
+    <div class="section-title">${t("Thông tin khách hàng")}</div>
     <div class="info-box">
       ${invoice.user?.company ? `<div style="font-weight:700;margin-bottom:4px">${invoice.user.company}</div>` : ""}
       <div style="${invoice.user?.company ? "color:#666" : "font-weight:700"};margin-bottom:4px">${invoice.user?.name || "—"}</div>
       <div style="color:#666">${invoice.user?.email}</div>
       ${invoice.user?.phone ? `<div style="color:#666">${invoice.user.phone}</div>` : ""}
       ${invoice.user?.address ? `<div style="color:#666">${[invoice.user.address, invoice.user.city, invoice.user.country].filter(Boolean).join(", ")}</div>` : ""}
-      ${invoice.user?.taxId ? `<div style="color:#666">MST: ${invoice.user.taxId}</div>` : ""}
+      ${invoice.user?.taxId ? `<div style="color:#666">${t("MST:")} ${invoice.user.taxId}</div>` : ""}
     </div>
   </div>
   <div class="section" style="flex:1">
-    <div class="section-title">Chi tiết hoá đơn</div>
+    <div class="section-title">${t("Chi tiết hoá đơn")}</div>
     <div class="info-box">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#666">Ngày tạo:</span><span>${new Date(invoice.createdAt).toLocaleDateString("vi-VN")}</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:#666">Ngày thanh toán:</span><span>${invoice.paidAt ? new Date(invoice.paidAt).toLocaleDateString("vi-VN") : "—"}</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#666">${t("Ngày tạo:")}</span><span>${new Date(invoice.createdAt).toLocaleDateString("vi-VN")}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:#666">${t("Ngày thanh toán:")}</span><span>${invoice.paidAt ? new Date(invoice.paidAt).toLocaleDateString("vi-VN") : "—"}</span></div>
     </div>
   </div>
 </div>
 
 <table>
-  <thead><tr><th>Mô tả</th><th style="text-align:center">Số lượng</th><th style="text-align:right">Đơn giá</th><th style="text-align:right">Thành tiền</th></tr></thead>
+  <thead><tr><th>${t("Mô tả")}</th><th style="text-align:center">${t("Số lượng")}</th><th style="text-align:right">${t("Đơn giá")}</th><th style="text-align:right">${t("Thành tiền")}</th></tr></thead>
   <tbody>
     ${invoice.items.map((item: any) => `<tr><td>${item.description}</td><td style="text-align:center">${item.quantity}</td><td style="text-align:right">${formatVND(Number(item.unitPrice))}</td><td style="text-align:right">${formatVND(Number(item.total))}</td></tr>`).join("")}
-    ${Number(invoice.discount) > 0 ? `<tr><td colspan="3" style="text-align:right;color:#666">Giảm giá${invoice.couponCode ? ` (${invoice.couponCode})` : ""}:</td><td style="text-align:right;color:#dc2626">-${formatVND(Number(invoice.discount))}</td></tr>` : ""}
-    ${Number(invoice.tax) > 0 ? `<tr><td colspan="3" style="text-align:right;color:#666">Trong đó thuế VAT (đã gồm):</td><td style="text-align:right;color:#666">${formatVND(Number(invoice.tax))}</td></tr>` : ""}
-    <tr class="total-row"><td colspan="3" style="text-align:right">Tổng cộng:</td><td style="text-align:right;color:#4f7cff">${formatVND(Number(invoice.total))}</td></tr>
+    ${Number(invoice.discount) > 0 ? `<tr><td colspan="3" style="text-align:right;color:#666">${t("Giảm giá")}${invoice.couponCode ? ` (${invoice.couponCode})` : ""}:</td><td style="text-align:right;color:#dc2626">-${formatVND(Number(invoice.discount))}</td></tr>` : ""}
+    ${Number(invoice.tax) > 0 ? `<tr><td colspan="3" style="text-align:right;color:#666">${t("Trong đó thuế VAT (đã gồm):")}</td><td style="text-align:right;color:#666">${formatVND(Number(invoice.tax))}</td></tr>` : ""}
+    <tr class="total-row"><td colspan="3" style="text-align:right">${t("Tổng cộng:")}</td><td style="text-align:right;color:#4f7cff">${formatVND(Number(invoice.total))}</td></tr>
   </tbody>
 </table>
 
-<div class="footer"><p>Cảm ơn bạn đã sử dụng dịch vụ của ${appName}!</p><p style="margin-top:4px">Nếu có thắc mắc, vui lòng liên hệ qua hệ thống ticket hỗ trợ.</p></div>
+<div class="footer"><p>${t("Cảm ơn bạn đã sử dụng dịch vụ của")} ${appName}!</p><p style="margin-top:4px">${t("Nếu có thắc mắc, vui lòng liên hệ qua hệ thống ticket hỗ trợ.")}</p></div>
 <script>window.onload=()=>window.print()</script>
 </body></html>`;
 

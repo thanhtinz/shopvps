@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getVpsProvider } from "@/lib/vps-providers";
 import { decrypt, encrypt } from "@/lib/encrypt";
 import crypto from "crypto";
+import { getUserT } from "@/lib/i18n/server";
 
 const connection = { url: process.env.REDIS_URL || "redis://localhost:6379" };
 
@@ -48,12 +49,13 @@ export const vpsWorker = new Worker(
       });
 
       // Notify user
+      const { t } = await getUserT(order.userId);
       await prisma.notification.create({
         data: {
           userId: order.userId,
           type: "VPS",
-          title: "VPS đã sẵn sàng!",
-          content: `VPS ${order.hostname} (${serverInfo.ipAddress}) đã được khởi tạo thành công.`,
+          title: t("VPS đã sẵn sàng!"),
+          content: `VPS ${order.hostname} (${serverInfo.ipAddress}) ${t("đã được khởi tạo thành công.")}`,
         },
       });
 

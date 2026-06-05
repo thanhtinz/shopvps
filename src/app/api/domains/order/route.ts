@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resolveTld, isValidDomain } from "@/lib/domains";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
   const { t } = await getServerT();
@@ -43,11 +43,12 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      const { t: tn } = await getUserT(session.user.id);
       await tx.transaction.create({
         data: {
           userId: session.user.id, type: "PURCHASE", amount: price,
           balanceBefore: balanceAfter + price, balanceAfter,
-          description: `${kind === "transfer" ? "Transfer" : "Đăng ký"} tên miền ${domain} (${years} năm)`,
+          description: `${kind === "transfer" ? "Transfer" : tn("Đăng ký")} ${tn("tên miền")} ${domain} (${years} ${tn("năm")})`,
           status: "COMPLETED", reference: `DOMAIN-${created.id}`,
         },
       });

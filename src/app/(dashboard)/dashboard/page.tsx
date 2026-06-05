@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 
 
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 import DashboardClient from "./DashboardClient";
 
 async function getDashboardData(userId: string) {
@@ -20,5 +21,6 @@ export default async function DashboardPage() {
   if (!session) return null;
 
   const data = await getDashboardData(session.user.id);
-  return <DashboardClient data={data} userName={session.user.name || "bạn"} />;
+  const { t } = await getServerT();
+  return <DashboardClient data={data} userName={session.user.name || t("bạn")} />;
 }

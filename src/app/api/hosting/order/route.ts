@@ -6,7 +6,7 @@ import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
 import { encrypt } from "@/lib/encrypt";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -112,11 +112,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    const { t: tn } = await getUserT(session.user.id);
     await tx.transaction.create({
       data: {
         userId: session.user.id, type: "PURCHASE", amount: finalPrice,
         balanceBefore: balanceAfter + finalPrice, balanceAfter,
-        description: `Mua Hosting ${domain}`, status: "COMPLETED", reference: invoiceNumber,
+        description: `${tn("Mua Hosting")} ${domain}`, status: "COMPLETED", reference: invoiceNumber,
       },
     });
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -63,12 +63,13 @@ export async function PATCH(req: NextRequest) {
         data: { affiliateBalance: { increment: commission.amount } },
       });
 
+      const { t: tn } = await getUserT(commission.userId);
       await tx.notification.create({
         data: {
           userId: commission.userId,
           type: "PAYMENT",
-          title: "Hoa hồng đã được duyệt",
-          content: `Bạn nhận được ${Number(commission.amount).toLocaleString("vi-VN")}đ hoa hồng giới thiệu.`,
+          title: tn("Hoa hồng đã được duyệt"),
+          content: `${tn("Bạn nhận được")} ${Number(commission.amount).toLocaleString("vi-VN")}đ ${tn("hoa hồng giới thiệu.")}`,
         },
       });
     }).catch((e: any) => {

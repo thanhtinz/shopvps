@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useLocale } from "@/components/LocaleProvider";
 
 const colors: Record<string, { bg: string; border: string; fg: string }> = {
   info:    { bg: "rgba(79,124,255,0.1)",  border: "rgba(79,124,255,0.3)",  fg: "var(--accent)" },
@@ -13,6 +14,7 @@ function getDismissed(): string[] { try { return JSON.parse(localStorage.getItem
 function addDismissed(id: string) { try { localStorage.setItem(DISMISS_KEY, JSON.stringify([...getDismissed(), id])); } catch {} }
 
 export default function AnnouncementBanner() {
+  const { t } = useLocale();
   const [items, setItems] = useState<any[]>([]);
   const [popup, setPopup] = useState<any>(null);
 
@@ -48,7 +50,7 @@ export default function AnnouncementBanner() {
                   <div style={{ fontSize:13.5, fontWeight:700, color:"var(--text-primary)", marginBottom:2 }}>{a.title}</div>
                   <div style={{ fontSize:12.5, color:"var(--text-secondary)", lineHeight:1.5, whiteSpace:"pre-wrap" }}>{a.content}</div>
                 </div>
-                <button onClick={()=>dismiss(a.id)} title="Đã đọc" style={{ background:"none", border:"none", color:"var(--text-muted)", cursor:"pointer", padding:2, flexShrink:0 }}>
+                <button onClick={()=>dismiss(a.id)} title={t("Đã đọc")} style={{ background:"none", border:"none", color:"var(--text-muted)", cursor:"pointer", padding:2, flexShrink:0 }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
@@ -65,7 +67,7 @@ export default function AnnouncementBanner() {
             </div>
             <h3 style={{ fontSize:17, fontWeight:800, color:"var(--text-primary)", marginBottom:10, letterSpacing:"-0.02em" }}>{popup.title}</h3>
             <div style={{ fontSize:14, color:"var(--text-secondary)", lineHeight:1.65, whiteSpace:"pre-wrap", marginBottom:22 }}>{popup.content}</div>
-            <button onClick={()=>dismiss(popup.id)} style={{ width:"100%", padding:"11px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, fontSize:13.5, cursor:"pointer" }}>Đã hiểu</button>
+            <button onClick={()=>dismiss(popup.id)} style={{ width:"100%", padding:"11px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, fontSize:13.5, cursor:"pointer" }}>{t("Đã hiểu")}</button>
           </div>
         </div>
       )}

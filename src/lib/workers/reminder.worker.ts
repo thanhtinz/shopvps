@@ -58,12 +58,16 @@ async function remind(kind: "vps" | "hosting", o: any) {
         : "Số dư ví của bạn KHÔNG đủ để tự gia hạn — vui lòng nạp thêm để tránh bị tạm ngưng.")
     : "Tự động gia hạn đang TẮT — vui lòng gia hạn thủ công trước khi hết hạn.";
 
+  const rlNotif = (o.user?.locale as Locale) || "vi";
+  const tn = (k: string) => translate(rlNotif, k);
+  const autoNoteNotif = tn(autoNote);
+
   await prisma.notification.create({
     data: {
       userId: o.userId,
       type: enough && o.autoRenew ? "INFO" : "WARNING",
-      title: "Dịch vụ sắp hết hạn",
-      content: `${kind.toUpperCase()} ${name} sẽ hết hạn vào ${expiry} (phí gia hạn ${formatCurrency(price)}). ${autoNote}`,
+      title: tn("Dịch vụ sắp hết hạn"),
+      content: `${kind.toUpperCase()} ${name} ${tn("sẽ hết hạn vào")} ${expiry} (${tn("phí gia hạn")} ${formatCurrency(price)}). ${autoNoteNotif}`,
     },
   });
 

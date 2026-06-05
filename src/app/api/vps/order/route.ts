@@ -6,7 +6,7 @@ import { scheduleAutoRenew } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
   const { t } = await getServerT();
@@ -145,6 +145,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Transaction record
+    const { t: tn } = await getUserT(session.user.id);
     await tx.transaction.create({
       data: {
         userId: session.user.id,
@@ -152,7 +153,7 @@ export async function POST(req: NextRequest) {
         amount: finalPrice,
         balanceBefore: balanceAfter + finalPrice,
         balanceAfter,
-        description: `Mua VPS ${hostname} - ${pkg.name}`,
+        description: `${tn("Mua VPS")} ${hostname} - ${pkg.name}`,
         status: "COMPLETED",
         reference: invoiceNumber,
       },

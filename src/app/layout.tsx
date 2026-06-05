@@ -4,11 +4,15 @@ import { AppearanceProvider } from "@/components/AppearanceProvider";
 import { APPEARANCE_BOOT_SCRIPT } from "@/lib/appearance";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { LOCALE_BOOT_SCRIPT } from "@/lib/i18n/dictionaries";
+import { getServerT } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: { default: "ShopVPS", template: "%s · ShopVPS" },
-  description: "Quản lý VPS & Hosting chuyên nghiệp",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getServerT();
+  return {
+    title: { default: "ShopVPS", template: "%s · ShopVPS" },
+    description: t("Quản lý VPS & Hosting chuyên nghiệp"),
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -16,9 +20,10 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { locale } = await getServerT();
   return (
-    <html lang="vi" className="h-full" suppressHydrationWarning>
+    <html lang={locale} className="h-full" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: APPEARANCE_BOOT_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: LOCALE_BOOT_SCRIPT }} />

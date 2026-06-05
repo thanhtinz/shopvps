@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { emitTicketUpdate } from "@/lib/socket";
 import { queueEmail } from "@/lib/workers";
 import { renderTemplate } from "@/lib/email-templates";
-import { getServerT } from "@/lib/i18n/server";
+import { getServerT, getUserT } from "@/lib/i18n/server";
 import { translate, Locale } from "@/lib/i18n/dictionaries";
 
 function isAdmin(session: any) {
@@ -41,8 +41,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   await prisma.ticket.update({ where: { id }, data: { status: "IN_PROGRESS", updatedAt: new Date() } });
 
   // Notify the ticket owner and push a live-update signal.
+  const { t: tn } = await getUserT(ticket.userId);
   await prisma.notification.create({
-    data: { userId: ticket.userId, type: "INFO", title: "Phản hồi hỗ trợ mới", content: `Ticket "${ticket.subject}" có phản hồi từ admin.` },
+    data: { userId: ticket.userId, type: "INFO", title: tn("Phản hồi hỗ trợ mới"), content: `Ticket "${ticket.subject}" ${tn("có phản hồi từ admin.")}` },
   });
   emitTicketUpdate(id);
 

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getUserT } from "@/lib/i18n/server";
 
 /**
  * Idempotently credit a previously-created PENDING deposit transaction once the
@@ -13,6 +14,7 @@ export async function creditPendingDeposit(reference: string): Promise<{ ok: boo
     if (txn.status === "COMPLETED") return { ok: true }; // already credited
 
     const amountBase = Number(txn.amount);
+    const { t } = await getUserT(txn.userId);
 
     // Compute deposit bonus (highest matching tier).
     const bonuses = await tx.depositBonus.findMany({ where: { isActive: true }, orderBy: { minAmount: "desc" } });
@@ -37,13 +39,13 @@ export async function creditPendingDeposit(reference: string): Promise<{ ok: boo
         data: {
           userId: txn.userId, type: "BONUS", amount: bonus,
           balanceBefore: balanceAfter - bonus, balanceAfter,
-          description: `Thưởng nạp tiền (${txn.gateway || "gateway"})`, status: "COMPLETED",
+          description: `${t("Thưởng nạp tiền")} (${txn.gateway || "gateway"})`, status: "COMPLETED",
         },
       });
     }
 
     await tx.notification.create({
-      data: { userId: txn.userId, type: "SUCCESS", title: "Nạp tiền thành công", content: `Tài khoản đã được cộng ${(amountBase + bonus).toLocaleString("vi-VN")}đ.` },
+      data: { userId: txn.userId, type: "SUCCESS", title: t("Nạp tiền thành công"), content: `${t("Tài khoản đã được cộng")} ${(amountBase + bonus).toLocaleString("vi-VN")}đ.` },
     });
 
     return { ok: true };
