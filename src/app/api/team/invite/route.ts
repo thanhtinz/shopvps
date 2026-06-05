@@ -9,6 +9,17 @@ export async function POST(req: NextRequest) {
   const { email, vpsOrderId, hostingOrderId, permissions } = await req.json();
   if (!email) return NextResponse.json({ error: "Email không hợp lệ" }, { status: 400 });
 
+  // Only allow sharing services the inviter actually owns (prevent referencing
+  // another user's order id).
+  if (vpsOrderId) {
+    const owned = await prisma.vpsOrder.findFirst({ where: { id: vpsOrderId, userId: session.user.id }, select: { id: true } });
+    if (!owned) return NextResponse.json({ error: "Dịch vụ không hợp lệ" }, { status: 403 });
+  }
+  if (hostingOrderId) {
+    const owned = await prisma.hostingOrder.findFirst({ where: { id: hostingOrderId, userId: session.user.id }, select: { id: true } });
+    if (!owned) return NextResponse.json({ error: "Dịch vụ không hợp lệ" }, { status: 403 });
+  }
+
   let team = await prisma.team.findFirst({ where: { ownerId: session.user.id } });
   if (!team) team = await prisma.team.create({ data: { name: `Team của ${session.user.name || session.user.email}`, ownerId: session.user.id } });
 

@@ -32,20 +32,28 @@ export async function POST(req: NextRequest) {
   // Coupon
   let discount = 0;
   let appliedCouponId: string | null = null;
+  let appliedCouponLimit: number | null = null;
   if (couponCode) {
     const coupon = await prisma.coupon.findFirst({ where: { code: couponCode.toUpperCase(), isActive: true } });
     if (coupon && (!coupon.expiresAt || coupon.expiresAt > new Date())) {
+      if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit)
+        return NextResponse.json({ error: "Coupon đã hết lượt dùng" }, { status: 400 });
+      if (coupon.minOrder && price < Number(coupon.minOrder))
+        return NextResponse.json({ error: `Đơn tối thiểu ${coupon.minOrder}đ` }, { status: 400 });
       if (coupon.type === "PERCENTAGE") discount = Math.floor(price * Number(coupon.value) / 100);
       else discount = Number(coupon.value);
       if (coupon.maxDiscount) discount = Math.min(discount, Number(coupon.maxDiscount));
       // Defer the usage increment into the transaction below so it is not
       // applied when the order ultimately fails (e.g. insufficient balance).
       appliedCouponId = coupon.id;
+      appliedCouponLimit = coupon.usageLimit;
     }
   }
 
   const finalPrice = Math.max(0, price - discount);
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  if (user && user.status !== "ACTIVE")
+    return NextResponse.json({ error: "Tài khoản đã bị khoá" }, { status: 403 });
   if (!user || Number(user.balance) < finalPrice)
     return NextResponse.json({ error: "Số dư không đủ" }, { status: 400 });
 
@@ -99,7 +107,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (appliedCouponId) {
-      await tx.coupon.update({ where: { id: appliedCouponId }, data: { usedCount: { increment: 1 } } });
+      const bumped = await tx.coupon.updateMany({
+        where: appliedCouponLimit ? { id: appliedCouponId, usedCount: { lt: appliedCouponLimit } } : { id: appliedCouponId },
+        data: { usedCount: { increment: 1 } },
+      });
+      if (bumped.count === 0) throw new Error("COUPON_EXHAUSTED");
     }
 
     // Referral commission (PENDING until admin approves)
@@ -110,6 +122,8 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     if (e?.message === "INSUFFICIENT_BALANCE")
       return NextResponse.json({ error: "Số dư không đủ" }, { status: 400 });
+    if (e?.message === "COUPON_EXHAUSTED")
+      return NextResponse.json({ error: "Coupon đã hết lượt dùng" }, { status: 400 });
     console.error("Hosting order error:", e);
     return NextResponse.json({ error: "Không thể tạo đơn hàng" }, { status: 500 });
   }

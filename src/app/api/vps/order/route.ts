@@ -57,6 +57,8 @@ export async function POST(req: NextRequest) {
 
   // Check balance
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  if (user && user.status !== "ACTIVE")
+    return NextResponse.json({ error: "Tài khoản đã bị khoá" }, { status: 403 });
   if (!user || Number(user.balance) < finalPrice)
     return NextResponse.json({ error: "Số dư không đủ. Vui lòng nạp thêm tiền." }, { status: 400 });
 
@@ -141,12 +143,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Increment coupon usage
+    // Increment coupon usage atomically, refusing to exceed the usage limit
+    // under concurrent orders.
     if (coupon) {
-      await tx.coupon.update({
-        where: { id: coupon.id },
+      const bumped = await tx.coupon.updateMany({
+        where: coupon.usageLimit ? { id: coupon.id, usedCount: { lt: coupon.usageLimit } } : { id: coupon.id },
         data: { usedCount: { increment: 1 } },
       });
+      if (bumped.count === 0) throw new Error("COUPON_EXHAUSTED");
     }
 
     // Activity log
@@ -168,6 +172,8 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     if (e?.message === "INSUFFICIENT_BALANCE")
       return NextResponse.json({ error: "Số dư không đủ. Vui lòng nạp thêm tiền." }, { status: 400 });
+    if (e?.message === "COUPON_EXHAUSTED")
+      return NextResponse.json({ error: "Coupon đã hết lượt dùng" }, { status: 400 });
     console.error("VPS order error:", e);
     return NextResponse.json({ error: "Không thể tạo đơn hàng" }, { status: 500 });
   }
