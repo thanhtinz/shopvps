@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppearanceProvider } from "@/components/AppearanceProvider";
 import { APPEARANCE_BOOT_SCRIPT } from "@/lib/appearance";
+import { LocaleProvider } from "@/components/LocaleProvider";
+import { LOCALE_BOOT_SCRIPT } from "@/lib/i18n/dictionaries";
 
 export const metadata: Metadata = {
   title: { default: "ShopVPS", template: "%s · ShopVPS" },
@@ -19,9 +21,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="vi" className="h-full" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: APPEARANCE_BOOT_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: LOCALE_BOOT_SCRIPT }} />
       </head>
       <body className="h-full">
-        <AppearanceProvider>{children}</AppearanceProvider>
+        <AppearanceProvider>
+          <LocaleProvider>{children}</LocaleProvider>
+        </AppearanceProvider>
       </body>
     </html>
   );

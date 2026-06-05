@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useAppearance } from "@/components/AppearanceProvider";
 import { ACCENT_PRESETS, FONT_PRESETS } from "@/lib/appearance";
+import { useLocale } from "@/components/LocaleProvider";
+import { LOCALES } from "@/lib/i18n/dictionaries";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
@@ -14,6 +16,7 @@ const inputStyle = { width:"100%", boxSizing:"border-box" as const, background:"
 export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>("profile");
   const { appearance, update, reset } = useAppearance();
+  const { locale, setLocale, t } = useLocale();
   const [profile, setProfile] = useState<any>(null);
   const [name, setName] = useState("");
   const [billing, setBilling] = useState<any>({ company: "", phone: "", address: "", city: "", country: "", taxId: "" });
@@ -83,15 +86,15 @@ export default function SettingsPage() {
   }
 
   const TABS: { key: Tab; label: string; icon: string }[] = [
-    { key:"profile", label:"Thông tin", icon:"M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8" },
-    { key:"appearance", label:"Giao diện", icon:"M12 2a10 10 0 100 20 10 10 0 000-20z M12 2a4 4 0 010 8 M2 12h8" },
-    { key:"security", label:"Bảo mật", icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" },
-    { key:"2fa", label:"Xác thực 2 lớp", icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10 M9 12l2 2 4-4" },
+    { key:"profile", label:t("settings.tab.profile"), icon:"M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8" },
+    { key:"appearance", label:t("settings.tab.appearance"), icon:"M12 2a10 10 0 100 20 10 10 0 000-20z M12 2a4 4 0 010 8 M2 12h8" },
+    { key:"security", label:t("settings.tab.security"), icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" },
+    { key:"2fa", label:t("settings.tab.2fa"), icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10 M9 12l2 2 4-4" },
   ];
 
   return (
     <div style={{ maxWidth:700, margin:"0 auto" }}>
-      <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:24 }}>Cài đặt tài khoản</h1>
+      <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:24 }}>{t("settings.title")}</h1>
 
       {/* Tabs */}
       <div style={{ display:"flex", gap:4, background:"var(--bg-elevated)", borderRadius:"var(--radius-md)", padding:4, width:"fit-content", marginBottom:24 }}>
@@ -154,9 +157,19 @@ export default function SettingsPage() {
       {/* Appearance tab */}
       {tab === "appearance" && (
         <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"24px", maxWidth:620 }}>
+          {/* Language */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>{t("appearance.language")}</div>
+            <div style={{ display:"flex", gap:10 }}>
+              {LOCALES.map(l=>(
+                <button key={l.code} onClick={()=>setLocale(l.code)} style={{ flex:1, padding:"10px", borderRadius:"var(--radius-md)", border:`1.5px solid ${locale===l.code?"var(--accent)":"var(--border)"}`, background:locale===l.code?"var(--accent-soft)":"var(--bg-elevated)", color:locale===l.code?"var(--accent)":"var(--text-secondary)", fontSize:13, fontWeight:600, cursor:"pointer" }}>{l.label}</button>
+              ))}
+            </div>
+          </div>
+
           {/* Theme */}
           <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>Chế độ</div>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>{t("appearance.mode")}</div>
             <div style={{ display:"flex", gap:10 }}>
               {([["dark","Tối"],["light","Sáng"]] as const).map(([v,l])=>(
                 <button key={v} onClick={()=>update({ theme:v })} style={{ flex:1, padding:"12px", borderRadius:"var(--radius-md)", border:`1.5px solid ${appearance.theme===v?"var(--accent)":"var(--border)"}`, background:appearance.theme===v?"var(--accent-soft)":"var(--bg-elevated)", color:appearance.theme===v?"var(--accent)":"var(--text-secondary)", fontSize:13, fontWeight:600, cursor:"pointer" }}>{l}</button>
@@ -166,7 +179,7 @@ export default function SettingsPage() {
 
           {/* Accent color */}
           <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>Màu nhấn</div>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>{t("appearance.accent")}</div>
             <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
               {ACCENT_PRESETS.map(c=>(
                 <button key={c} onClick={()=>update({ accent:c })} aria-label={c} style={{ width:30, height:30, borderRadius:"50%", background:c, border:appearance.accent===c?"3px solid var(--text-primary)":"2px solid var(--border)", cursor:"pointer" }}/>
@@ -180,7 +193,7 @@ export default function SettingsPage() {
 
           {/* Font */}
           <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>Phông chữ</div>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>{t("appearance.font")}</div>
             <select value={appearance.font} onChange={e=>update({ font:e.target.value })} style={inputStyle}>
               {FONT_PRESETS.map(f=><option key={f.value} value={f.value}>{f.label}</option>)}
             </select>
@@ -196,7 +209,7 @@ export default function SettingsPage() {
 
           {/* Direction */}
           <div style={{ marginBottom:24 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>Hướng bố cục</div>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>{t("appearance.direction")}</div>
             <div style={{ display:"flex", gap:10 }}>
               {([["ltr","Trái → Phải (LTR)"],["rtl","Phải → Trái (RTL)"]] as const).map(([v,l])=>(
                 <button key={v} onClick={()=>update({ dir:v })} style={{ flex:1, padding:"10px", borderRadius:"var(--radius-md)", border:`1.5px solid ${appearance.dir===v?"var(--accent)":"var(--border)"}`, background:appearance.dir===v?"var(--accent-soft)":"var(--bg-elevated)", color:appearance.dir===v?"var(--accent)":"var(--text-secondary)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>{l}</button>
@@ -204,7 +217,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <button onClick={reset} style={{ padding:"9px 16px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", fontSize:13, fontWeight:600, cursor:"pointer" }}>Khôi phục mặc định</button>
+          <button onClick={reset} style={{ padding:"9px 16px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", fontSize:13, fontWeight:600, cursor:"pointer" }}>{t("appearance.reset")}</button>
           <p style={{ fontSize:11.5, color:"var(--text-muted)", marginTop:14 }}>Tuỳ chỉnh được lưu trên trình duyệt này và áp dụng tức thì.</p>
         </div>
       )}
