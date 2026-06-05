@@ -29,10 +29,24 @@ export default function TicketsPage() {
     fetch("/api/tickets").then(r=>r.json()).then(d=>{ setTickets(d.data||[]); setLoading(false); });
   }, []);
 
+  // Live updates: poll the open ticket's messages so admin replies appear
+  // without a manual refresh. State is only replaced when the thread actually
+  // changed, so the auto-scroll effect doesn't fire on every poll.
   useEffect(() => {
-    if (selected) {
-      fetch(`/api/tickets/${selected.id}/messages`).then(r=>r.json()).then(d=>setMessages(d.data||[]));
-    }
+    if (!selected) return;
+    let active = true;
+    const load = async () => {
+      const d = await fetch(`/api/tickets/${selected.id}/messages`).then(r=>r.json()).catch(()=>null);
+      if (!active || !d?.data) return;
+      setMessages(prev => {
+        const next = d.data as any[];
+        if (prev.length === next.length && prev[prev.length-1]?.id === next[next.length-1]?.id) return prev;
+        return next;
+      });
+    };
+    load();
+    const iv = setInterval(load, 4000);
+    return () => { active = false; clearInterval(iv); };
   }, [selected]);
 
   useEffect(() => {
@@ -116,9 +130,15 @@ export default function TicketsPage() {
             <div style={{ padding:"14px 20px", borderBottom:"1px solid var(--border)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div>
                 <div style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)", marginBottom:4 }}>{selected.subject}</div>
-                <div style={{ display:"flex", gap:8 }}>
+                <div style={{ display:"flex", gap:8, alignItems:"center" }}>
                   <Badge color={statusColor[selected.status]||"gray"}>{statusLabel[selected.status]}</Badge>
                   <Badge color={prioColor[selected.priority]||"gray"}>{prioLabel[selected.priority]}</Badge>
+                  {selected.status !== "CLOSED" && (
+                    <span style={{ display:"flex", alignItems:"center", gap:5, fontSize:11, color:"var(--text-muted)" }}>
+                      <span style={{ width:7, height:7, borderRadius:"50%", background:"var(--green)", animation:"pulse 1.8s infinite" }}/>
+                      Trực tuyến
+                    </span>
+                  )}
                 </div>
               </div>
               <button onClick={()=>setSelected(null)} style={{ background:"none", border:"none", color:"var(--text-muted)", cursor:"pointer", padding:4 }}>

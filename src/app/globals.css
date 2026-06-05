@@ -73,6 +73,7 @@ body {
 @keyframes pulse-ring { 0%,100% { box-shadow: 0 0 0 0 var(--accent-glow); } 50% { box-shadow: 0 0 0 6px transparent; } }
 @keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 .animate-in { animation: fadeIn 0.25s ease both; }
 .slide-in { animation: slideIn 0.2s ease both; }
