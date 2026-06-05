@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { queueEmail } from "./index";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { renderTemplate } from "@/lib/email-templates";
+import { translate, Locale } from "@/lib/i18n/dictionaries";
 
 const connection = { url: process.env.REDIS_URL || "redis://localhost:6379" };
 
@@ -33,13 +34,13 @@ async function scanAndRemind() {
 
   const vps = await prisma.vpsOrder.findMany({
     where: { status: "ACTIVE", expiresAt: { gte: now, lte: soon }, ...due },
-    include: { user: { select: { email: true, name: true, balance: true } }, package: { select: { name: true } } },
+    include: { user: { select: { email: true, name: true, balance: true, locale: true } }, package: { select: { name: true } } },
   });
   for (const o of vps) await remind("vps", o);
 
   const hosting = await prisma.hostingOrder.findMany({
     where: { status: "ACTIVE", expiresAt: { gte: now, lte: soon }, ...due },
-    include: { user: { select: { email: true, name: true, balance: true } }, package: { select: { name: true } } },
+    include: { user: { select: { email: true, name: true, balance: true, locale: true } }, package: { select: { name: true } } },
   });
   for (const o of hosting) await remind("hosting", o);
 
@@ -67,16 +68,18 @@ async function remind(kind: "vps" | "hosting", o: any) {
   });
 
   try {
+    const rl = (o.user.locale as Locale) || "vi";
+    const tr = (k: string) => translate(rl, k);
     const vars = { name: o.user.name || "", service: `${kind.toUpperCase()} ${name}`, expiry, price: formatCurrency(price), note: autoNote, walletUrl: `${process.env.NEXT_PUBLIC_APP_URL || ""}/wallet` };
-    const tpl = await renderTemplate("renewal_reminder", vars);
+    const tpl = await renderTemplate("renewal_reminder", vars, rl);
     await queueEmail(
       o.user.email,
-      tpl?.subject || `[ShopVPS] ${kind.toUpperCase()} ${name} sắp hết hạn`,
-      tpl?.html || `<p>Xin chào ${o.user.name || ""},</p>
-       <p>Dịch vụ <b>${kind.toUpperCase()} ${name}</b> của bạn sẽ hết hạn vào <b>${expiry}</b>.</p>
-       <p>Phí gia hạn: <b>${formatCurrency(price)}</b>.</p>
+      tpl?.subject || `[ShopVPS] ${kind.toUpperCase()} ${name} ${tr("sắp hết hạn")}`,
+      tpl?.html || `<p>${tr("Xin chào")} ${o.user.name || ""},</p>
+       <p>${tr("Dịch vụ")} <b>${kind.toUpperCase()} ${name}</b> ${tr("của bạn sẽ hết hạn vào")} <b>${expiry}</b>.</p>
+       <p>${tr("Phí gia hạn")}: <b>${formatCurrency(price)}</b>.</p>
        <p>${autoNote}</p>
-       <p><a href="${process.env.NEXT_PUBLIC_APP_URL || ""}/wallet">Nạp tiền / kiểm tra ví</a></p>`
+       <p><a href="${process.env.NEXT_PUBLIC_APP_URL || ""}/wallet">${tr("Nạp tiền / kiểm tra ví")}</a></p>`
     );
   } catch {}
 

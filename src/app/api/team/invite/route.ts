@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { getServerT } from "@/lib/i18n/server";
+import { translate, Locale } from "@/lib/i18n/dictionaries";
 
 export async function POST(req: NextRequest) {
   const { t } = await getServerT();
@@ -36,7 +37,9 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    await sendEmail({ to: email, subject: `Bạn được mời vào team trên ShopVPS`, html: `<p>${session.user.name} đã mời bạn. <a href="${process.env.NEXT_PUBLIC_APP_URL}/team">Xem ngay</a></p>` });
+    const rl = (invitedUser.locale as Locale) || "vi";
+    const tr = (k: string) => translate(rl, k);
+    await sendEmail({ to: email, subject: tr("Bạn được mời vào team trên ShopVPS"), html: `<p>${session.user.name} ${tr("đã mời bạn.")} <a href="${process.env.NEXT_PUBLIC_APP_URL}/team">${tr("Xem ngay")}</a></p>` });
   } catch {}
 
   return NextResponse.json({ success: true, data: member });

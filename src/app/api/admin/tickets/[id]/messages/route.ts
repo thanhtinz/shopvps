@@ -5,6 +5,7 @@ import { emitTicketUpdate } from "@/lib/socket";
 import { queueEmail } from "@/lib/workers";
 import { renderTemplate } from "@/lib/email-templates";
 import { getServerT } from "@/lib/i18n/server";
+import { translate, Locale } from "@/lib/i18n/dictionaries";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -47,11 +48,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   // Email the owner using the admin-editable template (best-effort).
   try {
-    const owner = await prisma.user.findUnique({ where: { id: ticket.userId }, select: { email: true, name: true } });
+    const owner = await prisma.user.findUnique({ where: { id: ticket.userId }, select: { email: true, name: true, locale: true } });
     if (owner?.email) {
+      const rl = (owner.locale as Locale) || "vi";
+      const tr = (k: string) => translate(rl, k);
       const vars = { name: owner.name || "", subject: ticket.subject, ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL || ""}/tickets` };
-      const tpl = await renderTemplate("ticket_reply", vars);
-      await queueEmail(owner.email, tpl?.subject || `[ShopVPS] Phản hồi cho ticket: ${ticket.subject}`, tpl?.html || `<p>Ticket "${ticket.subject}" của bạn có phản hồi mới.</p>`);
+      const tpl = await renderTemplate("ticket_reply", vars, rl);
+      await queueEmail(owner.email, tpl?.subject || `${tr("[ShopVPS] Phản hồi cho ticket:")} ${ticket.subject}`, tpl?.html || `<p>Ticket "${ticket.subject}" ${tr("của bạn có phản hồi mới.")}</p>`);
     }
   } catch {}
 

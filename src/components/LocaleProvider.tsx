@@ -24,6 +24,13 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     try { localStorage.setItem("locale", l); } catch {}
     document.cookie = `locale=${l};path=/;max-age=31536000;samesite=lax`;
     document.documentElement.lang = l;
+    // Best-effort: persist to the signed-in user's profile so emails match.
+    // Ignored (401) when logged out.
+    fetch("/api/user/locale", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locale: l }),
+    }).catch(() => {});
   }, []);
 
   const t = useCallback((key: string) => translate(locale, key), [locale]);

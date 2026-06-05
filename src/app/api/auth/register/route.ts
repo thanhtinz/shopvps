@@ -7,7 +7,7 @@ import crypto from "crypto";
 import { getServerT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
-  const { t } = await getServerT();
+  const { t, locale } = await getServerT();
   try {
     const { name, email, password, ref } = await req.json();
 
@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
         email,
         password: hashedPassword,
         affiliateCode,
+        locale,
       },
     });
 
@@ -65,8 +66,8 @@ export async function POST(req: NextRequest) {
     const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${token}&email=${email}`;
     await sendEmail({
       to: email,
-      subject: "Xác thực email - ShopVPS",
-      html: verifyEmailTemplate(name, verifyUrl),
+      subject: t("Xác thực email - ShopVPS"),
+      html: verifyEmailTemplate(name, verifyUrl, locale),
     });
 
     return NextResponse.json({ success: true, message: t("Đăng ký thành công! Vui lòng kiểm tra email.") });

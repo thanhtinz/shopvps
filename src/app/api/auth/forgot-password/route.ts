@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail, resetPasswordTemplate } from "@/lib/email";
+import { translate, Locale } from "@/lib/i18n/dictionaries";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -16,7 +17,12 @@ export async function POST(req: NextRequest) {
     });
 
     const url = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
-    await sendEmail({ to: email, subject: "Đặt lại mật khẩu - ShopVPS", html: resetPasswordTemplate(user.name || "bạn", url) });
+    const locale = (user.locale as Locale) || "vi";
+    await sendEmail({
+      to: email,
+      subject: translate(locale, "Đặt lại mật khẩu - ShopVPS"),
+      html: resetPasswordTemplate(user.name || "bạn", url, locale),
+    });
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
