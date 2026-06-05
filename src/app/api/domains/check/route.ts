@@ -1,0 +1,25 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { resolveTld, isValidDomain, checkAvailability } from "@/lib/domains";
+
+export async function GET(req: NextRequest) {
+  const domain = (new URL(req.url).searchParams.get("domain") || "").toLowerCase().trim();
+  if (!isValidDomain(domain)) return NextResponse.json({ error: "Tên miền không hợp lệ" }, { status: 400 });
+
+  const tld = await resolveTld(domain);
+  if (!tld) return NextResponse.json({ error: "Đuôi tên miền không được hỗ trợ" }, { status: 400 });
+
+  // Taken internally?
+  const owned = await prisma.domainOrder.findFirst({ where: { domain, status: { in: ["ACTIVE", "PENDING"] } } });
+  if (owned) return NextResponse.json({ success: true, data: { domain, available: false, tld: tld.tld, registerPrice: Number(tld.registerPrice) } });
+
+  const available = await checkAvailability(domain);
+  return NextResponse.json({
+    success: true,
+    data: {
+      domain, available, unknown: available === null, tld: tld.tld,
+      registerPrice: Number(tld.registerPrice),
+      transferPrice: Number(tld.transferPrice),
+    },
+  });
+}

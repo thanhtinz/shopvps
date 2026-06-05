@@ -46,6 +46,7 @@ model User {
   apiKeys           ApiKey[]
   activityLogs      ActivityLog[]
   serviceRequests   ServiceRequest[]
+  domainOrders      DomainOrder[]
 
   @@map("users")
 }
@@ -555,6 +556,49 @@ model Announcement {
 }
 
 // ============================================================
+// DOMAINS
+// ============================================================
+
+model Tld {
+  id            String   @id @default(cuid())
+  tld           String   @unique // e.g. ".com"
+  registerPrice Decimal  @db.Decimal(15, 2)
+  renewPrice    Decimal  @db.Decimal(15, 2)
+  transferPrice Decimal  @db.Decimal(15, 2)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("tlds")
+}
+
+model DomainOrder {
+  id           String       @id @default(cuid())
+  userId       String
+  domain       String       // full domain incl. TLD, e.g. example.com
+  tld          String
+  type         String       @default("register") // register | transfer
+  status       DomainStatus @default(PENDING)
+  registrar    String       @default("manual")
+  years        Int          @default(1)
+  price        Decimal      @db.Decimal(15, 2)
+  nameservers  String?      // comma-separated
+  authCode     String?      // EPP code for transfers
+  autoRenew    Boolean      @default(true)
+  registeredAt DateTime?
+  expiresAt    DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("domain_orders")
+}
+
+// ============================================================
 // SERVICE LIFECYCLE REQUESTS (cancel / upgrade / downgrade)
 // ============================================================
 
@@ -805,6 +849,14 @@ enum ServiceRequestType {
   UPGRADE
   DOWNGRADE
   ADDON
+}
+
+enum DomainStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  TRANSFERRED
 }
 
 enum ServiceRequestStatus {

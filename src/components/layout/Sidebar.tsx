@@ -9,6 +9,7 @@ const nav = [
   { section: "Dịch vụ", items: [
     { href: "/vps", label: "VPS", icon: "M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7 M2 19h20 M5 19v-4 M19 19v-4" },
     { href: "/hosting", label: "Hosting", icon: "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" },
+    { href: "/domains", label: "Tên miền", icon: "M12 2a10 10 0 100 20A10 10 0 0012 2z M2 12h20 M12 2a15 15 0 010 20 M12 2a15 15 0 000 20" },
   ]},
   { section: "Tài chính", items: [
     { href: "/wallet", label: "Ví & Nạp tiền", icon: "M20 12V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h6 M16 16h6 M19 13v6" },
