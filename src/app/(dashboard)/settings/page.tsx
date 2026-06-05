@@ -47,17 +47,17 @@ export default function SettingsPage() {
     e.preventDefault(); setSavingProfile(true); setProfileMsg("");
     const res = await fetch("/api/user/profile", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ name, ...billing }) });
     const data = await res.json();
-    if (data.success) setProfileMsg("Đã lưu thay đổi!");
+    if (data.success) setProfileMsg(t("Đã lưu thay đổi!"));
     setSavingProfile(false); setTimeout(()=>setProfileMsg(""), 3000);
   }
 
   async function changePassword(e: React.FormEvent) {
     e.preventDefault(); setPwError(""); setPwMsg("");
-    if (newPw !== confirmPw) { setPwError("Mật khẩu xác nhận không khớp"); return; }
+    if (newPw !== confirmPw) { setPwError(t("Mật khẩu xác nhận không khớp")); return; }
     setSavingPw(true);
     const res = await fetch("/api/user/password", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ currentPassword:currentPw, newPassword:newPw }) });
     const data = await res.json();
-    if (data.success) { setPwMsg("Đã đổi mật khẩu thành công!"); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }
+    if (data.success) { setPwMsg(t("Đã đổi mật khẩu thành công!")); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }
     else setPwError(data.error);
     setSavingPw(false);
   }
@@ -73,7 +73,7 @@ export default function SettingsPage() {
     setTwoFAError("");
     const res = await fetch("/api/user/2fa", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ action:"enable", token:totpToken }) });
     const data = await res.json();
-    if (data.success) { setTwoFAMsg("Đã bật xác thực 2 lớp!"); setTwoFAStep("idle"); setTotpToken(""); setProfile((p:any)=>({...p, twoFactorEnabled:true})); }
+    if (data.success) { setTwoFAMsg(t("Đã bật xác thực 2 lớp!")); setTwoFAStep("idle"); setTotpToken(""); setProfile((p:any)=>({...p, twoFactorEnabled:true})); }
     else setTwoFAError(data.error);
   }
 
@@ -81,7 +81,7 @@ export default function SettingsPage() {
     setTwoFAError("");
     const res = await fetch("/api/user/2fa", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ action:"disable", token:totpToken }) });
     const data = await res.json();
-    if (data.success) { setTwoFAMsg("Đã tắt xác thực 2 lớp."); setTotpToken(""); setProfile((p:any)=>({...p, twoFactorEnabled:false})); }
+    if (data.success) { setTwoFAMsg(t("Đã tắt xác thực 2 lớp.")); setTotpToken(""); setProfile((p:any)=>({...p, twoFactorEnabled:false})); }
     else setTwoFAError(data.error);
   }
 
@@ -116,13 +116,13 @@ export default function SettingsPage() {
               <div style={{ fontSize:16, fontWeight:700, color:"var(--text-primary)" }}>{profile?.name}</div>
               <div style={{ fontSize:13, color:"var(--text-muted)" }}>{profile?.email}</div>
               <div style={{ fontSize:11.5, color:"var(--text-muted)", marginTop:2 }}>
-                {profile?.emailVerified ? "&#10003; Email đã xác thực" : "⚠ Email chưa xác thực"}
+                {profile?.emailVerified ? <>&#10003; {t("Email đã xác thực")}</> : <>⚠ {t("Email chưa xác thực")}</>}
               </div>
             </div>
           </div>
           <form onSubmit={saveProfile}>
             <div style={{ marginBottom:16 }}>
-              <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Họ tên</label>
+              <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>{t("Họ tên")}</label>
               <input value={name} onChange={e=>setName(e.target.value)} style={inputStyle} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
             </div>
             <div style={{ marginBottom:16 }}>
@@ -130,15 +130,15 @@ export default function SettingsPage() {
               <input value={profile?.email||""} disabled style={{ ...inputStyle, opacity:0.5, cursor:"not-allowed" }}/>
             </div>
 
-            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", margin:"4px 0 12px", paddingTop:8, borderTop:"1px solid var(--border)" }}>Thông tin xuất hoá đơn</div>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", margin:"4px 0 12px", paddingTop:8, borderTop:"1px solid var(--border)" }}>{t("Thông tin xuất hoá đơn")}</div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
               {[
-                { k:"company", l:"Công ty" },
-                { k:"phone", l:"Số điện thoại" },
-                { k:"address", l:"Địa chỉ" },
-                { k:"city", l:"Thành phố" },
-                { k:"country", l:"Quốc gia" },
-                { k:"taxId", l:"Mã số thuế" },
+                { k:"company", l:t("Công ty") },
+                { k:"phone", l:t("Số điện thoại") },
+                { k:"address", l:t("Địa chỉ") },
+                { k:"city", l:t("Thành phố") },
+                { k:"country", l:t("Quốc gia") },
+                { k:"taxId", l:t("Mã số thuế") },
               ].map(f=>(
                 <div key={f.k}>
                   <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>{f.l}</label>
@@ -148,7 +148,7 @@ export default function SettingsPage() {
             </div>
             {profileMsg && <div style={{ background:"var(--green-soft)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:"var(--radius-md)", padding:"8px 12px", color:"var(--green)", fontSize:13, marginBottom:14 }}>&#10003; {profileMsg}</div>}
             <button type="submit" disabled={savingProfile} style={{ padding:"10px 20px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>
-              {savingProfile?"Đang lưu...":"Lưu thay đổi"}
+              {savingProfile?t("Đang lưu..."):t("Lưu thay đổi")}
             </button>
           </form>
         </div>
@@ -172,7 +172,7 @@ export default function SettingsPage() {
             <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>{t("appearance.mode")}</div>
             <div style={{ display:"flex", gap:10 }}>
               {([["dark","Tối"],["light","Sáng"]] as const).map(([v,l])=>(
-                <button key={v} onClick={()=>update({ theme:v })} style={{ flex:1, padding:"12px", borderRadius:"var(--radius-md)", border:`1.5px solid ${appearance.theme===v?"var(--accent)":"var(--border)"}`, background:appearance.theme===v?"var(--accent-soft)":"var(--bg-elevated)", color:appearance.theme===v?"var(--accent)":"var(--text-secondary)", fontSize:13, fontWeight:600, cursor:"pointer" }}>{l}</button>
+                <button key={v} onClick={()=>update({ theme:v })} style={{ flex:1, padding:"12px", borderRadius:"var(--radius-md)", border:`1.5px solid ${appearance.theme===v?"var(--accent)":"var(--border)"}`, background:appearance.theme===v?"var(--accent-soft)":"var(--bg-elevated)", color:appearance.theme===v?"var(--accent)":"var(--text-secondary)", fontSize:13, fontWeight:600, cursor:"pointer" }}>{t(l)}</button>
               ))}
             </div>
           </div>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
                 <button key={c} onClick={()=>update({ accent:c })} aria-label={c} style={{ width:30, height:30, borderRadius:"50%", background:c, border:appearance.accent===c?"3px solid var(--text-primary)":"2px solid var(--border)", cursor:"pointer" }}/>
               ))}
               <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:12.5, color:"var(--text-muted)", cursor:"pointer" }}>
-                Tuỳ chọn
+                {t("Tuỳ chọn")}
                 <input type="color" value={appearance.accent} onChange={e=>update({ accent:e.target.value })} style={{ width:30, height:30, border:"none", background:"none", cursor:"pointer", padding:0 }}/>
               </label>
             </div>
@@ -195,14 +195,14 @@ export default function SettingsPage() {
           <div style={{ marginBottom:24 }}>
             <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>{t("appearance.font")}</div>
             <select value={appearance.font} onChange={e=>update({ font:e.target.value })} style={inputStyle}>
-              {FONT_PRESETS.map(f=><option key={f.value} value={f.value}>{f.label}</option>)}
+              {FONT_PRESETS.map(f=><option key={f.value} value={f.value}>{t(f.label)}</option>)}
             </select>
           </div>
 
           {/* Font size */}
           <div style={{ marginBottom:24 }}>
             <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>
-              <span>Cỡ chữ</span><span style={{ color:"var(--accent)" }}>{Math.round(appearance.fontScale*100)}%</span>
+              <span>{t("Cỡ chữ")}</span><span style={{ color:"var(--accent)" }}>{Math.round(appearance.fontScale*100)}%</span>
             </div>
             <input type="range" min={0.85} max={1.3} step={0.05} value={appearance.fontScale} onChange={e=>update({ fontScale:parseFloat(e.target.value) })} style={{ width:"100%", accentColor:"var(--accent)" }}/>
           </div>
@@ -212,25 +212,25 @@ export default function SettingsPage() {
             <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>{t("appearance.direction")}</div>
             <div style={{ display:"flex", gap:10 }}>
               {([["ltr","Trái → Phải (LTR)"],["rtl","Phải → Trái (RTL)"]] as const).map(([v,l])=>(
-                <button key={v} onClick={()=>update({ dir:v })} style={{ flex:1, padding:"10px", borderRadius:"var(--radius-md)", border:`1.5px solid ${appearance.dir===v?"var(--accent)":"var(--border)"}`, background:appearance.dir===v?"var(--accent-soft)":"var(--bg-elevated)", color:appearance.dir===v?"var(--accent)":"var(--text-secondary)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>{l}</button>
+                <button key={v} onClick={()=>update({ dir:v })} style={{ flex:1, padding:"10px", borderRadius:"var(--radius-md)", border:`1.5px solid ${appearance.dir===v?"var(--accent)":"var(--border)"}`, background:appearance.dir===v?"var(--accent-soft)":"var(--bg-elevated)", color:appearance.dir===v?"var(--accent)":"var(--text-secondary)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>{t(l)}</button>
               ))}
             </div>
           </div>
 
           <button onClick={reset} style={{ padding:"9px 16px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", fontSize:13, fontWeight:600, cursor:"pointer" }}>{t("appearance.reset")}</button>
-          <p style={{ fontSize:11.5, color:"var(--text-muted)", marginTop:14 }}>Tuỳ chỉnh được lưu trên trình duyệt này và áp dụng tức thì.</p>
+          <p style={{ fontSize:11.5, color:"var(--text-muted)", marginTop:14 }}>{t("Tuỳ chỉnh được lưu trên trình duyệt này và áp dụng tức thì.")}</p>
         </div>
       )}
 
       {/* Security tab */}
       {tab === "security" && (
         <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"24px" }}>
-          <h3 style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)", marginBottom:20 }}>Đổi mật khẩu</h3>
+          <h3 style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)", marginBottom:20 }}>{t("Đổi mật khẩu")}</h3>
           <form onSubmit={changePassword}>
             {[
-              { label:"Mật khẩu hiện tại", val:currentPw, set:setCurrentPw },
-              { label:"Mật khẩu mới", val:newPw, set:setNewPw },
-              { label:"Xác nhận mật khẩu mới", val:confirmPw, set:setConfirmPw },
+              { label:t("Mật khẩu hiện tại"), val:currentPw, set:setCurrentPw },
+              { label:t("Mật khẩu mới"), val:newPw, set:setNewPw },
+              { label:t("Xác nhận mật khẩu mới"), val:confirmPw, set:setConfirmPw },
             ].map(f=>(
               <div key={f.label} style={{ marginBottom:14 }}>
                 <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>{f.label}</label>
@@ -240,7 +240,7 @@ export default function SettingsPage() {
             {pwError && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:13, marginBottom:14 }}>⚠ {pwError}</div>}
             {pwMsg && <div style={{ background:"var(--green-soft)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--green)", fontSize:13, marginBottom:14 }}>&#10003; {pwMsg}</div>}
             <button type="submit" disabled={savingPw} style={{ padding:"10px 20px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>
-              {savingPw?"Đang đổi...":"Đổi mật khẩu"}
+              {savingPw?t("Đang đổi..."):t("Đổi mật khẩu")}
             </button>
           </form>
         </div>
@@ -254,9 +254,9 @@ export default function SettingsPage() {
               {profile?.twoFactorEnabled?"":""}
             </div>
             <div>
-              <div style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)" }}>Xác thực 2 lớp (2FA)</div>
+              <div style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)" }}>{t("Xác thực 2 lớp (2FA)")}</div>
               <div style={{ fontSize:12.5, color: profile?.twoFactorEnabled?"var(--green)":"var(--text-muted)" }}>
-                {profile?.twoFactorEnabled ? "&#10003; Đang bật — tài khoản được bảo vệ" : "Chưa bật — tài khoản có thể bị xâm nhập"}
+                {profile?.twoFactorEnabled ? <>&#10003; {t("Đang bật — tài khoản được bảo vệ")}</> : t("Chưa bật — tài khoản có thể bị xâm nhập")}
               </div>
             </div>
           </div>
@@ -266,38 +266,38 @@ export default function SettingsPage() {
 
           {!profile?.twoFactorEnabled && twoFAStep === "idle" && (
             <div>
-              <p style={{ color:"var(--text-secondary)", fontSize:13, marginBottom:16, lineHeight:1.7 }}>Bật 2FA để thêm lớp bảo vệ. Mỗi lần đăng nhập sẽ yêu cầu mã từ ứng dụng Google Authenticator.</p>
+              <p style={{ color:"var(--text-secondary)", fontSize:13, marginBottom:16, lineHeight:1.7 }}>{t("Bật 2FA để thêm lớp bảo vệ. Mỗi lần đăng nhập sẽ yêu cầu mã từ ứng dụng Google Authenticator.")}</p>
               <button onClick={setup2FA} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 20px", background:"var(--green-soft)", border:"1.5px solid rgba(34,197,94,0.3)", borderRadius:"var(--radius-md)", color:"var(--green)", fontSize:13, fontWeight:700, cursor:"pointer" }}>
-                <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/> Bật xác thực 2 lớp
+                <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/> {t("Bật xác thực 2 lớp")}
               </button>
             </div>
           )}
 
           {twoFAStep === "verify" && (
             <div>
-              <p style={{ color:"var(--text-secondary)", fontSize:13, marginBottom:16 }}>Quét mã QR bằng Google Authenticator, sau đó nhập mã 6 số để xác nhận.</p>
+              <p style={{ color:"var(--text-secondary)", fontSize:13, marginBottom:16 }}>{t("Quét mã QR bằng Google Authenticator, sau đó nhập mã 6 số để xác nhận.")}</p>
               {qrUrl && <div style={{ textAlign:"center", marginBottom:16 }}><img src={qrUrl} alt="QR Code" style={{ width:160, height:160, borderRadius:"var(--radius-md)", border:"1px solid var(--border)" }}/></div>}
               <div style={{ background:"var(--bg-elevated)", borderRadius:"var(--radius-md)", padding:"10px 14px", marginBottom:16, fontSize:12, color:"var(--text-secondary)" }}>
-                Nhập thủ công: <span style={{ fontFamily:"var(--font-mono)", color:"var(--accent)", letterSpacing:"0.1em" }}>{secret}</span>
+                {t("Nhập thủ công:")} <span style={{ fontFamily:"var(--font-mono)", color:"var(--accent)", letterSpacing:"0.1em" }}>{secret}</span>
               </div>
               <input type="text" value={totpToken} onChange={e=>setTotpToken(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder="000000" maxLength={6}
                 style={{ ...inputStyle, textAlign:"center", fontSize:22, fontFamily:"monospace", letterSpacing:"0.3em", marginBottom:12 }}
                 onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
               <div style={{ display:"flex", gap:10 }}>
-                <button onClick={()=>setTwoFAStep("idle")} style={{ flex:1, padding:"10px", background:"var(--bg-hover)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", cursor:"pointer", fontSize:13 }}>Huỷ</button>
-                <button onClick={enable2FA} disabled={totpToken.length!==6} style={{ flex:2, padding:"10px", background:totpToken.length===6?"var(--green)":"rgba(34,197,94,0.3)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, cursor:totpToken.length===6?"pointer":"not-allowed", fontSize:13 }}>Xác nhận bật 2FA</button>
+                <button onClick={()=>setTwoFAStep("idle")} style={{ flex:1, padding:"10px", background:"var(--bg-hover)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", cursor:"pointer", fontSize:13 }}>{t("Huỷ")}</button>
+                <button onClick={enable2FA} disabled={totpToken.length!==6} style={{ flex:2, padding:"10px", background:totpToken.length===6?"var(--green)":"rgba(34,197,94,0.3)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, cursor:totpToken.length===6?"pointer":"not-allowed", fontSize:13 }}>{t("Xác nhận bật 2FA")}</button>
               </div>
             </div>
           )}
 
           {profile?.twoFactorEnabled && twoFAStep === "idle" && (
             <div>
-              <p style={{ color:"var(--text-secondary)", fontSize:13, marginBottom:16 }}>Nhập mã từ ứng dụng xác thực để tắt 2FA.</p>
+              <p style={{ color:"var(--text-secondary)", fontSize:13, marginBottom:16 }}>{t("Nhập mã từ ứng dụng xác thực để tắt 2FA.")}</p>
               <input type="text" value={totpToken} onChange={e=>setTotpToken(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder="000000" maxLength={6}
                 style={{ ...inputStyle, textAlign:"center", fontSize:22, fontFamily:"monospace", letterSpacing:"0.3em", marginBottom:12 }}
                 onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
               <button onClick={disable2FA} disabled={totpToken.length!==6} style={{ padding:"10px 20px", background:totpToken.length===6?"var(--red-soft)":"rgba(239,68,68,0.1)", border:`1.5px solid ${totpToken.length===6?"rgba(239,68,68,0.3)":"transparent"}`, borderRadius:"var(--radius-md)", color:totpToken.length===6?"var(--red)":"rgba(239,68,68,0.4)", fontSize:13, fontWeight:600, cursor:totpToken.length===6?"pointer":"not-allowed" }}>
-                Tắt xác thực 2 lớp
+                {t("Tắt xác thực 2 lớp")}
               </button>
             </div>
           )}

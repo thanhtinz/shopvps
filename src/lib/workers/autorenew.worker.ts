@@ -98,7 +98,7 @@ async function renewVps(orderId: string) {
       }
     } catch (e) { console.error(`[Renew Worker] VPS suspend failed for ${orderId}:`, e); }
     await prisma.notification.create({ data: { userId: order.userId, type: "VPS", title: t("VPS bị tạm dừng"), content: `VPS ${order.hostname} ${t("đã bị tạm dừng do không đủ số dư để gia hạn.")}` } });
-    if (order.user?.email) await queueEmail(order.user.email, "VPS bị tạm dừng", `<p>VPS <strong>${order.hostname}</strong> đã bị tạm dừng do không đủ số dư. Vui lòng nạp tiền và liên hệ hỗ trợ để kích hoạt lại.</p>`);
+    if (order.user?.email) await queueEmail(order.user.email, t("VPS bị tạm dừng"), `<p>VPS <strong>${order.hostname}</strong> ${t("đã bị tạm dừng do không đủ số dư. Vui lòng nạp tiền và liên hệ hỗ trợ để kích hoạt lại.")}</p>`);
   }
 }
 
@@ -121,10 +121,10 @@ async function renewHosting(orderId: string) {
     try {
       if (order.cpanelUsername) {
         const whm = getWHMClient(order.server);
-        await whm.suspendAccount(order.cpanelUsername, "Không đủ số dư gia hạn");
+        await whm.suspendAccount(order.cpanelUsername, t("Không đủ số dư gia hạn"));
       }
     } catch (e) { console.error(`[Renew Worker] Hosting suspend failed for ${orderId}:`, e); }
     await prisma.notification.create({ data: { userId: order.userId, type: "HOSTING", title: t("Hosting bị tạm dừng"), content: `Hosting ${order.domain} ${t("đã bị tạm dừng do không đủ số dư để gia hạn.")}` } });
-    if (order.user?.email) await queueEmail(order.user.email, "Hosting bị tạm dừng", `<p>Hosting <strong>${order.domain}</strong> đã bị tạm dừng do không đủ số dư. Vui lòng nạp tiền và liên hệ hỗ trợ để kích hoạt lại.</p>`);
+    if (order.user?.email) await queueEmail(order.user.email, t("Hosting bị tạm dừng"), `<p>Hosting <strong>${order.domain}</strong> ${t("đã bị tạm dừng do không đủ số dư. Vui lòng nạp tiền và liên hệ hỗ trợ để kích hoạt lại.")}</p>`);
   }
 }

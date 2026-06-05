@@ -104,6 +104,7 @@ import enUiPublic from "./en/uiPublic";
 import enUiMisc from "./en/uiMisc";
 import enSrvNotif from "./en/srvNotif";
 import enSrvMisc from "./en/srvMisc";
+import enFixups from "./en/fixups";
 
 Object.assign(
   DICTS.en,
@@ -111,7 +112,7 @@ Object.assign(
   enAdminCore, enAdminCore2, enAdminCatalog, enAdminPromo,
   enAdminConfig, enAdminConfig2, enAuth, enServerPages,
   enApiAdmin, enApiServices, enApiMisc, enEmails,
-  enUiPublic, enUiMisc, enSrvNotif, enSrvMisc,
+  enUiPublic, enUiMisc, enSrvNotif, enSrvMisc, enFixups,
 );
 
 export function translate(locale: Locale, key: string): string {

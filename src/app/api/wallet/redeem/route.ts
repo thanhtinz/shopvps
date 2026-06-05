@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
       });
       return amt;
     });
-    return NextResponse.json({ success: true, data: { amount }, message: `Đã cộng ${amount.toLocaleString("vi-VN")}đ vào ví.` });
+    const { t: tu } = await getUserT(session.user.id);
+    return NextResponse.json({ success: true, data: { amount }, message: `${tu("Đã cộng")} ${amount.toLocaleString("vi-VN")}đ ${tu("vào ví.")}` });
   } catch (e: any) {
     if (e?.message === "INVALID") return NextResponse.json({ error: t("Mã không hợp lệ, đã dùng hoặc hết hạn") }, { status: 400 });
     return NextResponse.json({ error: t("Không thể đổi mã") }, { status: 500 });
