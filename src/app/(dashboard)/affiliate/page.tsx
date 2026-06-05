@@ -32,11 +32,12 @@ export default function AffiliatePage() {
       <p style={{ color:"var(--text-muted)", fontSize:13, marginBottom:24 }}>Giới thiệu bạn bè và nhận hoa hồng cho mỗi đơn hàng</p>
 
       {/* Stats */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14, marginBottom:24 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:24 }}>
         {[
           { label:"Số dư hoa hồng", value:formatCurrency(data?.balance||0), color:"var(--green)", icon:"" },
           { label:"Người được giới thiệu", value:String(data?.referrals?.length||0), color:"var(--accent)", icon:"" },
-          { label:"Tổng hoa hồng nhận", value:formatCurrency(data?.commissions?.reduce((a:number,c:any)=>a+Number(c.amount),0)||0), color:"var(--purple)", icon:"" },
+          { label:"Đã nhận", value:formatCurrency(data?.totalEarned||0), color:"var(--purple)", icon:"" },
+          { label:"Chờ duyệt", value:formatCurrency(data?.totalPending||0), color:"var(--yellow)", icon:"" },
         ].map(s => (
           <div key={s.label} style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"20px" }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12 }}>
@@ -57,7 +58,7 @@ export default function AffiliatePage() {
             {refUrl}
           </div>
           <button onClick={copy} style={{ padding:"10px 16px", background:copied?"var(--green-soft)":"var(--accent)", border:`1px solid ${copied?"rgba(34,197,94,0.3)":"transparent"}`, borderRadius:"var(--radius-md)", color:copied?"var(--green)":"white", fontSize:13, fontWeight:600, cursor:"pointer", transition:"all 0.2s", whiteSpace:"nowrap" }}>
-            {copied?"&#10003; Đã copy":"Copy link"}
+            {copied?"✓ Đã copy":"Copy link"}
           </button>
         </div>
         <div style={{ marginTop:12, padding:"10px 12px", background:"var(--accent-soft)", borderRadius:"var(--radius-md)", fontSize:12, color:"var(--text-secondary)" }}>
@@ -111,8 +112,8 @@ export default function AffiliatePage() {
                 </div>
                 <div style={{ textAlign:"right" }}>
                   <div style={{ fontSize:13.5, fontWeight:700, color:"var(--green)" }}>+{formatCurrency(c.amount)}</div>
-                  <Badge color={c.status==="PAID"?"green":c.status==="APPROVED"?"blue":"yellow"}>
-                    {c.status==="PAID"?"Đã thanh toán":c.status==="APPROVED"?"Đã duyệt":"Chờ duyệt"}
+                  <Badge color={c.status==="PAID"?"green":c.status==="APPROVED"?"blue":c.status==="CANCELLED"?"red":"yellow"}>
+                    {c.status==="PAID"?"Đã thanh toán":c.status==="APPROVED"?"Đã duyệt":c.status==="CANCELLED"?"Đã huỷ":"Chờ duyệt"}
                   </Badge>
                 </div>
               </div>
