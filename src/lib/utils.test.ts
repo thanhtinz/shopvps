@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pick, generateInvoiceNumber, generateAffiliateCode, getBillingCycleLabel, addMonths, nextExpiry, CYCLE_MONTHS } from "./utils";
+import { pick, generateInvoiceNumber, generateAffiliateCode, getBillingCycleLabel, addMonths, nextExpiry, CYCLE_MONTHS, proratedDifference } from "./utils";
 
 describe("pick (mass-assignment guard)", () => {
   it("keeps only whitelisted keys", () => {
@@ -70,5 +70,25 @@ describe("billing date helpers", () => {
     const now = new Date("2024-06-01T00:00:00Z");
     const past = new Date("2024-05-01T00:00:00Z");
     expect(nextExpiry(past, 1, now).toISOString()).toBe("2024-07-01T00:00:00.000Z");
+  });
+});
+
+describe("proratedDifference (plan upgrade/downgrade)", () => {
+  const now = new Date("2024-06-01T00:00:00Z");
+  it("charges the full diff when a whole month remains", () => {
+    const expiresAt = new Date("2024-07-01T00:00:00Z"); // 30 days
+    expect(proratedDifference({ oldMonthly: 100, newMonthly: 200, months: 1, expiresAt, now })).toBe(100);
+  });
+  it("prorates by remaining half-term on upgrade", () => {
+    const expiresAt = new Date("2024-06-16T00:00:00Z"); // 15 of 30 days
+    expect(proratedDifference({ oldMonthly: 100, newMonthly: 200, months: 1, expiresAt, now })).toBe(50);
+  });
+  it("returns a negative amount for downgrades (no charge)", () => {
+    const expiresAt = new Date("2024-07-01T00:00:00Z");
+    expect(proratedDifference({ oldMonthly: 200, newMonthly: 100, months: 1, expiresAt, now })).toBe(-100);
+  });
+  it("returns 0 when the term has already expired", () => {
+    const expiresAt = new Date("2024-05-01T00:00:00Z");
+    expect(proratedDifference({ oldMonthly: 100, newMonthly: 300, months: 1, expiresAt, now })).toBe(0);
   });
 });

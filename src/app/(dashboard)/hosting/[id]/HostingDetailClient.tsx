@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -22,6 +22,41 @@ export default function HostingDetailClient({ hosting }: { hosting: any }) {
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [confirm, setConfirm] = useState<{ action: string; needsPw?: boolean; danger?: boolean } | null>(null);
   const [field, setField] = useState("");
+  const [packages, setPackages] = useState<any[]>([]);
+  const [selectedPkg, setSelectedPkg] = useState("");
+  const [changing, setChanging] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/hosting/packages`).then(r => r.json()).then(d => {
+      const list = (d.data || []).filter((p: any) => p.server?.id === hosting.serverId && p.id !== hosting.packageId);
+      setPackages(list);
+    }).catch(() => {});
+  }, [hosting.serverId, hosting.packageId]);
+
+  const CYCLE_MONTHS: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 };
+  function estimateDiff(newMonthly: number) {
+    const months = CYCLE_MONTHS[hosting.billingCycle] || 1;
+    const termDays = months * 30;
+    let remaining = hosting.expiresAt ? (new Date(hosting.expiresAt).getTime() - Date.now()) / 86400000 : 0;
+    remaining = Math.max(0, Math.min(remaining, termDays));
+    const fraction = termDays > 0 ? remaining / termDays : 0;
+    return Math.round((newMonthly - hosting.price) * months * fraction);
+  }
+
+  async function changePackage() {
+    if (!selectedPkg) return;
+    setChanging(true); setMsg(null);
+    try {
+      const res = await fetch(`/api/hosting/${hosting.id}/change-package`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageId: selectedPkg }),
+      });
+      const d = await res.json();
+      if (res.ok) { setMsg({ type: "ok", text: d.message || t("Thao tác thành công") }); location.reload(); }
+      else setMsg({ type: "err", text: d.error || t("Thất bại") });
+    } catch { setMsg({ type: "err", text: t("Không thể kết nối") }); }
+    finally { setChanging(false); }
+  }
 
   async function openCpanel() {
     setBusy("sso"); setMsg(null);
@@ -98,6 +133,42 @@ export default function HostingDetailClient({ hosting }: { hosting: any }) {
           </div>
         </div>
       )}
+
+      {/* Change plan */}
+      <div style={card}>
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Đổi gói")}</h3>
+        {packages.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("Không có gói nào khác để đổi.")}</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <select value={selectedPkg} onChange={e => setSelectedPkg(e.target.value)} style={{ width: "100%", boxSizing: "border-box", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 12px", color: "var(--text-primary)", fontSize: 13 }}>
+              <option value="">{t("Chọn gói mới")}</option>
+              {packages.map(p => (
+                <option key={p.id} value={p.id}>{p.name} — {formatCurrency(p.priceMonthly)}/th</option>
+              ))}
+            </select>
+            {selectedPkg && (() => {
+              const pkg = packages.find(p => p.id === selectedPkg);
+              if (!pkg) return null;
+              const diff = estimateDiff(pkg.priceMonthly);
+              return (
+                <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  {diff > 0 ? (
+                    <span>{t("Phí nâng cấp (trừ vào ví):")} {formatCurrency(diff)}</span>
+                  ) : (
+                    <span>{t("Hạ cấp — áp dụng giá mới từ kỳ gia hạn sau, không hoàn tiền.")}</span>
+                  )}
+                </div>
+              );
+            })()}
+            <div>
+              <button onClick={changePackage} disabled={!selectedPkg || changing} style={{ ...btn, background: "var(--accent)", color: "white", border: "none", opacity: (!selectedPkg || changing) ? 0.6 : 1 }}>
+                {changing ? t("Đang xử lý...") : t("Xác nhận đổi gói")}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       <ServiceActions serviceType="hosting" orderId={hosting.id} currentPackageId={hosting.packageId} status={hosting.status} />
 

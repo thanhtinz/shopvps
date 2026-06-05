@@ -30,5 +30,15 @@ const m: Record<string, string> = {
   "Tự động trừ ví để gia hạn (true/false, mặc định true)": "Auto-charge wallet to renew (true/false, default true)",
   "Tạm dừng sau khi quá hạn (số ngày, mặc định 3)": "Suspend after overdue (days, default 3)",
   "Huỷ dịch vụ sau khi quá hạn (số ngày, mặc định 15)": "Terminate after overdue (days, default 15)",
+  // Change plan (upgrade/downgrade)
+  "Gói không hợp lệ": "Invalid plan",
+  "Dịch vụ không tồn tại": "Service not found",
+  "Bạn đang dùng gói này": "You are already on this plan",
+  "Số dư không đủ để nâng cấp": "Insufficient balance to upgrade",
+  "Không thể đổi gói": "Could not change the plan",
+  "Nâng cấp gói": "Plan upgrade",
+  "Đã đổi gói dịch vụ": "Plan changed",
+  "Dịch vụ đã chuyển sang gói": "Your service was switched to plan",
+  "Đã đổi gói thành công": "Plan changed successfully",
 };
 export default m;

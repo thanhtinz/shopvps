@@ -25,10 +25,45 @@ export default function VpsDetailClient({ vps }: { vps: any }) {
   const [showPw, setShowPw] = useState(false);
   const [confirm, setConfirm] = useState<{ action: string; needsOs?: boolean; needsPw?: boolean } | null>(null);
   const [field, setField] = useState("");
+  const [packages, setPackages] = useState<any[]>([]);
+  const [selectedPkg, setSelectedPkg] = useState("");
+  const [changing, setChanging] = useState(false);
 
   useEffect(() => {
     fetch(`/api/vps/${vps.id}/logs`).then(r => r.json()).then(d => setLogs(d.data?.logs || [])).catch(() => {});
   }, [vps.id]);
+
+  useEffect(() => {
+    fetch(`/api/vps/packages`).then(r => r.json()).then(d => {
+      const list = (d.data || []).filter((p: any) => p.provider?.id === vps.providerId && p.id !== vps.packageId);
+      setPackages(list);
+    }).catch(() => {});
+  }, [vps.providerId, vps.packageId]);
+
+  const CYCLE_MONTHS: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 };
+  function estimateDiff(newMonthly: number) {
+    const months = CYCLE_MONTHS[vps.billingCycle] || 1;
+    const termDays = months * 30;
+    let remaining = vps.expiresAt ? (new Date(vps.expiresAt).getTime() - Date.now()) / 86400000 : 0;
+    remaining = Math.max(0, Math.min(remaining, termDays));
+    const fraction = termDays > 0 ? remaining / termDays : 0;
+    return Math.round((newMonthly - vps.price) * months * fraction);
+  }
+
+  async function changePackage() {
+    if (!selectedPkg) return;
+    setChanging(true); setMsg(null);
+    try {
+      const res = await fetch(`/api/vps/${vps.id}/change-package`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageId: selectedPkg }),
+      });
+      const d = await res.json();
+      if (res.ok) { setMsg({ type: "ok", text: d.message || t("Thao tác thành công") }); location.reload(); }
+      else setMsg({ type: "err", text: d.error || t("Thất bại") });
+    } catch { setMsg({ type: "err", text: t("Không thể kết nối") }); }
+    finally { setChanging(false); }
+  }
 
   async function revealPassword() {
     if (cred) { setShowPw(s => !s); return; }
@@ -118,6 +153,42 @@ export default function VpsDetailClient({ vps }: { vps: any }) {
           </div>
         </div>
       )}
+
+      {/* Change plan */}
+      <div style={card}>
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Đổi gói")}</h3>
+        {packages.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("Không có gói nào khác để đổi.")}</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <select value={selectedPkg} onChange={e => setSelectedPkg(e.target.value)} style={{ width: "100%", boxSizing: "border-box", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "10px 12px", color: "var(--text-primary)", fontSize: 13 }}>
+              <option value="">{t("Chọn gói mới")}</option>
+              {packages.map(p => (
+                <option key={p.id} value={p.id}>{p.name} — {formatCurrency(p.priceMonthly)}/th</option>
+              ))}
+            </select>
+            {selectedPkg && (() => {
+              const pkg = packages.find(p => p.id === selectedPkg);
+              if (!pkg) return null;
+              const diff = estimateDiff(pkg.priceMonthly);
+              return (
+                <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  {diff > 0 ? (
+                    <span>{t("Phí nâng cấp (trừ vào ví):")} {formatCurrency(diff)}</span>
+                  ) : (
+                    <span>{t("Hạ cấp — áp dụng giá mới từ kỳ gia hạn sau, không hoàn tiền.")}</span>
+                  )}
+                </div>
+              );
+            })()}
+            <div>
+              <button onClick={changePackage} disabled={!selectedPkg || changing} style={{ ...btn, background: "var(--accent)", color: "white", border: "none", opacity: (!selectedPkg || changing) ? 0.6 : 1 }}>
+                {changing ? t("Đang xử lý...") : t("Xác nhận đổi gói")}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Logs */}
       <div style={card}>

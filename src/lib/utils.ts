@@ -22,6 +22,23 @@ export function nextExpiry(currentExpiry: Date | null | undefined, months: numbe
 }
 
 /**
+ * Prorated charge when switching plans mid-term: the per-cycle price difference
+ * scaled by the unused fraction of the current term. Positive = upgrade (charge),
+ * zero/negative = downgrade (no charge). Rounded to a whole currency unit.
+ */
+export function proratedDifference(opts: {
+  oldMonthly: number; newMonthly: number; months: number; expiresAt: Date | null; now?: Date;
+}): number {
+  const now = opts.now ?? new Date();
+  const termDays = opts.months * 30;
+  let remainingDays = opts.expiresAt ? (opts.expiresAt.getTime() - now.getTime()) / 86400000 : 0;
+  remainingDays = Math.max(0, Math.min(remainingDays, termDays));
+  const fraction = termDays > 0 ? remainingDays / termDays : 0;
+  const diffPerTerm = (opts.newMonthly - opts.oldMonthly) * opts.months;
+  return Math.round(diffPerTerm * fraction);
+}
+
+/**
  * Whitelist-pick only the allowed keys from an (untrusted) request body.
  * Prevents mass-assignment of fields the client should not control.
  */
