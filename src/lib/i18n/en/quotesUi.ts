@@ -17,5 +17,10 @@ const m: Record<string, string> = {
   "Đang xử lý...": "Processing...",
   "Chấp nhận": "Accept",
   "Từ chối": "Decline",
+  "Xuất PDF": "Export PDF",
+  // Quote PDF
+  "BÁO GIÁ": "QUOTE",
+  "Chi tiết báo giá": "Quote details",
+  "Hiệu lực đến:": "Valid until:",
 };
 export default m;

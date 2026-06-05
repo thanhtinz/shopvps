@@ -85,6 +85,12 @@ export default function QuotesPage() {
                   <td style={{ padding:"12px 16px" }}><Badge color={statusColor[q.status]||"gray"}>{statusLabel[q.status]||q.status}</Badge></td>
                   <td style={{ padding:"12px 16px" }}>
                     <div style={{ display:"flex", gap:8, justifyContent:"flex-end" }}>
+                      <button onClick={()=>window.open(`/api/quotes/pdf?id=${q.id}`, "_blank")} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:"var(--text-secondary)", fontSize:12, cursor:"pointer" }}
+                        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--accent)";(e.currentTarget as HTMLElement).style.color="var(--accent)";}}
+                        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor="var(--border)";(e.currentTarget as HTMLElement).style.color="var(--text-secondary)";}}
+                      >
+                        {t("Xuất PDF")}
+                      </button>
                       {q.status === "SENT" && (
                         <>
                           <button onClick={()=>acceptQuote(q.id)} disabled={busyId===q.id} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"none", background:"var(--accent)", color:"white", fontSize:12, fontWeight:600, cursor:busyId===q.id?"not-allowed":"pointer", opacity:busyId===q.id?0.6:1 }}>
