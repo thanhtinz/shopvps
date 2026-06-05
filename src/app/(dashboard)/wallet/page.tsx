@@ -21,16 +21,32 @@ export default function WalletPage() {
   const [customAmount, setCustomAmount] = useState("");
   const [activeTab, setActiveTab] = useState<"deposit" | "history">("deposit");
   const [loading, setLoading] = useState(true);
+  const [gateways, setGateways] = useState<any[]>([]);
+  const [currencies, setCurrencies] = useState<any[]>([]);
+  const [curCode, setCurCode] = useState("VND");
+  const [gateway, setGateway] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     Promise.all([
       fetch("/api/wallet/balance").then(r => r.json()),
       fetch("/api/wallet/transactions").then(r => r.json()),
-    ]).then(([b, t]) => {
+      fetch("/api/payments/gateways").then(r => r.json()),
+    ]).then(([b, t, g]) => {
       setBalance(b.data);
       setTransactions(t.data?.items || []);
+      const gw = g.data?.gateways || [];
+      setGateways(gw);
+      setCurrencies(g.data?.currencies || []);
+      setCurCode(g.data?.preferred || g.data?.base || "VND");
+      if (gw[0]) setGateway(gw[0].code);
       setLoading(false);
     });
+    const p = new URLSearchParams(window.location.search).get("deposit");
+    if (p === "success") setNotice("Thanh toán thành công! Số dư sẽ được cập nhật trong giây lát.");
+    else if (p === "cancel") setNotice("Giao dịch đã bị huỷ.");
   }, []);
 
   useEffect(() => {
@@ -41,7 +57,21 @@ export default function WalletPage() {
   }, [amount, customAmount]);
 
   const finalAmount = customAmount ? parseInt(customAmount) || 0 : amount;
-  const bonus = depositInfo?.bonuses?.find((b: any) => finalAmount >= Number(b.minAmount) && (!b.maxAmount || finalAmount <= Number(b.maxAmount)));
+  const cur = currencies.find((c: any) => c.code === curCode);
+  const isBase = !cur || Number(cur.rate) === 1;
+  const amountBase = isBase ? finalAmount : Math.round(finalAmount * Number(cur.rate));
+  const bonus = depositInfo?.bonuses?.find((b: any) => amountBase >= Number(b.minAmount) && (!b.maxAmount || amountBase <= Number(b.maxAmount)));
+
+  async function startDeposit() {
+    if (!gateway || finalAmount <= 0) return;
+    setSubmitting(true); setResult(null);
+    const res = await fetch("/api/wallet/deposit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: finalAmount, currencyCode: curCode, gatewayCode: gateway }) });
+    const d = await res.json();
+    setSubmitting(false);
+    if (!res.ok) { alert(d.error || "Không khởi tạo được thanh toán"); return; }
+    if (d.data?.kind === "redirect") { window.location.href = d.data.url; return; }
+    setResult(d.data);
+  }
 
   const txTypeLabel: Record<string, string> = { DEPOSIT: "Nạp tiền", PURCHASE: "Thanh toán", REFUND: "Hoàn tiền", BONUS: "Thưởng", COMMISSION: "Hoa hồng", WITHDRAWAL: "Rút" };
   const txColor: Record<string, "green"|"red"|"yellow"|"blue"> = { DEPOSIT: "green", PURCHASE: "yellow", REFUND: "blue", BONUS: "green", COMMISSION: "blue", WITHDRAWAL: "red" };
@@ -85,6 +115,10 @@ export default function WalletPage() {
 
       {/* Deposit tab */}
       {activeTab === "deposit" && (
+       <div>
+        {notice && (
+          <div style={{ marginBottom: 16, padding: "12px 16px", background: "var(--accent-soft)", border: "1px solid rgba(79,124,255,0.3)", borderRadius: "var(--radius-md)", fontSize: 13, color: "var(--text-primary)" }}>{notice}</div>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
           {/* Left: amount selector */}
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
@@ -132,37 +166,53 @@ export default function WalletPage() {
             )}
           </div>
 
-          {/* Right: QR */}
+          {/* Right: currency + gateway */}
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
-            <h3 style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 16 }}>Thông tin chuyển khoản</h3>
-            {depositInfo ? (
-              <>
-                {depositInfo.qrUrl && (
-                  <div style={{ textAlign: "center", marginBottom: 16 }}>
-                    <img src={depositInfo.qrUrl} alt="QR Code" style={{ width: 180, height: 180, borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }} />
-                  </div>
-                )}
-                {[
-                  { label: "Ngân hàng", value: depositInfo.bank?.bankName },
-                  { label: "Số tài khoản", value: depositInfo.bank?.accountNumber },
-                  { label: "Chủ tài khoản", value: depositInfo.bank?.accountName },
-                  { label: "Nội dung CK", value: depositInfo.description },
-                  { label: "Số tiền", value: formatCurrency(finalAmount) },
-                ].map(row => (
-                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--border)", fontSize: 12.5 }}>
+            <h3 style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 16 }}>Phương thức thanh toán</h3>
+
+            {currencies.length > 1 && (
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Tiền tệ</label>
+                <select value={curCode} onChange={e => { const v = e.target.value; setCurCode(v); setResult(null); fetch("/api/currencies", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: v }) }).catch(() => {}); }} style={{ width: "100%", background: "var(--bg-elevated)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-md)", padding: "9px 11px", color: "var(--text-primary)", fontSize: 13, outline: "none" }}>
+                  {currencies.map((c: any) => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
+                </select>
+                {!isBase && <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 5 }}>≈ {formatCurrency(amountBase)} (tỷ giá {Number(cur.rate).toLocaleString("vi-VN")})</div>}
+              </div>
+            )}
+
+            {gateways.length === 0 ? (
+              <div style={{ fontSize: 12.5, color: "var(--text-muted)", padding: "16px 0" }}>Chưa có cổng thanh toán nào được bật.</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+                {gateways.map((g: any) => (
+                  <label key={g.code} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 13px", border: `1.5px solid ${gateway === g.code ? "var(--accent)" : "var(--border)"}`, borderRadius: "var(--radius-md)", cursor: "pointer", background: gateway === g.code ? "var(--accent-soft)" : "transparent" }}>
+                    <input type="radio" checked={gateway === g.code} onChange={() => setGateway(g.code)} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{g.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            <button onClick={startDeposit} disabled={submitting || !gateway || finalAmount <= 0} style={{ width: "100%", padding: "12px", background: "var(--accent)", border: "none", borderRadius: "var(--radius-md)", color: "white", fontWeight: 700, fontSize: 14, cursor: gateway && finalAmount > 0 ? "pointer" : "not-allowed", opacity: gateway && finalAmount > 0 ? 1 : 0.5 }}>
+              {submitting ? "Đang xử lý..." : `Nạp ${cur ? Number(finalAmount).toLocaleString("en-US") + " " + (cur.symbol || cur.code) : formatCurrency(finalAmount)}`}
+            </button>
+
+            {result?.kind === "instructions" && (
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-primary)", marginBottom: 10 }}>{result.title}</div>
+                {result.qrUrl && <div style={{ textAlign: "center", marginBottom: 12 }}><img src={result.qrUrl} alt="QR" style={{ width: 170, height: 170, borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }} /></div>}
+                {result.lines?.map((row: any) => (
+                  <div key={row.label} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "6px 0", borderBottom: "1px solid var(--border)", fontSize: 12.5 }}>
                     <span style={{ color: "var(--text-muted)" }}>{row.label}</span>
-                    <span style={{ color: "var(--text-primary)", fontWeight: 600, fontFamily: row.label === "Số tài khoản" || row.label === "Nội dung CK" ? "var(--font-mono)" : "inherit" }}>{row.value}</span>
+                    <span style={{ color: "var(--text-primary)", fontWeight: 600, fontFamily: "var(--font-mono)", textAlign: "right", wordBreak: "break-all" }}>{row.value}</span>
                   </div>
                 ))}
-                <div style={{ marginTop: 12, padding: "10px 12px", background: "var(--yellow-soft)", borderRadius: "var(--radius-md)", fontSize: 12, color: "var(--yellow)" }}>
-                  ⚠ Nhập đúng nội dung chuyển khoản để hệ thống tự động cộng tiền
-                </div>
-              </>
-            ) : (
-              <div style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)", fontSize: 13 }}>Chọn số tiền để xem QR</div>
+                {result.note && <div style={{ marginTop: 12, padding: "10px 12px", background: "var(--yellow-soft)", borderRadius: "var(--radius-md)", fontSize: 12, color: "var(--yellow)" }}>{result.note}</div>}
+              </div>
             )}
           </div>
         </div>
+       </div>
       )}
 
       {/* History tab */}

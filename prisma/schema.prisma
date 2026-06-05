@@ -21,6 +21,7 @@ model User {
   role              Role      @default(USER)
   status            UserStatus @default(ACTIVE)
   balance           Decimal   @default(0) @db.Decimal(15, 2)
+  preferredCurrency String    @default("VND")
   twoFactorEnabled  Boolean   @default(false)
   twoFactorSecret   String?
   affiliateCode     String?   @unique
@@ -275,6 +276,9 @@ model Transaction {
   description   String?
   reference     String?           @unique
   status        TransactionStatus @default(PENDING)
+  gateway       String?
+  currency      String?
+  currencyAmount Decimal?         @db.Decimal(15, 2)
   metadata      Json?
   createdAt     DateTime          @default(now())
 
@@ -337,6 +341,42 @@ model BankAccount {
   updatedAt     DateTime @updatedAt
 
   @@map("bank_accounts")
+}
+
+// ============================================================
+// MULTI-CURRENCY & PAYMENT GATEWAYS
+// ============================================================
+
+model Currency {
+  id        String   @id @default(cuid())
+  code      String   @unique // ISO code, e.g. VND, USD, EUR
+  name      String
+  symbol    String   @default("")
+  // Base-currency units per 1 unit of this currency (base currency = 1).
+  // e.g. base VND, USD rate = 24000 means 1 USD = 24000 VND.
+  rate      Decimal  @default(1) @db.Decimal(18, 6)
+  isBase    Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  decimals  Int      @default(0)
+  position  String   @default("before") // symbol position: before | after
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("currencies")
+}
+
+model PaymentGateway {
+  id        String   @id @default(cuid())
+  code      String   @unique // manual, sepay, stripe, paypal
+  name      String
+  isActive  Boolean  @default(false)
+  config    String   @default("{}") @db.Text // JSON credentials/settings
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payment_gateways")
 }
 
 model DepositBonus {
