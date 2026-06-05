@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { code } = await req.json();
   const c = String(code || "").trim().toUpperCase();
-  if (!c) return NextResponse.json({ error: "Vui lòng nhập mã" }, { status: 400 });
+  if (!c) return NextResponse.json({ error: t("Vui lòng nhập mã") }, { status: 400 });
 
   try {
     const amount = await prisma.$transaction(async (tx: any) => {
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ success: true, data: { amount }, message: `Đã cộng ${amount.toLocaleString("vi-VN")}đ vào ví.` });
   } catch (e: any) {
-    if (e?.message === "INVALID") return NextResponse.json({ error: "Mã không hợp lệ, đã dùng hoặc hết hạn" }, { status: 400 });
-    return NextResponse.json({ error: "Không thể đổi mã" }, { status: 500 });
+    if (e?.message === "INVALID") return NextResponse.json({ error: t("Mã không hợp lệ, đã dùng hoặc hết hạn") }, { status: 400 });
+    return NextResponse.json({ error: t("Không thể đổi mã") }, { status: 500 });
   }
 }

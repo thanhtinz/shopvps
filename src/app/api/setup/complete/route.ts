@@ -4,26 +4,28 @@ import { verifyLicense } from "@/lib/license/client";
 import { getHardwareFingerprint } from "@/lib/license/fingerprint";
 import bcrypt from "bcryptjs";
 import { generateAffiliateCode } from "@/lib/utils";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   try {
     const existing = await prisma.appSetup.findUnique({ where: { id: "singleton" } });
-    if (existing) return NextResponse.json({ error: "Hệ thống đã được setup" }, { status: 400 });
+    if (existing) return NextResponse.json({ error: t("Hệ thống đã được setup") }, { status: 400 });
 
     const { licenseKey, adminName, adminEmail, adminPassword } = await req.json();
     if (!licenseKey || !adminEmail || !adminPassword || !adminName)
-      return NextResponse.json({ error: "Thiếu thông tin bắt buộc" }, { status: 400 });
+      return NextResponse.json({ error: t("Thiếu thông tin bắt buộc") }, { status: 400 });
     if (adminPassword.length < 8)
-      return NextResponse.json({ error: "Mật khẩu tối thiểu 8 ký tự" }, { status: 400 });
+      return NextResponse.json({ error: t("Mật khẩu tối thiểu 8 ký tự") }, { status: 400 });
 
     const host = req.headers.get("host") || "localhost";
     const domain = host.replace(/:\d+$/, "");
 
     const result = await verifyLicense({ licenseKey: licenseKey.trim(), domain });
-    if (!result.valid) return NextResponse.json({ error: "License key không hợp lệ" }, { status: 400 });
+    if (!result.valid) return NextResponse.json({ error: t("License key không hợp lệ") }, { status: 400 });
 
     const existingUser = await prisma.user.findUnique({ where: { email: adminEmail } });
-    if (existingUser) return NextResponse.json({ error: "Email đã được sử dụng" }, { status: 400 });
+    if (existingUser) return NextResponse.json({ error: t("Email đã được sử dụng") }, { status: 400 });
 
     await prisma.$transaction(async (tx: any) => {
       await tx.appSetup.create({

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   try {
     const { token, email } = await req.json();
 
@@ -10,7 +12,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!verifyToken || verifyToken.expires < new Date()) {
-      return NextResponse.json({ error: "Token không hợp lệ hoặc đã hết hạn" }, { status: 400 });
+      return NextResponse.json({ error: t("Token không hợp lệ hoặc đã hết hạn") }, { status: 400 });
     }
 
     await prisma.user.update({
@@ -22,6 +24,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: "Đã có lỗi xảy ra" }, { status: 500 });
+    return NextResponse.json({ error: t("Đã có lỗi xảy ra") }, { status: 500 });
   }
 }

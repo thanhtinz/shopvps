@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CYCLE_MONTHS } from "@/lib/proration";
+import { getServerT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -46,11 +47,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id, action, adminNote, amount } = await req.json();
   if (!id || !["approve", "reject"].includes(action))
-    return NextResponse.json({ error: "Yêu cầu không hợp lệ" }, { status: 400 });
+    return NextResponse.json({ error: t("Yêu cầu không hợp lệ") }, { status: 400 });
 
   if (action === "reject") {
     await prisma.serviceRequest.updateMany({ where: { id, status: "PENDING" }, data: { status: "REJECTED", adminNote: adminNote || null, processedAt: new Date() } });
@@ -119,10 +121,10 @@ export async function PATCH(req: NextRequest) {
       });
     });
   } catch (e: any) {
-    if (e?.message === "ALREADY_PROCESSED") return NextResponse.json({ error: "Yêu cầu đã được xử lý" }, { status: 400 });
-    if (e?.message === "INSUFFICIENT_BALANCE") return NextResponse.json({ error: "Khách không đủ số dư để thanh toán phần chênh lệch" }, { status: 400 });
+    if (e?.message === "ALREADY_PROCESSED") return NextResponse.json({ error: t("Yêu cầu đã được xử lý") }, { status: 400 });
+    if (e?.message === "INSUFFICIENT_BALANCE") return NextResponse.json({ error: t("Khách không đủ số dư để thanh toán phần chênh lệch") }, { status: 400 });
     console.error("service-request approve error:", e);
-    return NextResponse.json({ error: "Không thể xử lý yêu cầu" }, { status: 500 });
+    return NextResponse.json({ error: t("Không thể xử lý yêu cầu") }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

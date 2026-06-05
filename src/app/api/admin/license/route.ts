@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { checkAndRefreshLicense } from "@/lib/license";
+import { getServerT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -38,12 +39,13 @@ export async function GET() {
 
 // Re-verify against the license server on demand.
 export async function POST() {
+  const { t } = await getServerT();
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     const state = await checkAndRefreshLicense();
     return NextResponse.json({ success: true, data: state });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Verify thất bại" }, { status: 500 });
+    return NextResponse.json({ error: e?.message || t("Verify thất bại") }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -24,10 +25,11 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const b = await req.json();
-  if (!b.name?.trim()) return NextResponse.json({ error: "Thiếu tên phòng ban" }, { status: 400 });
+  if (!b.name?.trim()) return NextResponse.json({ error: t("Thiếu tên phòng ban") }, { status: 400 });
   const item = await prisma.department.create({ data: { name: b.name.trim(), sortOrder: parseInt(b.sortOrder) || 0 } });
   return NextResponse.json({ success: true, data: item });
 }

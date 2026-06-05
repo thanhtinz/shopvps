@@ -6,24 +6,26 @@ import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
 import { encrypt } from "@/lib/encrypt";
+import { getServerT } from "@/lib/i18n/server";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { packageId, domain, billingCycle, couponCode, addonIds } = await req.json();
-  if (!packageId || !domain) return NextResponse.json({ error: "Thiếu thông tin" }, { status: 400 });
+  if (!packageId || !domain) return NextResponse.json({ error: t("Thiếu thông tin") }, { status: 400 });
 
   const pkg = await prisma.hostingPackage.findUnique({
     where: { id: packageId, isActive: true },
     include: { server: true },
   });
-  if (!pkg) return NextResponse.json({ error: "Gói không tồn tại" }, { status: 404 });
+  if (!pkg) return NextResponse.json({ error: t("Gói không tồn tại") }, { status: 404 });
 
   // Check domain not already in use
   const domainExists = await prisma.hostingOrder.findFirst({ where: { domain, status: { not: "TERMINATED" } } });
-  if (domainExists) return NextResponse.json({ error: "Domain đã được sử dụng" }, { status: 400 });
+  if (domainExists) return NextResponse.json({ error: t("Domain đã được sử dụng") }, { status: 400 });
 
   const cycleMultiplier: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 };
   const months = cycleMultiplier[billingCycle] || 1;
@@ -46,7 +48,7 @@ export async function POST(req: NextRequest) {
     const coupon = await prisma.coupon.findFirst({ where: { code: couponCode.toUpperCase(), isActive: true } });
     if (coupon && (!coupon.expiresAt || coupon.expiresAt > new Date())) {
       if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit)
-        return NextResponse.json({ error: "Coupon đã hết lượt dùng" }, { status: 400 });
+        return NextResponse.json({ error: t("Coupon đã hết lượt dùng") }, { status: 400 });
       if (coupon.minOrder && price < Number(coupon.minOrder))
         return NextResponse.json({ error: `Đơn tối thiểu ${coupon.minOrder}đ` }, { status: 400 });
       if (coupon.type === "PERCENTAGE") discount = Math.floor(price * Number(coupon.value) / 100);
@@ -62,9 +64,9 @@ export async function POST(req: NextRequest) {
   const finalPrice = Math.max(0, price - discount);
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (user && user.status !== "ACTIVE")
-    return NextResponse.json({ error: "Tài khoản đã bị khoá" }, { status: 403 });
+    return NextResponse.json({ error: t("Tài khoản đã bị khoá") }, { status: 403 });
   if (!user || Number(user.balance) < finalPrice)
-    return NextResponse.json({ error: "Số dư không đủ" }, { status: 400 });
+    return NextResponse.json({ error: t("Số dư không đủ") }, { status: 400 });
 
   // Generate cPanel username from domain
   const cpanelUsername = domain.replace(/[^a-z0-9]/gi, "").slice(0, 8).toLowerCase() +
@@ -133,11 +135,11 @@ export async function POST(req: NextRequest) {
     });
   } catch (e: any) {
     if (e?.message === "INSUFFICIENT_BALANCE")
-      return NextResponse.json({ error: "Số dư không đủ" }, { status: 400 });
+      return NextResponse.json({ error: t("Số dư không đủ") }, { status: 400 });
     if (e?.message === "COUPON_EXHAUSTED")
-      return NextResponse.json({ error: "Coupon đã hết lượt dùng" }, { status: 400 });
+      return NextResponse.json({ error: t("Coupon đã hết lượt dùng") }, { status: 400 });
     console.error("Hosting order error:", e);
-    return NextResponse.json({ error: "Không thể tạo đơn hàng" }, { status: 500 });
+    return NextResponse.json({ error: t("Không thể tạo đơn hàng") }, { status: 500 });
   }
 
   await queueHostingProvision(result.id);
@@ -146,6 +148,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     data: { orderId: result.id },
-    message: "Hosting đang được khởi tạo, vui lòng chờ trong vài phút.",
+    message: t("Hosting đang được khởi tạo, vui lòng chờ trong vài phút."),
   });
 }

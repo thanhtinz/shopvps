@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -19,11 +20,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const b = await req.json();
   const amount = parseFloat(b.amount);
-  if (!Number.isFinite(amount) || amount <= 0) return NextResponse.json({ error: "Số tiền không hợp lệ" }, { status: 400 });
+  if (!Number.isFinite(amount) || amount <= 0) return NextResponse.json({ error: t("Số tiền không hợp lệ") }, { status: 400 });
   const quantity = Math.max(1, Math.min(100, parseInt(b.quantity) || 1));
   const expiresAt = b.expiresAt ? new Date(b.expiresAt) : null;
 

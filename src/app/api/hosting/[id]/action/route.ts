@@ -3,10 +3,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getWHMClient } from "@/lib/whm";
 import { encrypt } from "@/lib/encrypt";
+import { getServerT } from "@/lib/i18n/server";
 
 type Action = "suspend" | "unsuspend" | "terminate" | "change_password";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -17,8 +19,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     where: { id, userId: session.user.id },
     include: { server: true },
   });
-  if (!hosting) return NextResponse.json({ error: "Hosting không tồn tại" }, { status: 404 });
-  if (!hosting.cpanelUsername) return NextResponse.json({ error: "Tài khoản cPanel chưa được tạo" }, { status: 400 });
+  if (!hosting) return NextResponse.json({ error: t("Hosting không tồn tại") }, { status: 404 });
+  if (!hosting.cpanelUsername) return NextResponse.json({ error: t("Tài khoản cPanel chưa được tạo") }, { status: 400 });
 
   try {
     const whm = getWHMClient(hosting.server);
@@ -39,12 +41,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         break;
       case "change_password":
         if (!password || String(password).length < 8)
-          return NextResponse.json({ error: "Mật khẩu tối thiểu 8 ký tự" }, { status: 400 });
+          return NextResponse.json({ error: t("Mật khẩu tối thiểu 8 ký tự") }, { status: 400 });
         await whm.changePassword(username, password);
         await prisma.hostingOrder.update({ where: { id }, data: { cpanelPassword: encrypt(password) } });
         break;
       default:
-        return NextResponse.json({ error: "Action không hợp lệ" }, { status: 400 });
+        return NextResponse.json({ error: t("Action không hợp lệ") }, { status: 400 });
     }
 
     await prisma.activityLog.create({
@@ -53,6 +55,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: "Thao tác thất bại: " + err.message }, { status: 500 });
+    return NextResponse.json({ error: t("Thao tác thất bại: ") + err.message }, { status: 500 });
   }
 }

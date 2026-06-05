@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { code, orderAmount } = await req.json();
-  if (!code) return NextResponse.json({ error: "Thiếu mã coupon" }, { status: 400 });
+  if (!code) return NextResponse.json({ error: t("Thiếu mã coupon") }, { status: 400 });
 
   const coupon = await prisma.coupon.findUnique({ where: { code: code.toUpperCase() } });
 
-  if (!coupon || !coupon.isActive) return NextResponse.json({ valid: false, error: "Mã không tồn tại hoặc đã bị vô hiệu" });
-  if (coupon.expiresAt && coupon.expiresAt < new Date()) return NextResponse.json({ valid: false, error: "Mã đã hết hạn" });
-  if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) return NextResponse.json({ valid: false, error: "Mã đã hết lượt dùng" });
+  if (!coupon || !coupon.isActive) return NextResponse.json({ valid: false, error: t("Mã không tồn tại hoặc đã bị vô hiệu") });
+  if (coupon.expiresAt && coupon.expiresAt < new Date()) return NextResponse.json({ valid: false, error: t("Mã đã hết hạn") });
+  if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) return NextResponse.json({ valid: false, error: t("Mã đã hết lượt dùng") });
   if (coupon.minOrder && orderAmount < Number(coupon.minOrder))
     return NextResponse.json({ valid: false, error: `Đơn hàng tối thiểu ${Number(coupon.minOrder).toLocaleString("vi-VN")}đ` });
 

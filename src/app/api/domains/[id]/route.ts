@@ -2,21 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resolveTld } from "@/lib/domains";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
   const body = await req.json();
 
   const domain = await prisma.domainOrder.findFirst({ where: { id, userId: session.user.id } });
-  if (!domain) return NextResponse.json({ error: "Không tìm thấy tên miền" }, { status: 404 });
+  if (!domain) return NextResponse.json({ error: t("Không tìm thấy tên miền") }, { status: 404 });
 
   if (body.action === "renew") {
-    if (domain.status !== "ACTIVE") return NextResponse.json({ error: "Chỉ gia hạn tên miền đang hoạt động" }, { status: 400 });
+    if (domain.status !== "ACTIVE") return NextResponse.json({ error: t("Chỉ gia hạn tên miền đang hoạt động") }, { status: 400 });
     const years = Math.max(1, Math.min(10, parseInt(body.years) || 1));
     const tld = await resolveTld(domain.domain);
-    if (!tld) return NextResponse.json({ error: "Không tìm thấy bảng giá TLD" }, { status: 400 });
+    if (!tld) return NextResponse.json({ error: t("Không tìm thấy bảng giá TLD") }, { status: 400 });
     const price = Number(tld.renewPrice) * years;
     try {
       await prisma.$transaction(async (tx: any) => {
@@ -31,8 +33,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       });
       return NextResponse.json({ success: true });
     } catch (e: any) {
-      if (e?.message === "INSUFFICIENT_BALANCE") return NextResponse.json({ error: "Số dư không đủ" }, { status: 400 });
-      return NextResponse.json({ error: "Không thể gia hạn" }, { status: 500 });
+      if (e?.message === "INSUFFICIENT_BALANCE") return NextResponse.json({ error: t("Số dư không đủ") }, { status: 400 });
+      return NextResponse.json({ error: t("Không thể gia hạn") }, { status: 500 });
     }
   }
 

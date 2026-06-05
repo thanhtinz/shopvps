@@ -4,8 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { generateVietQRUrl } from "@/lib/sepay";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function GET(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -13,7 +15,7 @@ export async function GET(req: NextRequest) {
   const amount = parseInt(searchParams.get("amount") || "0");
 
   const bank = await prisma.bankAccount.findFirst({ where: { isActive: true, isPrimary: true } });
-  if (!bank) return NextResponse.json({ error: "Không có tài khoản ngân hàng" }, { status: 404 });
+  if (!bank) return NextResponse.json({ error: t("Không có tài khoản ngân hàng") }, { status: 404 });
 
   const description = `SHOPVPS ${session.user.id}`;
   const qrUrl = amount > 0

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { encrypt } from "@/lib/encrypt";
+import { getServerT } from "@/lib/i18n/server";
 
 async function isAdmin(s: any): Promise<boolean> { return s && ["ADMIN","SUPER_ADMIN"].includes((s.user as any)?.role); }
 
@@ -15,10 +16,11 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!await isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { name, hostname, whmHost, whmPort, whmUser, whmToken, maxAccounts } = await req.json();
-  if (!name || !whmHost || !whmUser || !whmToken) return NextResponse.json({ error: "Thiếu thông tin" }, { status: 400 });
+  if (!name || !whmHost || !whmUser || !whmToken) return NextResponse.json({ error: t("Thiếu thông tin") }, { status: 400 });
 
   const server = await prisma.hostingServer.create({
     data: { name, hostname: hostname || whmHost, whmHost, whmPort: whmPort || 2087, whmUser, whmToken: encrypt(whmToken), maxAccounts: maxAccounts || 100 },

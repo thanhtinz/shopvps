@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -35,17 +36,18 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id, action } = await req.json();
   if (!id || !["approve", "reject"].includes(action))
-    return NextResponse.json({ error: "Yêu cầu không hợp lệ" }, { status: 400 });
+    return NextResponse.json({ error: t("Yêu cầu không hợp lệ") }, { status: 400 });
 
   const commission = await prisma.commission.findUnique({ where: { id } });
-  if (!commission) return NextResponse.json({ error: "Không tìm thấy hoa hồng" }, { status: 404 });
+  if (!commission) return NextResponse.json({ error: t("Không tìm thấy hoa hồng") }, { status: 404 });
   if (commission.status !== "PENDING")
-    return NextResponse.json({ error: "Hoa hồng đã được xử lý" }, { status: 400 });
+    return NextResponse.json({ error: t("Hoa hồng đã được xử lý") }, { status: 400 });
 
   if (action === "approve") {
     await prisma.$transaction(async (tx: any) => {

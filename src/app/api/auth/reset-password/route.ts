@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   try {
     const { token, password } = await req.json();
     if (!token || !password || password.length < 8)
-      return NextResponse.json({ error: "Thông tin không hợp lệ" }, { status: 400 });
+      return NextResponse.json({ error: t("Thông tin không hợp lệ") }, { status: 400 });
 
     const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
     if (!resetToken || resetToken.expires < new Date())
-      return NextResponse.json({ error: "Link đã hết hạn" }, { status: 400 });
+      return NextResponse.json({ error: t("Link đã hết hạn") }, { status: 400 });
 
     const hashed = await bcrypt.hash(password, 12);
     await prisma.user.update({ where: { email: resetToken.email }, data: { password: hashed } });

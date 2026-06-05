@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await params;
   const b = await req.json();
 
   const domain = await prisma.domainOrder.findUnique({ where: { id } });
-  if (!domain) return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 });
+  if (!domain) return NextResponse.json({ error: t("Không tìm thấy") }, { status: 404 });
 
   const data: any = {};
   if (b.status && ["PENDING", "ACTIVE", "EXPIRED", "CANCELLED", "TRANSFERRED"].includes(b.status)) data.status = b.status;

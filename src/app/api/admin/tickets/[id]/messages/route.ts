@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { emitTicketUpdate } from "@/lib/socket";
 import { queueEmail } from "@/lib/workers";
 import { renderTemplate } from "@/lib/email-templates";
+import { getServerT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -22,14 +23,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await params;
   const { content } = await req.json();
-  if (!content?.trim()) return NextResponse.json({ error: "Nội dung trống" }, { status: 400 });
+  if (!content?.trim()) return NextResponse.json({ error: t("Nội dung trống") }, { status: 400 });
 
   const ticket = await prisma.ticket.findUnique({ where: { id } });
-  if (!ticket) return NextResponse.json({ error: "Không tìm thấy ticket" }, { status: 404 });
+  if (!ticket) return NextResponse.json({ error: t("Không tìm thấy ticket") }, { status: 404 });
 
   const msg = await prisma.ticketMessage.create({
     data: { ticketId: id, userId: session!.user.id, content: content.trim(), isAdmin: true },

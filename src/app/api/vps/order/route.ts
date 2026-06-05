@@ -6,20 +6,22 @@ import { scheduleAutoRenew } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { packageId, os, billingCycle, hostname, couponCode, region, addonIds } = await req.json();
   if (!packageId || !os || !hostname)
-    return NextResponse.json({ error: "Thiếu thông tin" }, { status: 400 });
+    return NextResponse.json({ error: t("Thiếu thông tin") }, { status: 400 });
 
   const pkg = await prisma.vpsPackage.findUnique({
     where: { id: packageId, isActive: true },
     include: { provider: true },
   });
-  if (!pkg) return NextResponse.json({ error: "Gói không tồn tại" }, { status: 404 });
+  if (!pkg) return NextResponse.json({ error: t("Gói không tồn tại") }, { status: 404 });
 
   // Tính giá theo billing cycle
   const cycleMultiplier: Record<string, number> = {
@@ -48,9 +50,9 @@ export async function POST(req: NextRequest) {
     });
     if (coupon) {
       if (coupon.expiresAt && coupon.expiresAt < new Date())
-        return NextResponse.json({ error: "Coupon đã hết hạn" }, { status: 400 });
+        return NextResponse.json({ error: t("Coupon đã hết hạn") }, { status: 400 });
       if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit)
-        return NextResponse.json({ error: "Coupon đã hết lượt dùng" }, { status: 400 });
+        return NextResponse.json({ error: t("Coupon đã hết lượt dùng") }, { status: 400 });
       if (coupon.minOrder && price < Number(coupon.minOrder))
         return NextResponse.json({ error: `Đơn tối thiểu ${coupon.minOrder}đ` }, { status: 400 });
       if (coupon.type === "PERCENTAGE") {
@@ -67,14 +69,14 @@ export async function POST(req: NextRequest) {
   // Check balance
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (user && user.status !== "ACTIVE")
-    return NextResponse.json({ error: "Tài khoản đã bị khoá" }, { status: 403 });
+    return NextResponse.json({ error: t("Tài khoản đã bị khoá") }, { status: 403 });
   if (!user || Number(user.balance) < finalPrice)
-    return NextResponse.json({ error: "Số dư không đủ. Vui lòng nạp thêm tiền." }, { status: 400 });
+    return NextResponse.json({ error: t("Số dư không đủ. Vui lòng nạp thêm tiền.") }, { status: 400 });
 
   // Hostname validation
   const hostnameRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})*$/;
   if (!hostnameRegex.test(hostname))
-    return NextResponse.json({ error: "Hostname không hợp lệ" }, { status: 400 });
+    return NextResponse.json({ error: t("Hostname không hợp lệ") }, { status: 400 });
 
   const expiresAt = new Date();
   expiresAt.setMonth(expiresAt.getMonth() + months);
@@ -184,11 +186,11 @@ export async function POST(req: NextRequest) {
     });
   } catch (e: any) {
     if (e?.message === "INSUFFICIENT_BALANCE")
-      return NextResponse.json({ error: "Số dư không đủ. Vui lòng nạp thêm tiền." }, { status: 400 });
+      return NextResponse.json({ error: t("Số dư không đủ. Vui lòng nạp thêm tiền.") }, { status: 400 });
     if (e?.message === "COUPON_EXHAUSTED")
-      return NextResponse.json({ error: "Coupon đã hết lượt dùng" }, { status: 400 });
+      return NextResponse.json({ error: t("Coupon đã hết lượt dùng") }, { status: 400 });
     console.error("VPS order error:", e);
-    return NextResponse.json({ error: "Không thể tạo đơn hàng" }, { status: 500 });
+    return NextResponse.json({ error: t("Không thể tạo đơn hàng") }, { status: 500 });
   }
 
   // Queue provisioning
@@ -200,6 +202,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     data: { orderId: result.order.id, invoiceId: result.invoice.id },
-    message: "VPS đang được khởi tạo, vui lòng chờ trong vài phút.",
+    message: t("VPS đang được khởi tạo, vui lòng chờ trong vài phút."),
   });
 }

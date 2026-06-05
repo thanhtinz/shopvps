@@ -3,8 +3,10 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import speakeasy from "speakeasy";
 import QRCode from "qrcode";
+import { getServerT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { action, token } = await req.json();
@@ -18,21 +20,21 @@ export async function POST(req: NextRequest) {
 
   if (action === "enable") {
     const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-    if (!user?.twoFactorSecret) return NextResponse.json({ error: "Chưa generate secret" }, { status: 400 });
+    if (!user?.twoFactorSecret) return NextResponse.json({ error: t("Chưa generate secret") }, { status: 400 });
     const valid = speakeasy.totp.verify({ secret: user.twoFactorSecret, encoding: "base32", token, window: 2 });
-    if (!valid) return NextResponse.json({ error: "Mã không đúng" }, { status: 400 });
+    if (!valid) return NextResponse.json({ error: t("Mã không đúng") }, { status: 400 });
     await prisma.user.update({ where: { id: session.user.id }, data: { twoFactorEnabled: true } });
     return NextResponse.json({ success: true });
   }
 
   if (action === "disable") {
     const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-    if (!user?.twoFactorSecret) return NextResponse.json({ error: "Chưa bật 2FA" }, { status: 400 });
+    if (!user?.twoFactorSecret) return NextResponse.json({ error: t("Chưa bật 2FA") }, { status: 400 });
     const valid = speakeasy.totp.verify({ secret: user.twoFactorSecret, encoding: "base32", token, window: 2 });
-    if (!valid) return NextResponse.json({ error: "Mã không đúng" }, { status: 400 });
+    if (!valid) return NextResponse.json({ error: t("Mã không đúng") }, { status: 400 });
     await prisma.user.update({ where: { id: session.user.id }, data: { twoFactorEnabled: false, twoFactorSecret: null } });
     return NextResponse.json({ success: true });
   }
 
-  return NextResponse.json({ error: "Action không hợp lệ" }, { status: 400 });
+  return NextResponse.json({ error: t("Action không hợp lệ") }, { status: 400 });
 }

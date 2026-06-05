@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getServerT } from "@/lib/i18n/server";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -31,11 +32,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { t } = await getServerT();
   const session = await auth();
   if (!isAdmin(session)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await params;
   const cur = await prisma.currency.findUnique({ where: { id } });
-  if (cur?.isBase) return NextResponse.json({ error: "Không thể xoá tiền tệ cơ sở" }, { status: 400 });
+  if (cur?.isBase) return NextResponse.json({ error: t("Không thể xoá tiền tệ cơ sở") }, { status: 400 });
   await prisma.currency.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

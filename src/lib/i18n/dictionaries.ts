@@ -96,12 +96,16 @@ import enAdminConfig from "./en/adminConfig";
 import enAdminConfig2 from "./en/adminConfig2";
 import enAuth from "./en/auth";
 import enServerPages from "./en/serverPages";
+import enApiAdmin from "./en/apiAdmin";
+import enApiServices from "./en/apiServices";
+import enApiMisc from "./en/apiMisc";
 
 Object.assign(
   DICTS.en,
   enCommon, enUserServices, enUserBilling, enUserAccount,
   enAdminCore, enAdminCore2, enAdminCatalog, enAdminPromo,
   enAdminConfig, enAdminConfig2, enAuth, enServerPages,
+  enApiAdmin, enApiServices, enApiMisc,
 );
 
 export function translate(locale: Locale, key: string): string {
