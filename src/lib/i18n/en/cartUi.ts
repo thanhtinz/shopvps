@@ -22,5 +22,10 @@ const m: Record<string, string> = {
   "Đặt hàng thành công!": "Order placed successfully!",
   "Một số mục chưa xử lý được, vui lòng kiểm tra số dư hoặc thông tin.": "Some items could not be processed, please check your balance or details.",
   "Đặt hàng thất bại": "Order failed",
+  "Mã giảm giá": "Coupon code",
+  "Đang kiểm tra...": "Checking...",
+  "Áp dụng": "Apply",
+  "Tạm tính:": "Subtotal:",
+  "Giảm giá": "Discount",
 };
 export default m;
