@@ -3,6 +3,7 @@ import StatCard from "@/components/ui/StatCard";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 function Icon({ d, size = 16 }: { d: string; size?: number }) {
   return (
@@ -33,6 +34,8 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+
+      <AnnouncementBanner />
 
       {/* Welcome */}
       <div style={{ marginBottom: 28 }}>

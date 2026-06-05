@@ -511,6 +511,40 @@ model Announcement {
 }
 
 // ============================================================
+// KNOWLEDGEBASE
+// ============================================================
+
+model KbCategory {
+  id        String      @id @default(cuid())
+  name      String
+  slug      String      @unique
+  icon      String?
+  order     Int         @default(0)
+  createdAt DateTime    @default(now())
+
+  articles KbArticle[]
+
+  @@map("kb_categories")
+}
+
+model KbArticle {
+  id          String     @id @default(cuid())
+  categoryId  String
+  title       String
+  slug        String     @unique
+  content     String     @db.Text
+  views       Int        @default(0)
+  isPublished Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  category KbCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@map("kb_articles")
+}
+
+// ============================================================
 // STATUS PAGE
 // ============================================================
 

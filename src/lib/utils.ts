@@ -50,6 +50,18 @@ export function generateInvoiceNumber(): string {
   return `INV-${year}${month}-${random}`;
 }
 
+export function slugify(text: string): string {
+  const base = (text || "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // strip diacritics (incl. Vietnamese)
+    .replace(/đ/g, "d").replace(/Đ/g, "D")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  const suffix = Math.random().toString(36).slice(2, 7);
+  return `${base || "muc"}-${suffix}`;
+}
+
 export function generateAffiliateCode(length = 8): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let result = "";
