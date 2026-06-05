@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { queueVpsProvision } from "@/lib/workers";
 import { scheduleAutoRenew } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
+import { recordReferralCommission } from "@/lib/affiliate";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -158,6 +159,9 @@ export async function POST(req: NextRequest) {
         metadata: { packageId, os, billingCycle, hostname, finalPrice },
       },
     });
+
+    // Referral commission (PENDING until admin approves)
+    await recordReferralCommission(tx, session.user.id, order.id, "vps", finalPrice);
 
     return { order, invoice };
     });

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { queueHostingProvision, scheduleAutoRenew } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
+import { recordReferralCommission } from "@/lib/affiliate";
 import { encrypt } from "@/lib/encrypt";
 import crypto from "crypto";
 
@@ -100,6 +101,9 @@ export async function POST(req: NextRequest) {
     if (appliedCouponId) {
       await tx.coupon.update({ where: { id: appliedCouponId }, data: { usedCount: { increment: 1 } } });
     }
+
+    // Referral commission (PENDING until admin approves)
+    await recordReferralCommission(tx, session.user.id, order.id, "hosting", finalPrice);
 
     return order;
     });
