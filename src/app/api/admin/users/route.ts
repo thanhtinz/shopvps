@@ -52,6 +52,17 @@ export async function PATCH(req: NextRequest) {
         },
       });
     });
+  } else if (action === "set_role") {
+    // Only SUPER_ADMIN may change staff roles, and never touch a SUPER_ADMIN.
+    if ((session.user as any).role !== "SUPER_ADMIN")
+      return NextResponse.json({ error: "Chỉ SUPER_ADMIN được đổi vai trò" }, { status: 403 });
+    if (!["USER", "ADMIN"].includes(value))
+      return NextResponse.json({ error: "Vai trò không hợp lệ" }, { status: 400 });
+    const target = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+    if (!target) return NextResponse.json({ error: "User không tồn tại" }, { status: 404 });
+    if (target.role === "SUPER_ADMIN")
+      return NextResponse.json({ error: "Không thể đổi vai trò SUPER_ADMIN" }, { status: 400 });
+    await prisma.user.update({ where: { id: userId }, data: { role: value } });
   } else {
     return NextResponse.json({ error: "Hành động không hợp lệ" }, { status: 400 });
   }

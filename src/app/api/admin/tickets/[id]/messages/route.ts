@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { emitTicketUpdate } from "@/lib/socket";
+import { queueEmail } from "@/lib/workers";
+import { renderTemplate } from "@/lib/email-templates";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -40,6 +42,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     data: { userId: ticket.userId, type: "INFO", title: "Phản hồi hỗ trợ mới", content: `Ticket "${ticket.subject}" có phản hồi từ admin.` },
   });
   emitTicketUpdate(id);
+
+  // Email the owner using the admin-editable template (best-effort).
+  try {
+    const owner = await prisma.user.findUnique({ where: { id: ticket.userId }, select: { email: true, name: true } });
+    if (owner?.email) {
+      const vars = { name: owner.name || "", subject: ticket.subject, ticketUrl: `${process.env.NEXT_PUBLIC_APP_URL || ""}/tickets` };
+      const tpl = await renderTemplate("ticket_reply", vars);
+      await queueEmail(owner.email, tpl?.subject || `[ShopVPS] Phản hồi cho ticket: ${ticket.subject}`, tpl?.html || `<p>Ticket "${ticket.subject}" của bạn có phản hồi mới.</p>`);
+    }
+  } catch {}
 
   return NextResponse.json({ success: true, data: msg });
 }

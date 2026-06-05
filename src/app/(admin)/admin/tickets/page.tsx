@@ -92,7 +92,7 @@ export default function AdminTicketsPage() {
                   <span style={{ fontSize:13, fontWeight:600, color:selected?.id===t.id?"var(--accent)":"var(--text-primary)", flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.subject}</span>
                   <Badge color={statusColor[t.status]||"gray"}>{statusLabel[t.status]||t.status}</Badge>
                 </div>
-                <div style={{ fontSize:11.5, color:"var(--text-muted)", marginBottom:5 }}>{t.user?.name||"—"} · {t.user?.email}</div>
+                <div style={{ fontSize:11.5, color:"var(--text-muted)", marginBottom:5 }}>{t.user?.name||"—"} · {t.user?.email}{t.department?` · ${t.department}`:""}</div>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                   <Badge color={prioColor[t.priority]||"gray"}>{prioLabel[t.priority]}</Badge>
                   <span style={{ fontSize:11, color:"var(--text-muted)" }}>{formatDate(t.updatedAt)}</span>

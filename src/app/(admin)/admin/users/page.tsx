@@ -24,6 +24,12 @@ export default function AdminUsersPage() {
     loadUsers();
   }
 
+  async function setRole(id: string, role: string) {
+    const res = await fetch("/api/admin/users", { method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ userId:id, action:"set_role", value:role }) });
+    if (!res.ok) { const d = await res.json().catch(()=>({})); alert(d.error || "Lỗi"); return; }
+    loadUsers();
+  }
+
   async function adjustBalance(id: string) {
     const val = parseFloat(adjustAmount);
     if (isNaN(val)) return;
@@ -87,9 +93,16 @@ export default function AdminUsersPage() {
                   <td style={{ padding:"12px 16px" }}><Badge color={u.status==="ACTIVE"?"green":"red"}>{u.status==="ACTIVE"?"Hoạt động":"Bị khoá"}</Badge></td>
                   <td style={{ padding:"12px 16px", fontSize:12, color:"var(--text-muted)" }}>{formatDate(u.createdAt)}</td>
                   <td style={{ padding:"12px 16px" }}>
-                    <button onClick={()=>toggleUser(u.id)} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:u.status==="ACTIVE"?"var(--red)":"var(--green)", fontSize:12, cursor:"pointer", fontWeight:600 }}>
-                      {u.status==="ACTIVE"?"Khoá":"Mở khoá"}
-                    </button>
+                    <div style={{ display:"flex", gap:6 }}>
+                      <button onClick={()=>toggleUser(u.id)} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:u.status==="ACTIVE"?"var(--red)":"var(--green)", fontSize:12, cursor:"pointer", fontWeight:600 }}>
+                        {u.status==="ACTIVE"?"Khoá":"Mở khoá"}
+                      </button>
+                      {u.role!=="SUPER_ADMIN" && (
+                        <button onClick={()=>setRole(u.id, u.role==="ADMIN"?"USER":"ADMIN")} style={{ padding:"5px 12px", borderRadius:"var(--radius-sm)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:u.role==="ADMIN"?"var(--text-muted)":"var(--accent)", fontSize:12, cursor:"pointer", fontWeight:600 }}>
+                          {u.role==="ADMIN"?"Gỡ Admin":"Cấp Admin"}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -24,10 +24,13 @@ export default function TicketsPage() {
   const [newSubject, setNewSubject] = useState("");
   const [newContent, setNewContent] = useState("");
   const [newPrio, setNewPrio] = useState("MEDIUM");
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [newDept, setNewDept] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/tickets").then(r=>r.json()).then(d=>{ setTickets(d.data||[]); setLoading(false); });
+    fetch("/api/departments").then(r=>r.json()).then(d=>{ const ds = d.data||[]; setDepartments(ds); if (ds[0]) setNewDept(ds[0].name); }).catch(()=>{});
   }, []);
 
   // Live updates: the server pushes a "ticket:update" signal over Socket.IO
@@ -71,7 +74,7 @@ export default function TicketsPage() {
 
   async function createTicket(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch("/api/tickets", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ subject:newSubject, priority:newPrio, content:newContent }) });
+    const res = await fetch("/api/tickets", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ subject:newSubject, priority:newPrio, department:newDept||undefined, content:newContent }) });
     const data = await res.json();
     if (data.success) { setTickets(p=>[data.data,...p]); setShowNew(false); setNewSubject(""); setNewContent(""); setSelected(data.data); }
   }
@@ -208,6 +211,14 @@ export default function TicketsPage() {
                     onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
                 </div>
               ))}
+              {departments.length > 0 && (
+                <div style={{ marginBottom:14 }}>
+                  <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Phòng ban</label>
+                  <select value={newDept} onChange={e=>setNewDept(e.target.value)} style={{ width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--text-primary)", fontSize:13.5, outline:"none" }}>
+                    {departments.map((d:any)=><option key={d.id} value={d.name}>{d.name}</option>)}
+                  </select>
+                </div>
+              )}
               <div style={{ marginBottom:14 }}>
                 <label style={{ display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:6 }}>Mức độ ưu tiên</label>
                 <div style={{ display:"flex", gap:8 }}>

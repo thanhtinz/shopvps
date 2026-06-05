@@ -2,6 +2,7 @@ import { Worker, Queue, Job } from "bullmq";
 import { prisma } from "@/lib/prisma";
 import { queueEmail } from "./index";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { renderTemplate } from "@/lib/email-templates";
 
 const connection = { url: process.env.REDIS_URL || "redis://localhost:6379" };
 
@@ -66,10 +67,12 @@ async function remind(kind: "vps" | "hosting", o: any) {
   });
 
   try {
+    const vars = { name: o.user.name || "", service: `${kind.toUpperCase()} ${name}`, expiry, price: formatCurrency(price), note: autoNote, walletUrl: `${process.env.NEXT_PUBLIC_APP_URL || ""}/wallet` };
+    const tpl = await renderTemplate("renewal_reminder", vars);
     await queueEmail(
       o.user.email,
-      `[ShopVPS] ${kind.toUpperCase()} ${name} sắp hết hạn`,
-      `<p>Xin chào ${o.user.name || ""},</p>
+      tpl?.subject || `[ShopVPS] ${kind.toUpperCase()} ${name} sắp hết hạn`,
+      tpl?.html || `<p>Xin chào ${o.user.name || ""},</p>
        <p>Dịch vụ <b>${kind.toUpperCase()} ${name}</b> của bạn sẽ hết hạn vào <b>${expiry}</b>.</p>
        <p>Phí gia hạn: <b>${formatCurrency(price)}</b>.</p>
        <p>${autoNote}</p>

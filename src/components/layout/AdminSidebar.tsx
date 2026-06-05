@@ -15,6 +15,7 @@ const nav = [
     { href:"/admin/commissions", label:"Hoa hồng", icon:"M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },
     { href:"/admin/tickets", label:"Hỗ trợ", icon:"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },
     { href:"/admin/service-requests", label:"Yêu cầu DV", icon:"M9 11l3 3L22 4 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" },
+    { href:"/admin/departments", label:"Phòng ban", icon:"M3 21h18 M5 21V7l8-4v18 M19 21V11l-6-4" },
   ]},
   { section: "Sản phẩm", items: [
     { href:"/admin/providers", label:"VPS Providers", icon:"M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7" },
@@ -29,6 +30,7 @@ const nav = [
   { section: "Marketing", items: [
     { href:"/admin/email-marketing", label:"Email Marketing", icon:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6" },
     { href:"/admin/announcements", label:"Thông báo", icon:"M3 11l18-5v12L3 14v-3z M11.6 16.8a3 3 0 11-5.8-1.6" },
+    { href:"/admin/email-templates", label:"Mẫu email", icon:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6" },
     { href:"/admin/kb", label:"Knowledgebase", icon:"M4 19.5A2.5 2.5 0 016.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" },
     { href:"/admin/api-keys", label:"API Keys", icon:"M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" },
   ]},
