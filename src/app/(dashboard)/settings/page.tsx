@@ -1,16 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useAppearance } from "@/components/AppearanceProvider";
+import { ACCENT_PRESETS, FONT_PRESETS } from "@/lib/appearance";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
 }
 
-type Tab = "profile" | "security" | "2fa";
+type Tab = "profile" | "appearance" | "security" | "2fa";
 
 const inputStyle = { width:"100%", boxSizing:"border-box" as const, background:"var(--bg-elevated)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--text-primary)", fontSize:13.5, outline:"none", fontFamily:"inherit" };
 
 export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>("profile");
+  const { appearance, update, reset } = useAppearance();
   const [profile, setProfile] = useState<any>(null);
   const [name, setName] = useState("");
   const [billing, setBilling] = useState<any>({ company: "", phone: "", address: "", city: "", country: "", taxId: "" });
@@ -81,6 +84,7 @@ export default function SettingsPage() {
 
   const TABS: { key: Tab; label: string; icon: string }[] = [
     { key:"profile", label:"Thông tin", icon:"M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8" },
+    { key:"appearance", label:"Giao diện", icon:"M12 2a10 10 0 100 20 10 10 0 000-20z M12 2a4 4 0 010 8 M2 12h8" },
     { key:"security", label:"Bảo mật", icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" },
     { key:"2fa", label:"Xác thực 2 lớp", icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10 M9 12l2 2 4-4" },
   ];
@@ -144,6 +148,64 @@ export default function SettingsPage() {
               {savingProfile?"Đang lưu...":"Lưu thay đổi"}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* Appearance tab */}
+      {tab === "appearance" && (
+        <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"24px", maxWidth:620 }}>
+          {/* Theme */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>Chế độ</div>
+            <div style={{ display:"flex", gap:10 }}>
+              {([["dark","Tối"],["light","Sáng"]] as const).map(([v,l])=>(
+                <button key={v} onClick={()=>update({ theme:v })} style={{ flex:1, padding:"12px", borderRadius:"var(--radius-md)", border:`1.5px solid ${appearance.theme===v?"var(--accent)":"var(--border)"}`, background:appearance.theme===v?"var(--accent-soft)":"var(--bg-elevated)", color:appearance.theme===v?"var(--accent)":"var(--text-secondary)", fontSize:13, fontWeight:600, cursor:"pointer" }}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Accent color */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>Màu nhấn</div>
+            <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
+              {ACCENT_PRESETS.map(c=>(
+                <button key={c} onClick={()=>update({ accent:c })} aria-label={c} style={{ width:30, height:30, borderRadius:"50%", background:c, border:appearance.accent===c?"3px solid var(--text-primary)":"2px solid var(--border)", cursor:"pointer" }}/>
+              ))}
+              <label style={{ display:"flex", alignItems:"center", gap:6, fontSize:12.5, color:"var(--text-muted)", cursor:"pointer" }}>
+                Tuỳ chọn
+                <input type="color" value={appearance.accent} onChange={e=>update({ accent:e.target.value })} style={{ width:30, height:30, border:"none", background:"none", cursor:"pointer", padding:0 }}/>
+              </label>
+            </div>
+          </div>
+
+          {/* Font */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>Phông chữ</div>
+            <select value={appearance.font} onChange={e=>update({ font:e.target.value })} style={inputStyle}>
+              {FONT_PRESETS.map(f=><option key={f.value} value={f.value}>{f.label}</option>)}
+            </select>
+          </div>
+
+          {/* Font size */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>
+              <span>Cỡ chữ</span><span style={{ color:"var(--accent)" }}>{Math.round(appearance.fontScale*100)}%</span>
+            </div>
+            <input type="range" min={0.85} max={1.3} step={0.05} value={appearance.fontScale} onChange={e=>update({ fontScale:parseFloat(e.target.value) })} style={{ width:"100%", accentColor:"var(--accent)" }}/>
+          </div>
+
+          {/* Direction */}
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:10 }}>Hướng bố cục</div>
+            <div style={{ display:"flex", gap:10 }}>
+              {([["ltr","Trái → Phải (LTR)"],["rtl","Phải → Trái (RTL)"]] as const).map(([v,l])=>(
+                <button key={v} onClick={()=>update({ dir:v })} style={{ flex:1, padding:"10px", borderRadius:"var(--radius-md)", border:`1.5px solid ${appearance.dir===v?"var(--accent)":"var(--border)"}`, background:appearance.dir===v?"var(--accent-soft)":"var(--bg-elevated)", color:appearance.dir===v?"var(--accent)":"var(--text-secondary)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          <button onClick={reset} style={{ padding:"9px 16px", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", fontSize:13, fontWeight:600, cursor:"pointer" }}>Khôi phục mặc định</button>
+          <p style={{ fontSize:11.5, color:"var(--text-muted)", marginTop:14 }}>Tuỳ chỉnh được lưu trên trình duyệt này và áp dụng tức thì.</p>
         </div>
       )}
 
