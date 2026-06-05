@@ -12,7 +12,7 @@ export default async function HostingDetailPage({ params }: { params: Promise<{ 
   const hosting = await prisma.hostingOrder.findFirst({
     where: { id, userId: session.user.id },
     select: {
-      id: true, domain: true, cpanelUsername: true, status: true,
+      id: true, domain: true, cpanelUsername: true, status: true, packageId: true,
       price: true, billingCycle: true, expiresAt: true, startDate: true,
       autoRenew: true, createdAt: true,
       package: { select: { name: true, storage: true, bandwidth: true, databases: true, emailAccounts: true, subdomains: true } },

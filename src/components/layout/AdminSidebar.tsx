@@ -12,6 +12,7 @@ const nav = [
     { href:"/admin/transactions", label:"Giao dịch", icon:"M12 22V12 M12 12l-3-3 M12 12l3-3" },
     { href:"/admin/commissions", label:"Hoa hồng", icon:"M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },
     { href:"/admin/tickets", label:"Hỗ trợ", icon:"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },
+    { href:"/admin/service-requests", label:"Yêu cầu DV", icon:"M9 11l3 3L22 4 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" },
   ]},
   { section: "Sản phẩm", items: [
     { href:"/admin/providers", label:"VPS Providers", icon:"M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7" },

@@ -13,7 +13,7 @@ export default async function VpsDetailPage({ params }: { params: Promise<{ id: 
     select: {
       id: true, hostname: true, ipAddress: true, os: true, status: true,
       price: true, billingCycle: true, expiresAt: true, startDate: true,
-      autoRenew: true, createdAt: true, providerVpsId: true,
+      autoRenew: true, createdAt: true, providerVpsId: true, packageId: true,
       package: { select: { name: true, cpu: true, ram: true, storage: true, bandwidth: true } },
       provider: { select: { name: true } },
     },

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import ServiceActions from "@/components/ServiceActions";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p, i) => <path key={i} d={i === 0 ? p : "M" + p} />)}</svg>;
@@ -136,6 +137,8 @@ export default function VpsDetailClient({ vps }: { vps: any }) {
       </div>
 
       {/* Confirm modal */}
+      <ServiceActions serviceType="vps" orderId={vps.id} currentPackageId={vps.packageId} status={vps.status} />
+
       {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }} onClick={() => setConfirm(null)}>
           <div style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: 24, width: 380, maxWidth: "90vw" }} onClick={e => e.stopPropagation()}>

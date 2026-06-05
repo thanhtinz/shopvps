@@ -44,6 +44,7 @@ model User {
   commissions       Commission[]
   apiKeys           ApiKey[]
   activityLogs      ActivityLog[]
+  serviceRequests   ServiceRequest[]
 
   @@map("users")
 }
@@ -514,6 +515,35 @@ model Announcement {
 }
 
 // ============================================================
+// SERVICE LIFECYCLE REQUESTS (cancel / upgrade / downgrade)
+// ============================================================
+
+model ServiceRequest {
+  id              String               @id @default(cuid())
+  userId          String
+  type            ServiceRequestType
+  serviceType     String               // "vps" | "hosting"
+  vpsOrderId      String?
+  hostingOrderId  String?
+  targetPackageId String?              // for UPGRADE / DOWNGRADE
+  cancelMode      String?              // "IMMEDIATE" | "END_OF_TERM"
+  note            String?              @db.Text
+  adminNote       String?              @db.Text
+  // Signed money effect applied on approval: positive = charge the customer,
+  // negative = refund to the customer's wallet.
+  amount          Decimal              @default(0) @db.Decimal(15, 2)
+  status          ServiceRequestStatus @default(PENDING)
+  createdAt       DateTime             @default(now())
+  processedAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("service_requests")
+}
+
+// ============================================================
 // KNOWLEDGEBASE
 // ============================================================
 
@@ -728,6 +758,20 @@ enum CommissionStatus {
   APPROVED
   PAID
   CANCELLED
+}
+
+enum ServiceRequestType {
+  CANCEL
+  UPGRADE
+  DOWNGRADE
+  ADDON
+}
+
+enum ServiceRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
 }
 
 enum NotificationType {
