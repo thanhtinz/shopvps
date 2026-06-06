@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
 
-  const [purchases, deposits, refunds, users, invoices, vpsActive, hostingActive, domainActive, vpsNew, hostingNew, domainNew, churn] = await Promise.all([
+  const recurring = { where: { status: "ACTIVE" as any }, select: { price: true, billingCycle: true } };
+  const [purchases, deposits, refunds, users, invoices, vpsActive, hostingActive, domainActive, vpsNew, hostingNew, domainNew, churn, vpsRec, hostingRec, productRec] = await Promise.all([
     prisma.transaction.findMany({ where: { type: "PURCHASE", status: "COMPLETED", createdAt: { gte: start } }, select: { amount: true, createdAt: true, userId: true } }),
     prisma.transaction.findMany({ where: { type: "DEPOSIT", status: "COMPLETED", createdAt: { gte: start } }, select: { amount: true, createdAt: true } }),
     prisma.transaction.aggregate({ _sum: { amount: true }, where: { type: "REFUND", status: "COMPLETED", createdAt: { gte: start } } }),
@@ -31,7 +32,16 @@ export async function GET(req: NextRequest) {
     prisma.hostingOrder.count({ where: { createdAt: { gte: start } } }),
     prisma.domainOrder.count({ where: { createdAt: { gte: start } } }),
     prisma.serviceRequest.count({ where: { type: "CANCEL", status: "COMPLETED", createdAt: { gte: start } } }),
+    prisma.vpsOrder.findMany(recurring),
+    prisma.hostingOrder.findMany(recurring),
+    prisma.productOrder.findMany(recurring),
   ]);
+
+  // MRR: normalise every active recurring service's price to a monthly figure.
+  const CYCLE_MONTHS: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 };
+  const toMonthly = (rows: { price: any; billingCycle: string }[]) =>
+    rows.reduce((s, r) => s + Number(r.price) / (CYCLE_MONTHS[r.billingCycle] || 1), 0);
+  const mrr = toMonthly(vpsRec) + toMonthly(hostingRec) + toMonthly(productRec);
 
   // Monthly series (zero-filled).
   const keys: string[] = [];
@@ -57,6 +67,10 @@ export async function GET(req: NextRequest) {
   const totalDeposits = deposits.reduce((s, t) => s + Math.abs(Number(t.amount)), 0);
   const vatCollected = invoices.reduce((s, i) => s + Number(i.tax || 0), 0);
   const orderCount = vpsNew + hostingNew + domainNew;
+  const activeTotal = vpsActive + hostingActive + domainActive;
+  const payingUsers = new Set(purchases.map((t) => t.userId)).size;
+  const churnRate = activeTotal + churn > 0 ? (churn / (activeTotal + churn)) * 100 : 0;
+  const arpu = payingUsers ? totalRevenue / payingUsers : 0;
 
   return NextResponse.json({
     success: true,
@@ -72,6 +86,11 @@ export async function GET(req: NextRequest) {
         newUsers: users.length,
         churn,
         avgOrderValue: orderCount ? Math.round(totalRevenue / orderCount) : 0,
+        mrr: Math.round(mrr),
+        arr: Math.round(mrr * 12),
+        churnRate: Math.round(churnRate * 10) / 10,
+        arpu: Math.round(arpu),
+        payingUsers,
       },
       activeServices: { vps: vpsActive, hosting: hostingActive, domain: domainActive },
       newOrders: { vps: vpsNew, hosting: hostingNew, domain: domainNew },

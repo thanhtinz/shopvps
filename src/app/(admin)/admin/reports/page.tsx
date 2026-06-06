@@ -20,6 +20,10 @@ export default function AdminReportsPage() {
   const bw = (W - pad * 2) / data.monthly.length;
 
   const cards = [
+    { label: t("MRR (doanh thu định kỳ/tháng)"), value: formatCurrency(data.totals.mrr || 0), color: "var(--green)" },
+    { label: t("ARR (năm)"), value: formatCurrency(data.totals.arr || 0), color: "var(--green)" },
+    { label: t("Tỷ lệ churn"), value: `${data.totals.churnRate ?? 0}%`, color: "var(--red)" },
+    { label: t("ARPU (DT/khách trả phí)"), value: formatCurrency(data.totals.arpu || 0), color: "var(--purple)" },
     { label: t("Doanh thu"), value: formatCurrency(data.totals.revenue), color: "var(--green)" },
     { label: t("Tiền nạp"), value: formatCurrency(data.totals.deposits), color: "var(--accent)" },
     { label: t("VAT đã thu"), value: formatCurrency(data.totals.vatCollected), color: "var(--purple)" },
