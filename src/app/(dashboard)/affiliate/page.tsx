@@ -14,9 +14,52 @@ export default function AffiliatePage() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  // Payout / Withdraw section state
+  const [payoutData, setPayoutData] = useState<any>(null);
+  const [autoPayout, setAutoPayout] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [method, setMethod] = useState("wallet");
+  const [destination, setDestination] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [okMsg, setOkMsg] = useState("");
+  const [errMsg, setErrMsg] = useState("");
+
+  function loadPayout() {
+    fetch("/api/affiliate/payout").then(r=>r.json()).then(d=>{
+      setPayoutData(d.data);
+      setAutoPayout(!!d.data?.autoPayout);
+    });
+  }
+  function loadAffiliate() {
     fetch("/api/affiliate").then(r=>r.json()).then(d=>{ setData(d.data); setLoading(false); });
+  }
+
+  useEffect(() => {
+    loadAffiliate();
+    loadPayout();
   }, []);
+
+  function toggleAuto(next: boolean) {
+    setAutoPayout(next);
+    fetch("/api/affiliate/payout", { method:"PATCH", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ autoPayout: next }) })
+      .then(()=>loadPayout());
+  }
+
+  function submitPayout(e: React.FormEvent) {
+    e.preventDefault();
+    setOkMsg(""); setErrMsg(""); setSubmitting(true);
+    fetch("/api/affiliate/payout", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ amount: Number(amount), method, destination: method==="wallet" ? undefined : destination }) })
+      .then(r=>r.json()).then(d=>{
+        if (d.success) {
+          setOkMsg(d.message || "");
+          setAmount(""); setDestination("");
+          loadPayout(); loadAffiliate();
+        } else {
+          setErrMsg(d.error || "");
+        }
+      })
+      .finally(()=>setSubmitting(false));
+  }
 
   function copy() {
     const url = `${window.location.origin}/register?ref=${data?.affiliateCode}`;
@@ -120,6 +163,95 @@ export default function AffiliatePage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Payout / Withdraw */}
+      <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", overflow:"hidden", marginTop:18 }}>
+        <div style={{ padding:"14px 18px", borderBottom:"1px solid var(--border)", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
+          <span style={{ fontSize:13, fontWeight:700, color:"var(--text-primary)" }}>{t("Rút hoa hồng")}</span>
+          <span style={{ fontSize:12.5, color:"var(--text-muted)" }}>
+            <strong style={{ color:"var(--green)" }}>{formatCurrency(payoutData?.affiliateBalance||0)}</strong>
+            {payoutData?.config && <> · {t("Tối thiểu:")} {formatCurrency(payoutData.config.minAmount)}</>}
+          </span>
+        </div>
+
+        <div style={{ padding:"18px" }}>
+          {/* Auto-payout */}
+          <div style={{ background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"12px 14px", marginBottom:16 }}>
+            <label style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", fontSize:13, color:"var(--text-primary)" }}>
+              <input type="checkbox" checked={autoPayout} onChange={e=>toggleAuto(e.target.checked)} style={{ width:16, height:16, cursor:"pointer" }} />
+              {t("Tự động rút về ví khi đủ ngưỡng")}
+            </label>
+            {payoutData?.config?.autoEnabled ? (
+              <div style={{ fontSize:12, color:"var(--text-secondary)", marginTop:8 }}>
+                {t("Ngưỡng tự động:")} {formatCurrency(payoutData.config.autoThreshold)}
+              </div>
+            ) : (
+              <div style={{ fontSize:12, color:"var(--text-muted)", marginTop:8 }}>
+                {t("Quản trị viên chưa bật tự động rút.")}
+              </div>
+            )}
+          </div>
+
+          {/* Banners */}
+          {okMsg && <div style={{ padding:"10px 12px", background:"var(--green-soft)", border:"1px solid rgba(34,197,94,0.3)", borderRadius:"var(--radius-md)", color:"var(--green)", fontSize:12.5, marginBottom:14 }}>{okMsg}</div>}
+          {errMsg && <div style={{ padding:"10px 12px", background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:"var(--radius-md)", color:"var(--red)", fontSize:12.5, marginBottom:14 }}>{errMsg}</div>}
+
+          {/* Form */}
+          <form onSubmit={submitPayout} style={{ display:"grid", gridTemplateColumns: method==="wallet" ? "1fr 1fr auto" : "1fr 1fr 1fr auto", gap:10, alignItems:"end", marginBottom:18 }}>
+            <div>
+              <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Số tiền")}</label>
+              <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }} />
+            </div>
+            <div>
+              <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Phương thức")}</label>
+              <select value={method} onChange={e=>setMethod(e.target.value)} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }}>
+                <option value="wallet">{t("Chuyển vào ví chính (ngay)")}</option>
+                <option value="bank">{t("Chuyển khoản ngân hàng")}</option>
+                <option value="paypal">{t("PayPal")}</option>
+              </select>
+            </div>
+            {method !== "wallet" && (
+              <div>
+                <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Thông tin nhận tiền")}</label>
+                <input type="text" value={destination} onChange={e=>setDestination(e.target.value)} placeholder={t("STK / email PayPal")} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }} />
+              </div>
+            )}
+            <button type="submit" disabled={submitting} style={{ padding:"9px 16px", background:"var(--accent)", border:"1px solid transparent", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:submitting?"not-allowed":"pointer", opacity:submitting?0.6:1, whiteSpace:"nowrap" }}>
+              {submitting ? t("Đang xử lý...") : t("Gửi yêu cầu rút")}
+            </button>
+          </form>
+
+          {/* History */}
+          <div style={{ border:"1px solid var(--border)", borderRadius:"var(--radius-md)", overflow:"hidden" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12.5 }}>
+              <thead>
+                <tr style={{ background:"var(--bg-elevated)" }}>
+                  <th style={{ textAlign:"left", padding:"10px 14px", color:"var(--text-secondary)", fontWeight:600 }}>{t("Số tiền")}</th>
+                  <th style={{ textAlign:"left", padding:"10px 14px", color:"var(--text-secondary)", fontWeight:600 }}>{t("Phương thức")}</th>
+                  <th style={{ textAlign:"left", padding:"10px 14px", color:"var(--text-secondary)", fontWeight:600 }}>{t("Trạng thái")}</th>
+                  <th style={{ textAlign:"left", padding:"10px 14px", color:"var(--text-secondary)", fontWeight:600 }}>{t("Ngày")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {!payoutData?.payouts?.length ? (
+                  <tr><td colSpan={4} style={{ textAlign:"center", padding:"32px 16px", color:"var(--text-muted)" }}>{t("Chưa có lệnh rút nào")}</td></tr>
+                ) : payoutData.payouts.map((p: any) => (
+                  <tr key={p.id} style={{ borderTop:"1px solid var(--border)" }}>
+                    <td style={{ padding:"10px 14px", fontWeight:700, color:"var(--text-primary)" }}>{formatCurrency(p.amount)}</td>
+                    <td style={{ padding:"10px 14px", color:"var(--text-secondary)" }}>{p.method}{p.auto ? <> · {t("Tự động")}</> : null}</td>
+                    <td style={{ padding:"10px 14px" }}>
+                      <Badge color={p.status==="PAID"?"green":p.status==="REJECTED"?"red":"yellow"}>
+                        {p.status==="PAID"?t("Đã thanh toán"):p.status==="REJECTED"?t("Từ chối"):t("Chờ duyệt")}
+                      </Badge>
+                    </td>
+                    <td style={{ padding:"10px 14px", color:"var(--text-muted)" }}>{formatDate(p.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

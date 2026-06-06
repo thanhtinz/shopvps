@@ -17,6 +17,9 @@ const SECTIONS = [
   ]},
   { title:"Affiliate", fields:[
     { key:"affiliate_rate", label:"Hoa hồng (%)" },
+    { key:"affiliate_min_payout", label:"Rút tối thiểu (đ)" },
+    { key:"affiliate_auto_payout", label:"Tự động rút hoa hồng (true/false)" },
+    { key:"affiliate_auto_payout_threshold", label:"Ngưỡng tự động rút (đ)" },
   ]},
   { title:"Thuế (VAT)", fields:[
     { key:"tax_rate", label:"Thuế suất VAT (%) — 0 để tắt. Giá đã bao gồm VAT" },

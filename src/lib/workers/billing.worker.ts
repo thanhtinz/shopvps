@@ -11,6 +11,7 @@ import {
   reactivateServices, suspendVpsAtProvider, suspendHostingAtProvider,
   terminateVpsAtProvider, terminateHostingAtProvider,
 } from "@/lib/billing-provider";
+import { runAutoPayouts } from "@/lib/payouts";
 
 const connection = { url: process.env.REDIS_URL || "redis://localhost:6379" };
 const DAY = 86400000;
@@ -34,6 +35,8 @@ export async function runBillingCycle() {
   await generateUpcomingInvoices(cfg.invoiceLeadDays);
   if (cfg.autoPay) await autoPayDueInvoices();
   await runDunning(cfg.suspendGraceDays, cfg.terminateDays);
+  const payouts = await runAutoPayouts();
+  if (payouts) console.log(`[Billing Worker] Auto-paid ${payouts} affiliate payouts`);
 }
 
 /** Create UNPAID renewal invoices for services nearing expiry. */

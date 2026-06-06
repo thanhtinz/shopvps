@@ -1,51 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { getServerT, getUserT } from "@/lib/i18n/server";
+import { getServerT } from "@/lib/i18n/server";
+import { requestPayout } from "@/lib/payouts";
 
+// Backward-compatible instant withdrawal of affiliate commission into the main
+// wallet. Routes through the unified payout flow (method = wallet).
 export async function POST(req: NextRequest) {
-  const { t } = await getServerT();
+  const { t, locale } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { amount } = await req.json();
-  if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0)
-    return NextResponse.json({ error: t("Số tiền không hợp lệ") }, { status: 400 });
-
-  try {
-    await prisma.$transaction(async (tx: any) => {
-      // Atomic, race-safe move from affiliate balance to main balance.
-      const moved = await tx.user.updateMany({
-        where: { id: session.user.id, affiliateBalance: { gte: amount } },
-        data: {
-          affiliateBalance: { decrement: amount },
-          balance: { increment: amount },
-        },
-      });
-      if (moved.count === 0) throw new Error("INSUFFICIENT_BALANCE");
-
-      const fresh = await tx.user.findUnique({
-        where: { id: session.user.id },
-        select: { balance: true },
-      });
-      const balanceAfter = Number(fresh!.balance);
-
-      const { t: tn } = await getUserT(session.user.id);
-      await tx.transaction.create({
-        data: {
-          userId: session.user.id, type: "COMMISSION", amount,
-          balanceBefore: balanceAfter - amount,
-          balanceAfter,
-          description: tn("Rút hoa hồng về ví chính"), status: "COMPLETED",
-        },
-      });
-    });
-  } catch (e: any) {
-    if (e?.message === "INSUFFICIENT_BALANCE")
-      return NextResponse.json({ error: t("Số dư hoa hồng không đủ") }, { status: 400 });
-    console.error("withdraw-affiliate error:", e);
-    return NextResponse.json({ error: t("Không thể rút hoa hồng") }, { status: 500 });
+  const res = await requestPayout(session.user.id, Number(amount), "wallet", undefined, locale);
+  if (!res.ok) {
+    const msg: Record<string, string> = {
+      INVALID_AMOUNT: t("Số tiền không hợp lệ"),
+      MIN_NOT_MET: t("Số tiền dưới mức tối thiểu"),
+      INSUFFICIENT_BALANCE: t("Số dư hoa hồng không đủ"),
+    };
+    return NextResponse.json({ error: msg[res.reason || ""] || t("Không thể rút hoa hồng") }, { status: 400 });
   }
-
-  return NextResponse.json({ success: true, message: `Đã chuyển ${amount.toLocaleString("vi-VN")}đ vào ví chính` });
+  return NextResponse.json({ success: true, message: `${t("Đã chuyển")} ${Number(amount).toLocaleString("vi-VN")}đ ${t("vào ví chính")}` });
 }
