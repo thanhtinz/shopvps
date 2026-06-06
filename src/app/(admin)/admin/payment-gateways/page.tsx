@@ -12,10 +12,19 @@ export default function AdminGatewaysPage() {
     stripe: '{"secretKey":"sk_live_...","webhookSecret":"whsec_..."}  · Webhook: /api/webhook/stripe',
     paypal: '{"clientId":"...","secret":"...","mode":"sandbox"}  · Trả về: /api/payments/paypal/capture',
   };
+  // Incoming webhook/callback URLs to paste into each gateway dashboard.
+  const WEBHOOKS: Record<string, { label: string; path: string }[]> = {
+    sepay: [{ label: tr("Webhook (URL nhận biến động số dư)"), path: "/api/webhook/sepay" }],
+    stripe: [{ label: tr("Webhook endpoint"), path: "/api/webhook/stripe" }],
+    paypal: [{ label: tr("Return/Capture URL"), path: "/api/payments/paypal/capture" }],
+  };
   const [items, setItems] = useState<any[]>([]);
   const [deposits, setDeposits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [copied, setCopied] = useState("");
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  function copy(text: string, id: string) { navigator.clipboard?.writeText(text); setCopied(id); setTimeout(()=>setCopied(""), 1500); }
 
   const load = () => Promise.all([
     fetch("/api/admin/payment-gateways").then(r=>r.json()),
@@ -51,6 +60,18 @@ export default function AdminGatewaysPage() {
               <button onClick={()=>patch(g.id,{ isActive: !g.isActive })} style={{ padding:"7px 14px", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:g.isActive?"var(--red)":"var(--green)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>{g.isActive?tr("Tắt"):tr("Bật")}</button>
             </div>
             <p style={{ fontSize:11.5, color:"var(--text-muted)", marginBottom:10 }}>{HINTS[g.code]}</p>
+            {(WEBHOOKS[g.code]||[]).map(w=>{
+              const url = `${origin}${w.path}`;
+              return (
+                <div key={w.path} style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:10.5, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4 }}>{w.label}</div>
+                  <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                    <code style={{ flex:1, fontSize:12, color:"var(--text-secondary)", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"7px 10px", overflowX:"auto", whiteSpace:"nowrap" }}>{url}</code>
+                    <button type="button" onClick={()=>copy(url, g.id+w.path)} style={{ padding:"7px 12px", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:copied===g.id+w.path?"var(--green)":"var(--accent)", fontSize:12, fontWeight:600, cursor:"pointer", whiteSpace:"nowrap" }}>{copied===g.id+w.path?tr("Đã sao chép"):tr("Sao chép")}</button>
+                  </div>
+                </div>
+              );
+            })}
             {(g.code==="stripe"||g.code==="paypal") && (
               <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
                 <textarea
