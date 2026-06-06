@@ -1,0 +1,33 @@
+// EN translations for price tiers / reseller pricing.
+const m: Record<string, string> = {
+  "Bậc giá / Reseller": "Price tiers / Reseller",
+  "Mỗi bậc có thể giảm theo % và/hoặc đặt giá riêng cho từng sản phẩm. Gán bậc cho user ở trang Người dùng.": "Each tier can apply a % discount and/or set custom per-product prices. Assign tiers to users on the Users page.",
+  "Tên bậc (vd Reseller)": "Tier name (e.g. Reseller)",
+  "Giảm %": "Discount %",
+  "Mặc định": "Default",
+  "Reseller": "Reseller",
+  "Xoá bậc giá này?": "Delete this tier?",
+  "Chưa có bậc nào": "No tiers yet",
+  "Giá riêng": "Custom prices",
+  "Giá riêng cho sản phẩm": "Custom product prices",
+  "Chọn sản phẩm": "Select a product",
+  "Giá/tháng": "Price / month",
+  "Đặt giá": "Set price",
+  "Chưa có giá riêng. Sẽ dùng giảm %.": "No custom prices — the % discount applies.",
+  "Bậc giá": "Price tier",
+  // Reseller API page
+  "Reseller API": "Reseller API",
+  "Tích hợp đặt hàng tự động qua API. Giá theo bậc của bạn, trừ vào số dư ví. Tất cả tự động.": "Automate ordering via API. Prices follow your tier and are charged to your wallet — fully automatic.",
+  "API key của bạn": "Your API keys",
+  "Bạn chưa có API key. Vui lòng liên hệ quản trị viên để được cấp.": "You have no API key yet. Please contact an administrator to be issued one.",
+  "Sao chép": "Copy",
+  "Xác thực": "Authentication",
+  "Các endpoint": "Endpoints",
+  "Ví dụ đặt hàng": "Order example",
+  "Số dư ví + bậc giá của bạn": "Your wallet balance + price tier",
+  "Danh mục sản phẩm kèm giá theo bậc của bạn (?group=)": "Product catalog with your tier pricing (?group=)",
+  "Đặt đơn: { productId, billingCycle, label?, config? }": "Place an order: { productId, billingCycle, label?, config? }",
+  "Danh sách đơn của bạn": "Your orders",
+  "Chi tiết đơn + thông tin truy cập": "Order detail + access credentials",
+};
+export default m;

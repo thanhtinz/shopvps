@@ -3,8 +3,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { getTaxForUser, taxFromInclusive } from "@/lib/settings";
-import { cyclePrice, isGroupSellable, typeLabel } from "@/lib/products";
+import { isGroupSellable, typeLabel } from "@/lib/products";
 import { nextExpiry } from "@/lib/utils";
+import { getUserTier, tierCyclePrice } from "@/lib/pricing";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
 const CYCLE_MONTHS: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 };
@@ -24,7 +25,9 @@ export async function POST(req: NextRequest) {
   if (product.stock != null && product.stock <= 0) return NextResponse.json({ error: t("Sản phẩm đã hết hàng") }, { status: 400 });
 
   const months = CYCLE_MONTHS[cycle] || 1;
-  const price = cyclePrice(product, cycle) + Number(product.setupFee || 0);
+  const tier = await getUserTier(session.user.id);
+  const base = await tierCyclePrice(tier, "product", product.id, Number(product.priceMonthly), product.priceYearly != null ? Number(product.priceYearly) : null, cycle);
+  const price = base + Number(product.setupFee || 0);
   const { rate } = await getTaxForUser(session.user.id);
   const tax = taxFromInclusive(price, rate);
 
@@ -45,7 +48,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: session.user.id, productId: product.id, category: product.category, group: product.group,
           label: displayLabel, status: manual ? "PENDING" : "ACTIVE",
-          billingCycle: cycle, price: cyclePrice(product, cycle),
+          billingCycle: cycle, price: base,
           config: config && typeof config === "object" ? config : undefined,
           startDate: new Date(), expiresAt: nextExpiry(null, months),
         },

@@ -5,6 +5,7 @@ import { queueVpsProvision } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxForUser, taxFromInclusive, isFlagOn } from "@/lib/settings";
+import { getUserTier, tierCyclePrice } from "@/lib/pricing";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 import { validateCoupon } from "@/lib/coupons";
 
@@ -29,10 +30,10 @@ export async function POST(req: NextRequest) {
     MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12,
   };
   const months = cycleMultiplier[billingCycle] || 1;
-  let price = Number(pkg.priceMonthly) * months;
 
-  // Discount nếu billing cycle dài
-  if (billingCycle === "ANNUAL" && pkg.priceYearly) price = Number(pkg.priceYearly);
+  // Base price under the user's price tier (custom price or % discount).
+  const tier = await getUserTier(session.user.id);
+  let price = await tierCyclePrice(tier, "vps", pkg.id, Number(pkg.priceMonthly), pkg.priceYearly != null ? Number(pkg.priceYearly) : null, billingCycle);
 
   // Add-ons (configurable options), priced per cycle and added to the order total.
   let addonsData: { id: string; name: string; price: number }[] = [];

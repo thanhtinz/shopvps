@@ -66,6 +66,8 @@ export async function PATCH(req: NextRequest) {
     if (target.role === "SUPER_ADMIN")
       return NextResponse.json({ error: t("Không thể đổi vai trò SUPER_ADMIN") }, { status: 400 });
     await prisma.user.update({ where: { id: userId }, data: { role: value } });
+  } else if (action === "set_tier") {
+    await prisma.user.update({ where: { id: userId }, data: { tierId: value || null } });
   } else {
     return NextResponse.json({ error: t("Hành động không hợp lệ") }, { status: 400 });
   }

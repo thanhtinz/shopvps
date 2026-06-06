@@ -23,6 +23,7 @@ const vi: Record<string, string> = {
   "nav.store": "Cửa hàng",
   "nav.cart": "Giỏ hàng",
   "nav.products": "Dịch vụ khác",
+  "nav.reseller": "Reseller API",
   "nav.support": "Hỗ trợ",
   "nav.kb": "Kiến thức",
   "nav.downloads": "Tải xuống",
@@ -63,6 +64,7 @@ const en: Record<string, string> = {
   "nav.store": "Store",
   "nav.cart": "Cart",
   "nav.products": "Other services",
+  "nav.reseller": "Reseller API",
   "nav.support": "Support",
   "nav.kb": "Knowledgebase",
   "nav.downloads": "Downloads",
@@ -130,6 +132,7 @@ import enProductsAdminUi from "./en/productsAdminUi";
 import enProductsClientUi from "./en/productsClientUi";
 import enPayoutsUi from "./en/payoutsUi";
 import enFraudUi from "./en/fraudUi";
+import enTiersUi from "./en/tiersUi";
 
 Object.assign(
   DICTS.en,
@@ -139,7 +142,7 @@ Object.assign(
   enApiAdmin, enApiServices, enApiMisc, enEmails,
   enUiPublic, enUiMisc, enSrvNotif, enSrvMisc, enFixups, enBilling, enUpgradeUi,
   enQuotes, enQuotesUi, enQuotesAdminUi, enStoreUi, enCartUi, enCouponsUi, enRefundUi, enCancelUi,
-  enRegistrarUi, enTaxUi, enProductsUi, enProductsAdminUi, enProductsClientUi, enPayoutsUi, enFraudUi,
+  enRegistrarUi, enTaxUi, enProductsUi, enProductsAdminUi, enProductsClientUi, enPayoutsUi, enFraudUi, enTiersUi,
 );
 
 export function translate(locale: Locale, key: string): string {

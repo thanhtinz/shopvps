@@ -19,6 +19,7 @@ const nav = [
     { href: "/invoices", label: "nav.invoices", icon: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" },
     { href: "/quotes", label: "nav.quotes", icon: "M9 11l3 3 8-8 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" },
     { href: "/cart", label: "nav.cart", icon: "M9 22a1 1 0 100-2 1 1 0 000 2z M20 22a1 1 0 100-2 1 1 0 000 2z M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" },
+    { href: "/reseller", label: "nav.reseller", icon: "M16 18l6-6-6-6 M8 6l-6 6 6 6" },
   ]},
   { section: "section.manage", items: [
     { href: "/tickets", label: "nav.support", icon: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },

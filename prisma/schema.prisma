@@ -36,6 +36,7 @@ model User {
   autoPayout        Boolean   @default(true)
   riskScore         Int       @default(0)
   riskFlags         Json?
+  tierId            String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -54,6 +55,7 @@ model User {
   affiliateReferred  AffiliateReferral[] @relation("Referred")
   commissions       Commission[]
   payouts           Payout[]
+  tier              PriceTier?    @relation(fields: [tierId], references: [id])
   apiKeys           ApiKey[]
   activityLogs      ActivityLog[]
   serviceRequests   ServiceRequest[]
@@ -928,6 +930,36 @@ model Blocklist {
 
   @@unique([type, value])
   @@map("blocklist")
+}
+
+model PriceTier {
+  id              String   @id @default(cuid())
+  name            String
+  discountPercent Decimal  @default(0) @db.Decimal(5, 2)
+  isDefault       Boolean  @default(false)
+  isReseller      Boolean  @default(false)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  users  User[]
+  prices TierPrice[]
+
+  @@map("price_tiers")
+}
+
+model TierPrice {
+  id           String  @id @default(cuid())
+  tierId       String
+  scope        String // product | vps | hosting
+  refId        String
+  priceMonthly Decimal @db.Decimal(10, 2)
+  priceYearly  Decimal? @db.Decimal(10, 2)
+
+  tier PriceTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+
+  @@unique([tierId, scope, refId])
+  @@map("tier_prices")
 }
 
 // ============================================================

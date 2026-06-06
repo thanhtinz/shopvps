@@ -5,6 +5,7 @@ import { queueHostingProvision } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxForUser, taxFromInclusive, isFlagOn } from "@/lib/settings";
+import { getUserTier, tierCyclePrice } from "@/lib/pricing";
 import { encrypt } from "@/lib/encrypt";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 import { validateCoupon } from "@/lib/coupons";
@@ -31,8 +32,8 @@ export async function POST(req: NextRequest) {
 
   const cycleMultiplier: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 };
   const months = cycleMultiplier[billingCycle] || 1;
-  let price = Number(pkg.priceMonthly) * months;
-  if (billingCycle === "ANNUAL" && pkg.priceYearly) price = Number(pkg.priceYearly);
+  const tier = await getUserTier(session.user.id);
+  let price = await tierCyclePrice(tier, "hosting", pkg.id, Number(pkg.priceMonthly), pkg.priceYearly != null ? Number(pkg.priceYearly) : null, billingCycle);
 
   // Add-ons (configurable options), priced per cycle.
   let addonsData: { id: string; name: string; price: number }[] = [];
