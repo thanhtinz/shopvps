@@ -34,6 +34,8 @@ model User {
   affiliateCode     String?   @unique
   affiliateBalance  Decimal   @default(0) @db.Decimal(15, 2)
   autoPayout        Boolean   @default(true)
+  riskScore         Int       @default(0)
+  riskFlags         Json?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -915,6 +917,17 @@ model Setting {
   updatedAt DateTime @updatedAt
 
   @@map("settings")
+}
+
+model Blocklist {
+  id        String   @id @default(cuid())
+  type      String // EMAIL | DOMAIN | IP | COUNTRY
+  value     String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@unique([type, value])
+  @@map("blocklist")
 }
 
 // ============================================================

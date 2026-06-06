@@ -5,6 +5,7 @@ import { sendEmail, verifyEmailTemplate } from "@/lib/email";
 import { generateAffiliateCode } from "@/lib/utils";
 import crypto from "crypto";
 import { getServerT } from "@/lib/i18n/server";
+import { isBlocked, assessSignup, getClientIp, getCountry } from "@/lib/fraud";
 
 export async function POST(req: NextRequest) {
   const { t, locale } = await getServerT();
@@ -24,6 +25,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: t("Email đã được sử dụng") }, { status: 400 });
     }
 
+    // Fraud screening: hard-block the blocklist, score everything else.
+    const ip = getClientIp(req.headers);
+    const country = getCountry(req.headers);
+    const blk = await isBlocked({ email, ip, country });
+    if (blk.blocked) return NextResponse.json({ error: t("Đăng ký không được phép") }, { status: 403 });
+    const risk = await assessSignup({ email, ip });
+
     const hashedPassword = await bcrypt.hash(password, 12);
     const affiliateCode = generateAffiliateCode();
 
@@ -34,8 +42,13 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         affiliateCode,
         locale,
+        riskScore: risk.score,
+        riskFlags: risk.flags.length ? risk.flags : undefined,
       },
     });
+
+    // Record the registration for IP-velocity scoring of later signups.
+    await prisma.activityLog.create({ data: { userId: user.id, action: "register", ipAddress: ip || undefined } }).catch(() => {});
 
     // Handle affiliate referral
     if (ref) {
