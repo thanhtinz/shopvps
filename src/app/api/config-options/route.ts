@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { optionsForProduct } from "@/lib/config-options";
+import { optionsForScope } from "@/lib/config-options";
 
 export async function GET(req: NextRequest) {
-  const productId = new URL(req.url).searchParams.get("productId");
-  if (!productId) return NextResponse.json({ success: true, data: [] });
-  return NextResponse.json({ success: true, data: await optionsForProduct(productId) });
+  const u = new URL(req.url);
+  const productId = u.searchParams.get("productId");
+  const scope = u.searchParams.get("scope");
+  const refId = u.searchParams.get("refId");
+  if (productId) return NextResponse.json({ success: true, data: await optionsForScope("product", productId) });
+  if (scope) return NextResponse.json({ success: true, data: await optionsForScope(scope, refId || null) });
+  return NextResponse.json({ success: true, data: [] });
 }

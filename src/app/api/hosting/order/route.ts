@@ -6,6 +6,7 @@ import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
 import { getTaxForUser, taxFromInclusive, isFlagOn } from "@/lib/settings";
 import { getUserTier, tierCyclePrice } from "@/lib/pricing";
+import { resolveScopedChoices } from "@/lib/config-options";
 import { encrypt } from "@/lib/encrypt";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 import { validateCoupon } from "@/lib/coupons";
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!(await isFlagOn("sell_hosting"))) return NextResponse.json({ error: t("Sản phẩm hiện không được bán") }, { status: 400 });
 
-  const { packageId, domain, billingCycle, couponCode, addonIds } = await req.json();
+  const { packageId, domain, billingCycle, couponCode, addonIds, options } = await req.json();
   if (!packageId || !domain) return NextResponse.json({ error: t("Thiếu thông tin") }, { status: 400 });
 
   const pkg = await prisma.hostingPackage.findUnique({
@@ -35,12 +36,23 @@ export async function POST(req: NextRequest) {
   const tier = await getUserTier(session.user.id);
   let price = await tierCyclePrice(tier, "hosting", pkg.id, Number(pkg.priceMonthly), pkg.priceYearly != null ? Number(pkg.priceYearly) : null, billingCycle);
 
-  // Add-ons (configurable options), priced per cycle.
+  // Flat add-ons, priced per cycle.
   let addonsData: { id: string; name: string; price: number }[] = [];
   if (Array.isArray(addonIds) && addonIds.length) {
     const addons = await prisma.addon.findMany({ where: { id: { in: addonIds }, isActive: true, scope: { in: ["hosting", "both"] } } });
     addonsData = addons.map((a) => ({ id: a.id, name: a.name, price: Number(a.priceMonthly) * months }));
     price += addonsData.reduce((s, a) => s + a.price, 0);
+  }
+
+  // Configurable options (grouped select/checkbox), resolved for this package.
+  if (Array.isArray(options) && options.length) {
+    try {
+      const { items } = await resolveScopedChoices("hosting", packageId, options);
+      for (const it of items) { addonsData.push({ id: it.id, name: it.label, price: it.priceMonthly * months }); price += it.priceMonthly * months; }
+    } catch (e: any) {
+      if (String(e?.message).startsWith("REQUIRED_OPTION")) return NextResponse.json({ error: t("Vui lòng chọn đầy đủ tuỳ chọn bắt buộc") }, { status: 400 });
+      throw e;
+    }
   }
 
   // Coupon (shared validator enforces product scope + limits)

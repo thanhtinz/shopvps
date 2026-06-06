@@ -37,5 +37,8 @@ const m: Record<string, string> = {
   "Chưa có lựa chọn": "No choices yet",
   "Xoá tuỳ chọn này?": "Delete this option?",
   "Vui lòng chọn đầy đủ tuỳ chọn bắt buộc": "Please select all required options",
+  "Toàn hệ thống": "Whole system",
+  "Tất cả trong nhóm": "All in group",
+  "tất cả": "all",
 };
 export default m;

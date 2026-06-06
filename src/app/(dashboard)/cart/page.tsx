@@ -74,8 +74,8 @@ export default function CartPage() {
       const useCoupon = coupon && coupon.discounts[it.key] > 0 ? coupon.code : undefined;
       const body =
         it.type === "vps"
-          ? { packageId: it.packageId, os: it.config.os, region: it.config.region, hostname: it.config.hostname, billingCycle: it.cycle, couponCode: useCoupon }
-          : { packageId: it.packageId, domain: it.config.domain, billingCycle: it.cycle, couponCode: useCoupon };
+          ? { packageId: it.packageId, os: it.config.os, region: it.config.region, hostname: it.config.hostname, billingCycle: it.cycle, couponCode: useCoupon, options: it.config.options }
+          : { packageId: it.packageId, domain: it.config.domain, billingCycle: it.cycle, couponCode: useCoupon, options: it.config.options };
       try {
         const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
         const data = await res.json().catch(() => ({}));

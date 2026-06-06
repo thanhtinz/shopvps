@@ -8,7 +8,7 @@ export interface CartItem {
   packageName: string;
   cycle: string;            // MONTHLY | QUARTERLY | SEMI_ANNUAL | ANNUAL
   priceMonthly: number;     // base monthly price; line total = priceMonthly * cycleMonths
-  config: { os?: string; region?: string; hostname?: string; domain?: string };
+  config: { os?: string; region?: string; hostname?: string; domain?: string; options?: string[] };
 }
 
 type Ctx = {

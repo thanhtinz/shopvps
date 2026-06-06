@@ -10,22 +10,29 @@ export default function AdminConfigOptionsPage() {
   const { t } = useLocale();
   const [options, setOptions] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [vpsPackages, setVpsPackages] = useState<any[]>([]);
+  const [hostingPackages, setHostingPackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [o, setO] = useState({ name: "", type: "select", refId: "", required: false, description: "" });
+  const [o, setO] = useState({ name: "", type: "select", scope: "global", refId: "", required: false, description: "" });
   const [open, setOpen] = useState<string | null>(null);
   const [choice, setChoice] = useState({ label: "", priceMonthly: "" });
 
   function load() {
-    fetch("/api/admin/config-options").then(r => r.json()).then(d => { setOptions(d.data?.options || []); setProducts(d.data?.products || []); setLoading(false); });
+    fetch("/api/admin/config-options").then(r => r.json()).then(d => {
+      setOptions(d.data?.options || []); setProducts(d.data?.products || []);
+      setVpsPackages(d.data?.vpsPackages || []); setHostingPackages(d.data?.hostingPackages || []);
+      setLoading(false);
+    });
   }
   useEffect(() => { load(); }, []);
 
   async function addOption(e: React.FormEvent) {
     e.preventDefault();
     const res = await fetch("/api/admin/config-options", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(o) });
-    if ((await res.json()).success) { setO({ name: "", type: "select", refId: "", required: false, description: "" }); setShowForm(false); load(); }
+    if ((await res.json()).success) { setO({ name: "", type: "select", scope: "global", refId: "", required: false, description: "" }); setShowForm(false); load(); }
   }
+  const refItems = o.scope === "vps" ? vpsPackages : o.scope === "hosting" ? hostingPackages : o.scope === "product" ? products : [];
   async function delOption(id: string) { if (!confirm(t("Xoá tuỳ chọn này?"))) return; await fetch(`/api/admin/config-options/${id}`, { method: "DELETE" }); load(); }
   async function patchOption(id: string, data: any) { await fetch(`/api/admin/config-options/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); load(); }
   async function addChoice(optionId: string, e: React.FormEvent) {
@@ -37,7 +44,13 @@ export default function AdminConfigOptionsPage() {
 
   if (loading) return <div className="skeleton" style={{ height: 320, borderRadius: "var(--radius-lg)" }} />;
   const card = { background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)" };
-  const productName = (id: string | null) => id ? (products.find(p => p.id === id)?.name || id) : t("Mọi sản phẩm");
+  const allRefs = [...products, ...vpsPackages, ...hostingPackages];
+  const scopeLabel: Record<string, string> = { product: t("Sản phẩm"), vps: "VPS", hosting: "Hosting", global: t("Toàn hệ thống") };
+  const refName = (opt: any) => {
+    const sc = scopeLabel[opt.scope] || opt.scope;
+    if (!opt.refId) return opt.scope === "global" ? t("Toàn hệ thống") : `${sc} · ${t("tất cả")}`;
+    return `${sc} · ${allRefs.find(p => p.id === opt.refId)?.name || opt.refId}`;
+  };
 
   return (
     <div style={{ maxWidth: 860 }}>
@@ -54,10 +67,18 @@ export default function AdminConfigOptionsPage() {
             <option value="select">{t("Chọn 1 trong nhiều (select)")}</option>
             <option value="checkbox">{t("Bật/tắt (checkbox)")}</option>
           </select>
-          <select value={o.refId} onChange={e => setO(p => ({ ...p, refId: e.target.value }))} style={inp}>
-            <option value="">{t("Mọi sản phẩm")}</option>
-            {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          <select value={o.scope} onChange={e => setO(p => ({ ...p, scope: e.target.value, refId: "" }))} style={inp}>
+            <option value="global">{t("Toàn hệ thống")}</option>
+            <option value="product">{t("Sản phẩm")}</option>
+            <option value="vps">VPS</option>
+            <option value="hosting">Hosting</option>
           </select>
+          {o.scope !== "global" && (
+            <select value={o.refId} onChange={e => setO(p => ({ ...p, refId: e.target.value }))} style={inp}>
+              <option value="">{t("Tất cả trong nhóm")}</option>
+              {refItems.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          )}
           <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text-secondary)" }}>
             <input type="checkbox" checked={o.required} onChange={e => setO(p => ({ ...p, required: e.target.checked }))} /> {t("Bắt buộc chọn")}
           </label>
@@ -73,7 +94,7 @@ export default function AdminConfigOptionsPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, color: "var(--text-primary)" }}>{opt.name} <Badge color="gray">{opt.type}</Badge> {opt.required && <Badge color="yellow">{t("Bắt buộc")}</Badge>} {!opt.isActive && <Badge color="gray">{t("Tắt")}</Badge>}</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{productName(opt.refId)}{opt.description ? ` · ${opt.description}` : ""}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{refName(opt)}{opt.description ? ` · ${opt.description}` : ""}</div>
               </div>
               <button onClick={() => setOpen(open === opt.id ? null : opt.id)} style={{ padding: "5px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-elevated)", color: "var(--accent)", fontSize: 12, cursor: "pointer" }}>{opt.choices?.length || 0} {t("lựa chọn")}</button>
               <button onClick={() => patchOption(opt.id, { isActive: !opt.isActive })} style={{ padding: "5px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-elevated)", color: opt.isActive ? "var(--red)" : "var(--green)", fontSize: 11.5, cursor: "pointer" }}>{opt.isActive ? t("Tắt") : t("Bật")}</button>

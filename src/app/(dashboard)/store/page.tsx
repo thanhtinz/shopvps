@@ -79,10 +79,36 @@ function VpsCard({ pkg }: { pkg: VpsPackage }) {
   const [error, setError] = useState("");
   const [added, setAdded] = useState(false);
 
+  const [configOptions, setConfigOptions] = useState<ConfigOption[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsLoaded, setOptionsLoaded] = useState(false);
+  const [selectedChoices, setSelectedChoices] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open || optionsLoaded) return;
+    setOptionsLoading(true);
+    fetch(`/api/config-options?scope=vps&refId=${pkg.id}`)
+      .then((r) => r.json())
+      .then((d) => setConfigOptions((d.data || []) as ConfigOption[]))
+      .catch(() => setConfigOptions([]))
+      .finally(() => { setOptionsLoading(false); setOptionsLoaded(true); });
+  }, [open, optionsLoaded, pkg.id]);
+
+  function setSelectChoice(option: ConfigOption, choiceId: string) {
+    setSelectedChoices((prev) => {
+      const others = prev.filter((id) => !option.choices.some((c) => c.id === id));
+      return choiceId ? [...others, choiceId] : others;
+    });
+  }
+
+  function toggleChoice(choiceId: string) {
+    setSelectedChoices((prev) => (prev.includes(choiceId) ? prev.filter((id) => id !== choiceId) : [...prev, choiceId]));
+  }
+
   function handleAdd() {
     if (!hostname.trim()) { setError(t("Nhập hostname")); return; }
     setError("");
-    add({ type: "vps", packageId: pkg.id, packageName: pkg.name, cycle, priceMonthly: Number(pkg.priceMonthly), config: { os, region, hostname: hostname.trim() } });
+    add({ type: "vps", packageId: pkg.id, packageName: pkg.name, cycle, priceMonthly: Number(pkg.priceMonthly), config: { os, region, hostname: hostname.trim(), options: selectedChoices } });
     setAdded(true);
     setTimeout(() => { setAdded(false); setOpen(false); setHostname(""); }, 1200);
   }
@@ -129,6 +155,38 @@ function VpsCard({ pkg }: { pkg: VpsPackage }) {
               {CYCLES.map((c) => <option key={c.key} value={c.key}>{t(c.label)}</option>)}
             </ConfigSelect>
           </div>
+          {optionsLoading ? (
+            <div className="skeleton" style={{ height: 56, borderRadius: "var(--radius-md)" }} />
+          ) : configOptions.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 4, borderTop: "1px solid var(--border)" }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--text-muted)" }}>{t("Tuỳ chọn cấu hình")}</div>
+              {configOptions.map((opt) => (
+                <div key={opt.id}>
+                  <label style={labelStyle}>
+                    {opt.name}
+                    {opt.required && <span style={{ color: "var(--red)" }}> *</span>}
+                  </label>
+                  {opt.type === "select" ? (
+                    <ConfigSelect value={selectedChoices.find((id) => opt.choices.some((c) => c.id === id)) || ""} onChange={(v) => setSelectChoice(opt, v)}>
+                      {!opt.required && <option value="">{t("Không chọn")}</option>}
+                      {opt.choices.map((c) => (
+                        <option key={c.id} value={c.id}>{c.label}{c.priceMonthly > 0 ? ` (+${formatCurrency(c.priceMonthly)}${t("/tháng")})` : ""}</option>
+                      ))}
+                    </ConfigSelect>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {opt.choices.map((c) => (
+                        <label key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--text-secondary)", cursor: "pointer" }}>
+                          <input type="checkbox" checked={selectedChoices.includes(c.id)} onChange={() => toggleChoice(c.id)} />
+                          <span>{c.label}{c.priceMonthly > 0 ? ` + ${formatCurrency(c.priceMonthly)}${t("/tháng")}` : ""}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : null}
           {error && <div style={{ fontSize: 12, color: "var(--red)" }}>{error}</div>}
           {added
             ? <div style={{ fontSize: 12.5, color: "var(--green)", fontWeight: 600, textAlign: "center", padding: "9px" }}>{t("Đã thêm vào giỏ")}</div>
@@ -148,10 +206,36 @@ function HostingCard({ pkg }: { pkg: HostingPackage }) {
   const [error, setError] = useState("");
   const [added, setAdded] = useState(false);
 
+  const [configOptions, setConfigOptions] = useState<ConfigOption[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsLoaded, setOptionsLoaded] = useState(false);
+  const [selectedChoices, setSelectedChoices] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open || optionsLoaded) return;
+    setOptionsLoading(true);
+    fetch(`/api/config-options?scope=hosting&refId=${pkg.id}`)
+      .then((r) => r.json())
+      .then((d) => setConfigOptions((d.data || []) as ConfigOption[]))
+      .catch(() => setConfigOptions([]))
+      .finally(() => { setOptionsLoading(false); setOptionsLoaded(true); });
+  }, [open, optionsLoaded, pkg.id]);
+
+  function setSelectChoice(option: ConfigOption, choiceId: string) {
+    setSelectedChoices((prev) => {
+      const others = prev.filter((id) => !option.choices.some((c) => c.id === id));
+      return choiceId ? [...others, choiceId] : others;
+    });
+  }
+
+  function toggleChoice(choiceId: string) {
+    setSelectedChoices((prev) => (prev.includes(choiceId) ? prev.filter((id) => id !== choiceId) : [...prev, choiceId]));
+  }
+
   function handleAdd() {
     if (!domain.trim()) { setError(t("Nhập tên miền")); return; }
     setError("");
-    add({ type: "hosting", packageId: pkg.id, packageName: pkg.name, cycle, priceMonthly: Number(pkg.priceMonthly), config: { domain: domain.trim() } });
+    add({ type: "hosting", packageId: pkg.id, packageName: pkg.name, cycle, priceMonthly: Number(pkg.priceMonthly), config: { domain: domain.trim(), options: selectedChoices } });
     setAdded(true);
     setTimeout(() => { setAdded(false); setOpen(false); setDomain(""); }, 1200);
   }
@@ -186,6 +270,38 @@ function HostingCard({ pkg }: { pkg: HostingPackage }) {
               {CYCLES.map((c) => <option key={c.key} value={c.key}>{t(c.label)}</option>)}
             </ConfigSelect>
           </div>
+          {optionsLoading ? (
+            <div className="skeleton" style={{ height: 56, borderRadius: "var(--radius-md)" }} />
+          ) : configOptions.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 4, borderTop: "1px solid var(--border)" }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--text-muted)" }}>{t("Tuỳ chọn cấu hình")}</div>
+              {configOptions.map((opt) => (
+                <div key={opt.id}>
+                  <label style={labelStyle}>
+                    {opt.name}
+                    {opt.required && <span style={{ color: "var(--red)" }}> *</span>}
+                  </label>
+                  {opt.type === "select" ? (
+                    <ConfigSelect value={selectedChoices.find((id) => opt.choices.some((c) => c.id === id)) || ""} onChange={(v) => setSelectChoice(opt, v)}>
+                      {!opt.required && <option value="">{t("Không chọn")}</option>}
+                      {opt.choices.map((c) => (
+                        <option key={c.id} value={c.id}>{c.label}{c.priceMonthly > 0 ? ` (+${formatCurrency(c.priceMonthly)}${t("/tháng")})` : ""}</option>
+                      ))}
+                    </ConfigSelect>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {opt.choices.map((c) => (
+                        <label key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--text-secondary)", cursor: "pointer" }}>
+                          <input type="checkbox" checked={selectedChoices.includes(c.id)} onChange={() => toggleChoice(c.id)} />
+                          <span>{c.label}{c.priceMonthly > 0 ? ` + ${formatCurrency(c.priceMonthly)}${t("/tháng")}` : ""}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : null}
           {error && <div style={{ fontSize: 12, color: "var(--red)" }}>{error}</div>}
           {added
             ? <div style={{ fontSize: 12.5, color: "var(--green)", fontWeight: 600, textAlign: "center", padding: "9px" }}>{t("Đã thêm vào giỏ")}</div>
