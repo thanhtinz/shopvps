@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerT } from "@/lib/i18n/server";
 import { requestPayout, getPayoutConfig, PAYOUT_METHODS, type PayoutMethod } from "@/lib/payouts";
+import { getBank } from "@/lib/banks";
 
 export async function GET() {
   const session = await auth();
@@ -19,9 +20,21 @@ export async function POST(req: NextRequest) {
   const { t, locale } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { amount, method, destination } = await req.json();
+  const body = await req.json();
+  const { amount, method } = body;
   const m = String(method || "wallet") as PayoutMethod;
   if (!PAYOUT_METHODS.includes(m)) return NextResponse.json({ error: t("Phương thức không hợp lệ") }, { status: 400 });
+
+  // Compose the destination. Bank transfers capture a VN bank + account so the
+  // admin can pay (and render a VietQR); PayPal uses an email; wallet is instant.
+  let destination: string | undefined = body.destination;
+  if (m === "bank") {
+    const bank = getBank(String(body.bankCode || ""));
+    const account = String(body.accountNumber || "").trim();
+    const holder = String(body.accountName || "").trim();
+    if (!bank || !account || !holder) return NextResponse.json({ error: t("Vui lòng nhập đầy đủ thông tin ngân hàng") }, { status: 400 });
+    destination = JSON.stringify({ bankCode: bank.code, bankName: bank.name, bin: bank.bin, accountNumber: account, accountName: holder });
+  }
 
   const res = await requestPayout(session.user.id, Number(amount), m, destination, locale);
   if (!res.ok) {

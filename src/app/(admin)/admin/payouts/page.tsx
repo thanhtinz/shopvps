@@ -2,7 +2,13 @@
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { vietQrUrl } from "@/lib/banks";
 import { useLocale } from "@/components/LocaleProvider";
+
+function parseBank(dest: string | null): { bankName: string; bin: string; accountNumber: string; accountName: string } | null {
+  if (!dest) return null;
+  try { const o = JSON.parse(dest); return o.accountNumber ? o : null; } catch { return null; }
+}
 
 export default function AdminPayoutsPage() {
   const { t } = useLocale();
@@ -59,7 +65,24 @@ export default function AdminPayoutsPage() {
                 <td style={{ padding: "12px 14px", fontSize: 12.5, color: "var(--text-secondary)" }}>{p.user?.name || p.user?.email || "—"}</td>
                 <td style={{ padding: "12px 14px", fontSize: 13.5, fontWeight: 700, color: "var(--text-primary)" }}>{formatCurrency(p.amount)}</td>
                 <td style={{ padding: "12px 14px", fontSize: 12.5 }}>{p.method}{p.auto ? ` · ${t("Tự động")}` : ""}</td>
-                <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--text-muted)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.destination || "—"}</td>
+                <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--text-muted)", maxWidth: 280 }}>
+                  {(() => {
+                    const b = parseBank(p.destination);
+                    if (!b) return p.destination || "—";
+                    return (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ lineHeight: 1.5 }}>
+                          <div style={{ fontWeight: 600, color: "var(--text-secondary)" }}>{b.bankName}</div>
+                          <div style={{ fontFamily: "var(--font-mono)" }}>{b.accountNumber}</div>
+                          <div>{b.accountName}</div>
+                        </div>
+                        <a href={vietQrUrl(b.bin, b.accountNumber, Number(p.amount), b.accountName, `Payout ${p.id.slice(0, 8)}`)} target="_blank" rel="noopener" title="VietQR">
+                          <img src={vietQrUrl(b.bin, b.accountNumber, Number(p.amount), b.accountName, `Payout ${p.id.slice(0, 8)}`)} alt="VietQR" width={56} height={56} style={{ borderRadius: 6, border: "1px solid var(--border)" }} />
+                        </a>
+                      </div>
+                    );
+                  })()}
+                </td>
                 <td style={{ padding: "12px 14px" }}><Badge color={statusColor[p.status] || "gray"}>{statusLabel[p.status] || p.status}</Badge></td>
                 <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--text-muted)", whiteSpace: "nowrap" }}>{formatDate(p.createdAt)}</td>
                 <td style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>

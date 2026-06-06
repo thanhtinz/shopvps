@@ -12,6 +12,11 @@ const m: Record<string, string> = {
   // API
   "Phương thức không hợp lệ": "Invalid method",
   "Vui lòng nhập thông tin nhận tiền": "Please enter the payout destination",
+  "Vui lòng nhập đầy đủ thông tin ngân hàng": "Please enter the full bank details",
+  "Ngân hàng": "Bank",
+  "Số tài khoản": "Account number",
+  "Chủ tài khoản": "Account holder",
+  "Email PayPal": "PayPal email",
   "Số tiền dưới mức tối thiểu": "Amount is below the minimum",
   "Không thể tạo yêu cầu rút": "Could not create the payout request",
   "Đã chuyển vào ví chính": "Moved to your main wallet",

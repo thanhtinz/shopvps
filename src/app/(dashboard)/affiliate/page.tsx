@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { VN_BANKS } from "@/lib/banks";
 import Badge from "@/components/ui/Badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
@@ -20,6 +21,9 @@ export default function AffiliatePage() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("wallet");
   const [destination, setDestination] = useState("");
+  const [bankCode, setBankCode] = useState(VN_BANKS[0].code);
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [okMsg, setOkMsg] = useState("");
   const [errMsg, setErrMsg] = useState("");
@@ -48,11 +52,14 @@ export default function AffiliatePage() {
   function submitPayout(e: React.FormEvent) {
     e.preventDefault();
     setOkMsg(""); setErrMsg(""); setSubmitting(true);
-    fetch("/api/affiliate/payout", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ amount: Number(amount), method, destination: method==="wallet" ? undefined : destination }) })
+    const payload: any = { amount: Number(amount), method };
+    if (method === "bank") { payload.bankCode = bankCode; payload.accountNumber = accountNumber; payload.accountName = accountName; }
+    else if (method === "paypal") { payload.destination = destination; }
+    fetch("/api/affiliate/payout", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(payload) })
       .then(r=>r.json()).then(d=>{
         if (d.success) {
           setOkMsg(d.message || "");
-          setAmount(""); setDestination("");
+          setAmount(""); setDestination(""); setAccountNumber(""); setAccountName("");
           loadPayout(); loadAffiliate();
         } else {
           setErrMsg(d.error || "");
@@ -200,23 +207,43 @@ export default function AffiliatePage() {
           {errMsg && <div style={{ padding:"10px 12px", background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:"var(--radius-md)", color:"var(--red)", fontSize:12.5, marginBottom:14 }}>{errMsg}</div>}
 
           {/* Form */}
-          <form onSubmit={submitPayout} style={{ display:"grid", gridTemplateColumns: method==="wallet" ? "1fr 1fr auto" : "1fr 1fr 1fr auto", gap:10, alignItems:"end", marginBottom:18 }}>
-            <div>
-              <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Số tiền")}</label>
-              <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }} />
-            </div>
-            <div>
-              <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Phương thức")}</label>
-              <select value={method} onChange={e=>setMethod(e.target.value)} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }}>
-                <option value="wallet">{t("Chuyển vào ví chính (ngay)")}</option>
-                <option value="bank">{t("Chuyển khoản ngân hàng")}</option>
-                <option value="paypal">{t("PayPal")}</option>
-              </select>
-            </div>
-            {method !== "wallet" && (
+          <form onSubmit={submitPayout} style={{ marginBottom:18 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
               <div>
-                <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Thông tin nhận tiền")}</label>
-                <input type="text" value={destination} onChange={e=>setDestination(e.target.value)} placeholder={t("STK / email PayPal")} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }} />
+                <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Số tiền")}</label>
+                <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }} />
+              </div>
+              <div>
+                <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Phương thức")}</label>
+                <select value={method} onChange={e=>setMethod(e.target.value)} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }}>
+                  <option value="wallet">{t("Chuyển vào ví chính (ngay)")}</option>
+                  <option value="bank">{t("Chuyển khoản ngân hàng")}</option>
+                  <option value="paypal">{t("PayPal")}</option>
+                </select>
+              </div>
+            </div>
+            {method === "bank" && (
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+                <div>
+                  <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Ngân hàng")}</label>
+                  <select value={bankCode} onChange={e=>setBankCode(e.target.value)} style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }}>
+                    {VN_BANKS.map(b=> <option key={b.code} value={b.code}>{b.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Số tài khoản")}</label>
+                  <input type="text" value={accountNumber} onChange={e=>setAccountNumber(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)", fontFamily:"var(--font-mono)" }} />
+                </div>
+                <div>
+                  <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Chủ tài khoản")}</label>
+                  <input type="text" value={accountName} onChange={e=>setAccountName(e.target.value.toUpperCase())} placeholder="NGUYEN VAN A" style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }} />
+                </div>
+              </div>
+            )}
+            {method === "paypal" && (
+              <div style={{ marginBottom:10 }}>
+                <label style={{ display:"block", fontSize:12, color:"var(--text-secondary)", marginBottom:6 }}>{t("Email PayPal")}</label>
+                <input type="email" value={destination} onChange={e=>setDestination(e.target.value)} placeholder="email@example.com" style={{ width:"100%", boxSizing:"border-box", background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", fontSize:13, color:"var(--text-primary)" }} />
               </div>
             )}
             <button type="submit" disabled={submitting} style={{ padding:"9px 16px", background:"var(--accent)", border:"1px solid transparent", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:submitting?"not-allowed":"pointer", opacity:submitting?0.6:1, whiteSpace:"nowrap" }}>
