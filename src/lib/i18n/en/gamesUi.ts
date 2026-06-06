@@ -20,6 +20,7 @@ const m: Record<string, string> = {
   "Game panel (Pterodactyl/Pelican)": "Game panel (Pterodactyl/Pelican)",
   "URL panel (vd https://panel.example.com)": "Panel URL (e.g. https://panel.example.com)",
   "Application API key (ptla_...)": "Application API key (ptla_...)",
+  "Client API key (ptlc_...) — cho bảng điều khiển nhúng": "Client API key (ptlc_...) — for the embedded panel",
   "Panel user ID sở hữu server": "Panel user ID that owns servers",
   "Location ID để deploy": "Location ID to deploy",
   "Game-VPS: provider ID (cloud-init fallback)": "Game-VPS: provider ID (cloud-init fallback)",

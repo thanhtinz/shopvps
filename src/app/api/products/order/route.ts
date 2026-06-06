@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
           const srv = await panelCreateServer(cfg, { name: displayLabel.slice(0, 40), eggId: parseInt(game.eggId, 10), dockerImage: game.dockerImage || undefined, memory: game.minRam });
           await prisma.productOrder.update({
             where: { id: order.id },
-            data: { status: "ACTIVE", data: { ...(normalizedConfig || {}), panelServerId: srv.id, panelUrl: srv.url }, credentials: encrypt(`Panel: ${srv.url}`) },
+            data: { status: "ACTIVE", data: { ...(normalizedConfig || {}), panelServerId: srv.id, panelIdentifier: srv.identifier, panelUrl: srv.url }, credentials: encrypt(`Panel: ${srv.url}`) },
           });
           provisioned = true;
         } else {

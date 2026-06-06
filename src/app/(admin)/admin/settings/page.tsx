@@ -30,6 +30,7 @@ const SECTIONS = [
   { title:"Game panel (Pterodactyl/Pelican)", fields:[
     { key:"panel_url", label:"URL panel (vd https://panel.example.com)" },
     { key:"panel_api_key", label:"Application API key (ptla_...)" },
+    { key:"panel_client_key", label:"Client API key (ptlc_...) — cho bảng điều khiển nhúng" },
     { key:"panel_user_id", label:"Panel user ID sở hữu server" },
     { key:"panel_location_id", label:"Location ID để deploy" },
     { key:"game_vps_provider_id", label:"Game-VPS: provider ID (cloud-init fallback)" },

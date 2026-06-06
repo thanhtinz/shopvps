@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Badge from "@/components/ui/Badge";
+import GamePanel from "@/components/GamePanel";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 
@@ -38,7 +39,7 @@ type Detail = {
   credentials: string | null;
   cronjobs: Cronjob[];
   config?: { gameId?: string; moduleIds?: string[] } | null;
-  data?: { panelUrl?: string } | null;
+  data?: { panelUrl?: string; panelIdentifier?: string } | null;
 };
 
 const card: React.CSSProperties = { background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 20 };
@@ -144,6 +145,7 @@ export default function ProductDetailPage() {
     .map(mid => allModules.find(mod => mod.id === mid))
     .filter((mod): mod is GameModule => !!mod);
   const panelUrl = order.data?.panelUrl || null;
+  const panelIdentifier = order.data?.panelIdentifier || null;
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -195,13 +197,16 @@ export default function ProductDetailPage() {
               </div>
             </div>
           )}
-          {panelUrl ? (
+          {panelUrl && !panelIdentifier ? (
             <a href={panelUrl} target="_blank" rel="noopener noreferrer" style={{ ...btn, display: "inline-flex", marginTop: 16, background: "var(--accent)", color: "white", border: "none", fontWeight: 700, textDecoration: "none" }}>{t("Mở bảng điều khiển")}</a>
-          ) : order.status === "PENDING" ? (
+          ) : !panelIdentifier && order.status === "PENDING" ? (
             <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 16, marginBottom: 0 }}>{t("Server game đang được tạo...")}</p>
           ) : null}
         </div>
       )}
+
+      {/* Embedded professional game control panel (Pterodactyl) */}
+      {isGameServer && panelIdentifier && <GamePanel orderId={order.id} panelUrl={panelUrl} />}
 
       {/* Credentials */}
       {(order.credentials || order.status === "PENDING") && (
