@@ -1,0 +1,10 @@
+# Railway/Nixpacks build for the Next.js custom server.
+# `prisma generate` runs via the package.json postinstall hook.
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "node server.js"

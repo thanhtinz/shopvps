@@ -15,7 +15,9 @@
     "workers": "tsx src/workers.ts",
     "workers:dev": "tsx watch src/workers.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "postinstall": "prisma generate",
+    "db:deploy": "prisma db push --skip-generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
@@ -73,5 +75,8 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
+  },
+  "engines": {
+    "node": ">=18.18.0"
   }
 }
