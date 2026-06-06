@@ -6,7 +6,7 @@ import { moduleForPath } from "@/lib/permissions";
 const BYPASS = ["/_next", "/api/auth", "/api/setup", "/api/webhook", "/favicon.ico"];
 const SETUP_ROUTE = "/setup";
 const LICENSE_ERROR_ROUTE = "/license-error";
-const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/status", "/verify-email"];
+const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/status", "/verify-email", "/faq", "/contact", "/terms", "/privacy"];
 
 export default auth((req: any) => {
   const { pathname } = req.nextUrl;

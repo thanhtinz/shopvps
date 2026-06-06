@@ -1,5 +1,19 @@
 // EN translations for the admin Settings guidance, doc links, webhook URLs.
 const m: Record<string, string> = {
+  // landing marketing + contact settings
+  "Tên, slogan và URL hiển thị toàn site, dùng trong email, hoá đơn và landing page.": "Name, tagline and URL shown across the site, used in emails, invoices and the landing page.",
+  "Slogan (hiện ở landing)": "Tagline (shown on the landing page)",
+  "Landing — Thống kê & Liên hệ": "Landing — Stats & Contact",
+  "Các con số marketing hiển thị trên trang chủ và thông tin liên hệ ở footer/trang Liên hệ.": "Marketing numbers shown on the homepage and contact info in the footer/Contact page.",
+  "Uptime (vd 99.9%)": "Uptime (e.g. 99.9%)",
+  "Số khách hàng (vd 1,000+)": "Customers (e.g. 1,000+)",
+  "Số server (vd 50+)": "Servers (e.g. 50+)",
+  "Số data center (vd 5+)": "Data centers (e.g. 5+)",
+  "Email liên hệ": "Contact email",
+  "Số điện thoại": "Phone number",
+  "Link/ID Zalo": "Zalo link/ID",
+  "Link Discord": "Discord link",
+  "Địa chỉ": "Address",
   // ConfigHelp on other admin pages
   "Nhập API token của nhà cung cấp để tự khởi tạo VPS. slug phải đúng: vultr | hetzner | digitalocean. apiEndpoint để trống dùng mặc định.": "Enter the provider API token to auto-provision VPS. slug must be exact: vultr | hetzner | digitalocean. Leave apiEndpoint blank for the default.",
   "Hetzner Cloud API token": "Hetzner Cloud API token",

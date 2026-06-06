@@ -14,9 +14,21 @@ type Section = {
 };
 
 const SECTIONS: Section[] = [
-  { title:"Website", help:"Tên và URL hiển thị toàn site, dùng trong email, hoá đơn và các liên kết.", fields:[
+  { title:"Website", help:"Tên, slogan và URL hiển thị toàn site, dùng trong email, hoá đơn và landing page.", fields:[
     { key:"app_name", label:"Tên website" },
+    { key:"app_tagline", label:"Slogan (hiện ở landing)" },
     { key:"app_url", label:"URL website (vd https://shop.example.com)" },
+  ]},
+  { title:"Landing — Thống kê & Liên hệ", help:"Các con số marketing hiển thị trên trang chủ và thông tin liên hệ ở footer/trang Liên hệ.", fields:[
+    { key:"stat_uptime", label:"Uptime (vd 99.9%)" },
+    { key:"stat_customers", label:"Số khách hàng (vd 1,000+)" },
+    { key:"stat_servers", label:"Số server (vd 50+)" },
+    { key:"stat_datacenters", label:"Số data center (vd 5+)" },
+    { key:"contact_email", label:"Email liên hệ" },
+    { key:"contact_phone", label:"Số điện thoại" },
+    { key:"contact_zalo", label:"Link/ID Zalo" },
+    { key:"contact_discord", label:"Link Discord" },
+    { key:"contact_address", label:"Địa chỉ" },
   ]},
   { title:"Bảo mật (reCAPTCHA & MaxMind)",
     help:"Chống bot khi đăng ký và chấm điểm gian lận. Để trống = tắt (không chặn ai).",
