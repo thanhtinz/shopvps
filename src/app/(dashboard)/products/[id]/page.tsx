@@ -25,6 +25,9 @@ type Cronjob = {
 type GameModule = { id: string; name: string; description: string | null; priceMonthly: number; gameId: string | null };
 type Game = { id: string; name: string; slug: string; icon: string; description: string | null; minRam: number; modules: GameModule[] };
 
+type ConfigChoice = { id: string; label: string; priceMonthly: number; sortOrder: number };
+type ConfigOption = { id: string; name: string; description: string | null; type: "select" | "checkbox"; required: boolean; choices: ConfigChoice[] };
+
 type Detail = {
   id: string;
   label: string;
@@ -35,10 +38,10 @@ type Detail = {
   price: number;
   createdAt: string;
   expiresAt: string | null;
-  product: { name: string; category: string; group: string; specs: any };
+  product: { id?: string; name: string; category: string; group: string; specs: any };
   credentials: string | null;
   cronjobs: Cronjob[];
-  config?: { gameId?: string; moduleIds?: string[] } | null;
+  config?: { gameId?: string; moduleIds?: string[]; options?: string[] } | null;
   data?: { panelUrl?: string; panelIdentifier?: string } | null;
 };
 
@@ -53,6 +56,7 @@ export default function ProductDetailPage() {
 
   const [order, setOrder] = useState<Detail | null>(null);
   const [games, setGames] = useState<Game[]>([]);
+  const [configOptions, setConfigOptions] = useState<ConfigOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [typeLabels, setTypeLabels] = useState<Record<string, string>>({});
   const [groupLabels, setGroupLabels] = useState<Record<string, string>>({});
@@ -92,6 +96,17 @@ export default function ProductDetailPage() {
       fetch("/api/games").then(r => r.json()).then(d => setGames(d.data || [])).catch(() => {});
     }
   }, [order?.config?.gameId, games.length]);
+
+  const selectedOptionIds = order?.config?.options;
+  const detailProductId = order?.product?.id;
+  useEffect(() => {
+    if (selectedOptionIds && selectedOptionIds.length > 0 && detailProductId) {
+      fetch(`/api/config-options?productId=${detailProductId}`)
+        .then(r => r.json())
+        .then(d => setConfigOptions((d.data || []) as ConfigOption[]))
+        .catch(() => {});
+    }
+  }, [selectedOptionIds, detailProductId]);
 
   const statusColor: Record<string, "green" | "yellow" | "gray" | "red"> = { ACTIVE: "green", PENDING: "yellow", SUSPENDED: "gray", TERMINATED: "red" };
   const statusLabel: Record<string, string> = { ACTIVE: t("Đang hoạt động"), PENDING: t("Chờ kích hoạt"), SUSPENDED: t("Tạm dừng"), TERMINATED: t("Đã huỷ") };
@@ -146,6 +161,12 @@ export default function ProductDetailPage() {
     .filter((mod): mod is GameModule => !!mod);
   const panelUrl = order.data?.panelUrl || null;
   const panelIdentifier = order.data?.panelIdentifier || null;
+
+  const selectedOptionIdList = order.config?.options || [];
+  const allChoices = configOptions.flatMap(o => o.choices);
+  const selectedChoices = selectedOptionIdList
+    .map(cid => allChoices.find(c => c.id === cid))
+    .filter((c): c is ConfigChoice => !!c);
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -207,6 +228,24 @@ export default function ProductDetailPage() {
 
       {/* Embedded professional game control panel (Pterodactyl) */}
       {isGameServer && panelIdentifier && <GamePanel orderId={order.id} panelUrl={panelUrl} />}
+
+      {/* Configurable options */}
+      {selectedOptionIdList.length > 0 && (
+        <div style={card}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Tuỳ chọn đã chọn")}</h3>
+          {selectedChoices.length > 0 ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {selectedChoices.map(c => (
+                <span key={c.id} style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-secondary)", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "5px 10px" }}>
+                  {c.label}{c.priceMonthly > 0 ? ` + ${formatCurrency(c.priceMonthly)}${t("/tháng")}` : ""}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>{selectedOptionIdList.length} {t("tuỳ chọn")}</p>
+          )}
+        </div>
+      )}
 
       {/* Credentials */}
       {(order.credentials || order.status === "PENDING") && (

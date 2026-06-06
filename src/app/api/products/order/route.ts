@@ -8,6 +8,7 @@ import { nextExpiry } from "@/lib/utils";
 import { getUserTier, tierCyclePrice } from "@/lib/pricing";
 import { getPanelConfig, panelCreateServer } from "@/lib/pterodactyl";
 import { provisionGameVps } from "@/lib/game-provision";
+import { resolveChoices } from "@/lib/config-options";
 import { encrypt } from "@/lib/encrypt";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
@@ -44,8 +45,21 @@ export async function POST(req: NextRequest) {
     normalizedConfig = { gameId, moduleIds: mods.map((m) => m.id) };
   }
 
+  // Configurable options (WHMCS-style add-ons), recurring like the base price.
+  let optionsMonthly = 0;
+  if (config && Array.isArray(config.options)) {
+    try {
+      const r = await resolveChoices(product.id, config.options);
+      optionsMonthly = r.monthly;
+      normalizedConfig = { ...(normalizedConfig || {}), options: r.choiceIds };
+    } catch (e: any) {
+      if (String(e?.message).startsWith("REQUIRED_OPTION")) return NextResponse.json({ error: t("Vui lòng chọn đầy đủ tuỳ chọn bắt buộc") }, { status: 400 });
+      throw e;
+    }
+  }
+
   const tier = await getUserTier(session.user.id);
-  const base = (await tierCyclePrice(tier, "product", product.id, Number(product.priceMonthly), product.priceYearly != null ? Number(product.priceYearly) : null, cycle)) + gameMonthly * months;
+  const base = (await tierCyclePrice(tier, "product", product.id, Number(product.priceMonthly), product.priceYearly != null ? Number(product.priceYearly) : null, cycle)) + (gameMonthly + optionsMonthly) * months;
   const price = base + Number(product.setupFee || 0);
   const { rate } = await getTaxForUser(session.user.id);
   const tax = taxFromInclusive(price, rate);

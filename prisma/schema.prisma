@@ -963,6 +963,37 @@ model TierPrice {
   @@map("tier_prices")
 }
 
+model ConfigOption {
+  id          String   @id @default(cuid())
+  scope       String   @default("product") // product | global
+  refId       String? // productId; null = applies to all products
+  name        String
+  description String?
+  type        String   @default("select") // select | checkbox
+  required    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  choices ConfigChoice[]
+
+  @@index([scope, refId])
+  @@map("config_options")
+}
+
+model ConfigChoice {
+  id           String  @id @default(cuid())
+  optionId     String
+  label        String
+  priceMonthly Decimal @default(0) @db.Decimal(10, 2)
+  sortOrder    Int     @default(0)
+
+  option ConfigOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@index([optionId])
+  @@map("config_choices")
+}
+
 model Game {
   id          String   @id @default(cuid())
   name        String

@@ -24,7 +24,7 @@ const SEGMENT_MODULE: Record<string, string> = {
   invoices: "finance", transactions: "finance", "tax-rules": "finance", payouts: "finance",
   commissions: "finance", currencies: "finance", revenue: "finance", export: "finance",
   reports: "reports",
-  products: "products", addons: "products", catalog: "products", tiers: "products",
+  products: "products", addons: "products", catalog: "products", tiers: "products", "config-options": "products",
   providers: "vps", "vps-packages": "vps", vps: "vps",
   "hosting-packages": "hosting", servers: "hosting", hosting: "hosting",
   domains: "domains", tlds: "domains",

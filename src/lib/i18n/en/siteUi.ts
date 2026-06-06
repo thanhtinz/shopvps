@@ -15,5 +15,27 @@ const m: Record<string, string> = {
   "MaxMind Account ID": "MaxMind Account ID",
   "MaxMind License Key (minFraud)": "MaxMind License Key (minFraud)",
   "Xác minh reCAPTCHA thất bại": "reCAPTCHA verification failed",
+  // configurable options (store + service detail)
+  "Tuỳ chọn cấu hình": "Configurable options",
+  "Tuỳ chọn đã chọn": "Selected options",
+  "Không chọn": "None",
+  "tuỳ chọn": "options",
+  // admin config-options page
+  "Thêm tuỳ chọn": "Add option",
+  "Add-on khách chọn khi mua (thêm RAM, IP, backup…), tính phí định kỳ.": "Add-ons customers pick at checkout (extra RAM, IP, backup…), billed recurringly.",
+  "Tên tuỳ chọn (vd: Thêm RAM)": "Option name (e.g. Extra RAM)",
+  "Chọn 1 trong nhiều (select)": "Choose one (select)",
+  "Bật/tắt (checkbox)": "Toggle (checkbox)",
+  "Mọi sản phẩm": "All products",
+  "Bắt buộc chọn": "Required",
+  "Lưu tuỳ chọn": "Save option",
+  "Chưa có tuỳ chọn nào.": "No options yet.",
+  "Bắt buộc": "Required",
+  "lựa chọn": "choices",
+  "Nhãn (vd: +4 GB)": "Label (e.g. +4 GB)",
+  "Thêm lựa chọn": "Add choice",
+  "Chưa có lựa chọn": "No choices yet",
+  "Xoá tuỳ chọn này?": "Delete this option?",
+  "Vui lòng chọn đầy đủ tuỳ chọn bắt buộc": "Please select all required options",
 };
 export default m;

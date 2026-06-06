@@ -39,6 +39,7 @@ const nav = [
     { href:"/admin/addons", label:"Add-on", icon:"M12 2v20 M2 12h20" },
     { href:"/admin/servers", label:"WHM Servers", icon:"M2 2h20v8H2z M2 14h20v8H2z M6 6h.01 M6 18h.01" },
     { href:"/admin/coupons", label:"Coupon", icon:"M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z M7 7h.01" },
+    { href:"/admin/config-options", label:"Tuỳ chọn cấu hình", icon:"M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4" },
   ]},
   { section: "Marketing", items: [
     { href:"/admin/email-marketing", label:"Email Marketing", icon:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6" },

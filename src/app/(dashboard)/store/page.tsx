@@ -37,6 +37,8 @@ interface Product {
 }
 interface GameModule { id: string; name: string; description: string | null; priceMonthly: number; gameId: string | null }
 interface Game { id: string; name: string; slug: string; icon: string; description: string | null; minRam: number; modules: GameModule[] }
+interface ConfigChoice { id: string; label: string; priceMonthly: number; sortOrder: number }
+interface ConfigOption { id: string; name: string; description: string | null; type: "select" | "checkbox"; required: boolean; choices: ConfigChoice[] }
 interface Catalog {
   sell_vps: boolean; sell_hosting: boolean; sell_domain: boolean;
   [key: string]: boolean;
@@ -207,6 +209,32 @@ function ProductCard({ product, labelPlaceholder, typeLabel, games }: { product:
   const [gameId, setGameId] = useState("");
   const [moduleIds, setModuleIds] = useState<string[]>([]);
 
+  const [configOptions, setConfigOptions] = useState<ConfigOption[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsLoaded, setOptionsLoaded] = useState(false);
+  const [selectedChoices, setSelectedChoices] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open || optionsLoaded) return;
+    setOptionsLoading(true);
+    fetch(`/api/config-options?productId=${product.id}`)
+      .then((r) => r.json())
+      .then((d) => setConfigOptions((d.data || []) as ConfigOption[]))
+      .catch(() => setConfigOptions([]))
+      .finally(() => { setOptionsLoading(false); setOptionsLoaded(true); });
+  }, [open, optionsLoaded, product.id]);
+
+  function setSelectChoice(option: ConfigOption, choiceId: string) {
+    setSelectedChoices((prev) => {
+      const others = prev.filter((id) => !option.choices.some((c) => c.id === id));
+      return choiceId ? [...others, choiceId] : others;
+    });
+  }
+
+  function toggleChoice(choiceId: string) {
+    setSelectedChoices((prev) => (prev.includes(choiceId) ? prev.filter((id) => id !== choiceId) : [...prev, choiceId]));
+  }
+
   const selectedGame = games.find((g) => g.id === gameId) || null;
   const availableModules = selectedGame
     ? games.flatMap((g) => g.modules).filter((mod) => mod.gameId === selectedGame.id || mod.gameId == null)
@@ -224,10 +252,13 @@ function ProductCard({ product, labelPlaceholder, typeLabel, games }: { product:
     if (isGameServer && !gameId) { setError(t("Vui lòng chọn game")); return; }
     setSubmitting(true);
     try {
-      const body: { productId: string; billingCycle: string; label?: string; config?: { gameId: string; moduleIds: string[] } } = {
+      const body: { productId: string; billingCycle: string; label?: string; config?: { gameId?: string; moduleIds?: string[]; options?: string[] } } = {
         productId: product.id, billingCycle: cycle, label: label.trim() || undefined,
       };
-      if (isGameServer) body.config = { gameId, moduleIds };
+      const config: { gameId?: string; moduleIds?: string[]; options?: string[] } = {};
+      if (isGameServer) { config.gameId = gameId; config.moduleIds = moduleIds; }
+      if (selectedChoices.length > 0) config.options = selectedChoices;
+      if (Object.keys(config).length > 0) body.config = config;
       const res = await fetch("/api/products/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -308,6 +339,38 @@ function ProductCard({ product, labelPlaceholder, typeLabel, games }: { product:
               )}
             </>
           )}
+          {optionsLoading ? (
+            <div className="skeleton" style={{ height: 56, borderRadius: "var(--radius-md)" }} />
+          ) : configOptions.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 4, borderTop: "1px solid var(--border)" }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "var(--text-muted)" }}>{t("Tuỳ chọn cấu hình")}</div>
+              {configOptions.map((opt) => (
+                <div key={opt.id}>
+                  <label style={labelStyle}>
+                    {opt.name}
+                    {opt.required && <span style={{ color: "var(--red)" }}> *</span>}
+                  </label>
+                  {opt.type === "select" ? (
+                    <ConfigSelect value={selectedChoices.find((id) => opt.choices.some((c) => c.id === id)) || ""} onChange={(v) => setSelectChoice(opt, v)}>
+                      {!opt.required && <option value="">{t("Không chọn")}</option>}
+                      {opt.choices.map((c) => (
+                        <option key={c.id} value={c.id}>{c.label}{c.priceMonthly > 0 ? ` (+${formatCurrency(c.priceMonthly)}${t("/tháng")})` : ""}</option>
+                      ))}
+                    </ConfigSelect>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {opt.choices.map((c) => (
+                        <label key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--text-secondary)", cursor: "pointer" }}>
+                          <input type="checkbox" checked={selectedChoices.includes(c.id)} onChange={() => toggleChoice(c.id)} />
+                          <span>{c.label}{c.priceMonthly > 0 ? ` + ${formatCurrency(c.priceMonthly)}${t("/tháng")}` : ""}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : null}
           {error && <div style={{ fontSize: 12, color: "var(--red)" }}>{error}</div>}
           {done
             ? (
