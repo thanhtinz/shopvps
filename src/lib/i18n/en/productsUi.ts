@@ -4,6 +4,7 @@ const m: Record<string, string> = {
   "Máy chủ vật lý": "Dedicated server",
   "Proxy": "Proxy",
   "Cronjob": "Cronjob",
+  "GPU thuê theo giờ": "Hourly GPU rental",
   // Order / store
   "Sản phẩm không tồn tại": "Product not found",
   "Sản phẩm hiện không được bán": "This product is not currently for sale",
