@@ -389,12 +389,10 @@ function Products({ t }: { t: (k: string) => string }) {
 /* ---------------- FEATURES ---------------- */
 function Features({ t }: { t: (k: string) => string }) {
   const items = [
-    { icon: ICONS.card, title: t("Thanh toán tự động"), desc: t("Tích hợp SePay & VietQR — nạp tiền và kích hoạt dịch vụ tức thì.") },
-    { icon: ICONS.shield, title: t("Bảo mật hàng đầu"), desc: t("Xác thực 2FA và mã hoá AES-256 cho mọi dữ liệu nhạy cảm.") },
-    { icon: ICONS.zap, title: t("Tự động hoá đầy đủ"), desc: t("Khởi tạo, gia hạn, nâng cấp và huỷ dịch vụ hoàn toàn tự động.") },
-    { icon: ICONS.headset, title: t("Hỗ trợ 24/7"), desc: t("Đội ngũ kỹ thuật trực hệ thống ticket và live-chat mọi lúc.") },
-    { icon: ICONS.users, title: t("Phân quyền team"), desc: t("Mời thành viên và phân quyền chi tiết cho từng vai trò.") },
-    { icon: ICONS.gift, title: t("Chương trình Affiliate"), desc: t("Giới thiệu khách hàng và nhận hoa hồng định kỳ.") },
+    { icon: ICONS.zap, title: t("Tốc độ cực nhanh"), desc: t("Ổ cứng NVMe SSD, LiteSpeed Web Server và hệ thống CDN tích hợp giúp website của bạn tải nhanh hơn bao giờ hết.") },
+    { icon: ICONS.shield, title: t("Bảo mật cao cấp"), desc: t("Firewall chống DDoS, SSL miễn phí, backup tự động hàng ngày và hệ thống giám sát 24/7 bảo vệ dữ liệu của bạn.") },
+    { icon: ICONS.headset, title: t("Hỗ trợ 24/7"), desc: t("Đội ngũ kỹ thuật giàu kinh nghiệm luôn sẵn sàng hỗ trợ bạn qua ticket, chat và email bất kể ngày đêm.") },
+    { icon: ICONS.card, title: t("Giá cả hợp lý"), desc: t("Chất lượng dịch vụ premium nhưng giá cả bình dân. Cam kết không phát sinh chi phí ẩn, thanh toán minh bạch.") },
   ];
   return (
     <section id="features" style={{ ...sectionPad, background: "rgba(255,255,255,0.015)" }}>

@@ -1,6 +1,14 @@
 // EN translations for the public marketing pages: landing (Landing.tsx),
 // PublicShell nav/footer, FAQ, Contact, Terms and Privacy pages.
 const m: Record<string, string> = {
+  "Tốc độ cực nhanh": "Blazing fast",
+  "Ổ cứng NVMe SSD, LiteSpeed Web Server và hệ thống CDN tích hợp giúp website của bạn tải nhanh hơn bao giờ hết.": "NVMe SSD storage, LiteSpeed Web Server and a built-in CDN make your website load faster than ever.",
+  "Bảo mật cao cấp": "Advanced security",
+  "Firewall chống DDoS, SSL miễn phí, backup tự động hàng ngày và hệ thống giám sát 24/7 bảo vệ dữ liệu của bạn.": "DDoS firewall, free SSL, daily automatic backups and 24/7 monitoring protect your data.",
+  "Đội ngũ kỹ thuật giàu kinh nghiệm luôn sẵn sàng hỗ trợ bạn qua ticket, chat và email bất kể ngày đêm.": "An experienced technical team is always ready to help via ticket, chat and email, day or night.",
+  "Giá cả hợp lý": "Fair pricing",
+  "Chất lượng dịch vụ premium nhưng giá cả bình dân. Cam kết không phát sinh chi phí ẩn, thanh toán minh bạch.": "Premium service quality at affordable prices. No hidden fees, transparent billing — guaranteed.",
+
   // ---- shared / nav / footer (PublicShell) ----
   "Tính năng": "Features",
   "Bảng giá": "Pricing",
