@@ -9,6 +9,12 @@ const SECTIONS = [
     { key:"app_name", label:"Tên website" },
     { key:"app_url", label:"URL website" },
   ]},
+  { title:"Live chat & Cookie/GDPR", fields:[
+    { key:"chat_provider", label:"Nhà cung cấp chat (tawk | crisp | messenger | zalo)" },
+    { key:"chat_id", label:"ID chat (Tawk/Crisp widget ID, m.me hoặc zalo.me ID)" },
+    { key:"cookie_consent", label:"Bật banner cookie (true/false)" },
+    { key:"cookie_text", label:"Nội dung banner cookie" },
+  ]},
   { title:"Email & Thông báo", fields:[
     { key:"smtp_host", label:"SMTP Host" },
     { key:"smtp_port", label:"SMTP Port" },
