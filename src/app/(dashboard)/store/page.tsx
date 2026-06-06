@@ -30,6 +30,15 @@ interface HostingPackage {
   id: string; name: string; storage: number; bandwidth: number; databases: number;
   priceMonthly: number; server: { id: string; name: string };
 }
+interface Product {
+  id: string; category: string; name: string; description: string | null;
+  priceMonthly: number; priceYearly: number; setupFee: number;
+  specs: Record<string, unknown> | null; stock: number | null;
+}
+interface Catalog {
+  sell_vps: boolean; sell_hosting: boolean; sell_domain: boolean;
+  sell_dedicated: boolean; sell_proxy: boolean; sell_cronjob: boolean;
+}
 
 const cardStyle: React.CSSProperties = {
   background: "var(--bg-surface)", border: "1px solid var(--border)",
@@ -179,20 +188,121 @@ function HostingCard({ pkg }: { pkg: HostingPackage }) {
   );
 }
 
+function ProductCard({ product, labelPlaceholder }: { product: Product; labelPlaceholder: string }) {
+  const { t } = useLocale();
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState("");
+  const [cycle, setCycle] = useState(CYCLES[0].key);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const outOfStock = product.stock != null && product.stock <= 0;
+  const specEntries = product.specs ? Object.entries(product.specs) : [];
+
+  async function handleBuy() {
+    setError("");
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/products/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id, billingCycle: cycle, label: label.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setError(data.error || "");
+      } else {
+        setDone(true);
+      }
+    } catch {
+      setError("");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div style={cardStyle}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 14.5, fontWeight: 700, color: "var(--text-primary)" }}>{product.name}</div>
+          {product.description && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{product.description}</div>}
+        </div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--accent)", whiteSpace: "nowrap" }}>
+          {formatCurrency(product.priceMonthly)}<span style={{ fontSize: 11, fontWeight: 400, color: "var(--text-muted)" }}>{t("/tháng")}</span>
+        </div>
+      </div>
+      {specEntries.length > 0 && (
+        <div style={{ fontSize: 12.5, color: "var(--text-secondary)", display: "flex", flexDirection: "column", gap: 2 }}>
+          {specEntries.map(([k, v]) => <div key={k}>{k}: {String(v)}</div>)}
+        </div>
+      )}
+      {product.setupFee > 0 && (
+        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{t("Phí cài đặt:")} {formatCurrency(product.setupFee)}</div>
+      )}
+      {product.stock != null && (
+        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{t("Còn lại:")} {product.stock}</div>
+      )}
+      <button onClick={() => setOpen((o) => !o)} disabled={outOfStock} style={{
+        marginTop: 2, padding: "9px", border: "1px solid var(--border)", borderRadius: "var(--radius-md)",
+        background: open ? "var(--accent-soft)" : "var(--bg-elevated)", color: open ? "var(--accent)" : "var(--text-secondary)",
+        fontSize: 13, fontWeight: 600, cursor: outOfStock ? "not-allowed" : "pointer", opacity: outOfStock ? 0.5 : 1,
+      }}>{outOfStock ? t("Hết hàng") : t("Cấu hình & mua")}</button>
+
+      {open && !outOfStock && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+          <div>
+            <label style={labelStyle}>{t("Nhãn dịch vụ (tuỳ chọn)")}</label>
+            <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder={labelPlaceholder} style={{ ...inputStyle, fontFamily: "var(--font-mono)" }} />
+          </div>
+          <div>
+            <label style={labelStyle}>{t("Chu kỳ thanh toán")}</label>
+            <ConfigSelect value={cycle} onChange={setCycle}>
+              {CYCLES.map((c) => <option key={c.key} value={c.key}>{t(c.label)}</option>)}
+            </ConfigSelect>
+          </div>
+          {error && <div style={{ fontSize: 12, color: "var(--red)" }}>{error}</div>}
+          {done
+            ? (
+              <div style={{ fontSize: 12.5, color: "var(--green)", fontWeight: 600, textAlign: "center", padding: "9px", display: "flex", flexDirection: "column", gap: 6 }}>
+                <span>{t("Đặt hàng thành công")}</span>
+                <Link href="/products" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 700 }}>{t("Xem dịch vụ")}</Link>
+              </div>
+            )
+            : <button onClick={handleBuy} disabled={submitting} style={{ padding: "10px", border: "none", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "white", fontSize: 13, fontWeight: 700, cursor: submitting ? "wait" : "pointer", opacity: submitting ? 0.7 : 1 }}>{submitting ? t("Đang xử lý...") : t("Mua ngay")}</button>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StorePage() {
   const { t } = useLocale();
   const { count } = useCart();
   const [vps, setVps] = useState<VpsPackage[]>([]);
   const [hosting, setHosting] = useState<HostingPackage[]>([]);
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [dedicated, setDedicated] = useState<Product[]>([]);
+  const [proxy, setProxy] = useState<Product[]>([]);
+  const [cronjob, setCronjob] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/vps/packages").then((r) => r.json()),
       fetch("/api/hosting/packages").then((r) => r.json()),
-    ]).then(([v, h]) => {
+      fetch("/api/catalog").then((r) => r.json()),
+      fetch("/api/products?category=DEDICATED").then((r) => r.json()),
+      fetch("/api/products?category=PROXY").then((r) => r.json()),
+      fetch("/api/products?category=CRONJOB").then((r) => r.json()),
+    ]).then(([v, h, c, d, p, cj]) => {
       setVps(v.data || []);
       setHosting(h.data || []);
+      setCatalog(c.data || null);
+      setDedicated(d.data || []);
+      setProxy(p.data || []);
+      setCronjob(cj.data || []);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
@@ -219,19 +329,44 @@ export default function StorePage() {
         </div>
       ) : (
         <>
-          <section style={{ marginBottom: 32 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Máy chủ VPS")}</h2>
-            {vps.length === 0
-              ? <div style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)", fontSize: 13 }}>{t("Không có gói nào")}</div>
-              : <div style={gridStyle}>{vps.map((p) => <VpsCard key={p.id} pkg={p} />)}</div>}
-          </section>
+          {catalog?.sell_vps && (
+            <section style={{ marginBottom: 32 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Máy chủ VPS")}</h2>
+              {vps.length === 0
+                ? <div style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)", fontSize: 13 }}>{t("Không có gói nào")}</div>
+                : <div style={gridStyle}>{vps.map((p) => <VpsCard key={p.id} pkg={p} />)}</div>}
+            </section>
+          )}
 
-          <section>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Hosting")}</h2>
-            {hosting.length === 0
-              ? <div style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)", fontSize: 13 }}>{t("Không có gói nào")}</div>
-              : <div style={gridStyle}>{hosting.map((p) => <HostingCard key={p.id} pkg={p} />)}</div>}
-          </section>
+          {catalog?.sell_hosting && (
+            <section style={{ marginBottom: 32 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Hosting")}</h2>
+              {hosting.length === 0
+                ? <div style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)", fontSize: 13 }}>{t("Không có gói nào")}</div>
+                : <div style={gridStyle}>{hosting.map((p) => <HostingCard key={p.id} pkg={p} />)}</div>}
+            </section>
+          )}
+
+          {catalog?.sell_dedicated && dedicated.length > 0 && (
+            <section style={{ marginBottom: 32 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Máy chủ vật lý")}</h2>
+              <div style={gridStyle}>{dedicated.map((p) => <ProductCard key={p.id} product={p} labelPlaceholder="srv01" />)}</div>
+            </section>
+          )}
+
+          {catalog?.sell_proxy && proxy.length > 0 && (
+            <section style={{ marginBottom: 32 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Proxy")}</h2>
+              <div style={gridStyle}>{proxy.map((p) => <ProductCard key={p.id} product={p} labelPlaceholder="proxy-vn" />)}</div>
+            </section>
+          )}
+
+          {catalog?.sell_cronjob && cronjob.length > 0 && (
+            <section>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Cronjob")}</h2>
+              <div style={gridStyle}>{cronjob.map((p) => <ProductCard key={p.id} product={p} labelPlaceholder="job-01" />)}</div>
+            </section>
+          )}
         </>
       )}
     </div>

@@ -13,6 +13,8 @@ const nav = [
     { href:"/admin/quotes", label:"Báo giá", icon:"M9 11l3 3 8-8 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" },
     { href:"/admin/invoices", label:"Quản lý hoá đơn", icon:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" },
     { href:"/admin/tax-rules", label:"Quy tắc thuế theo quốc gia", icon:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10 M9 8h6" },
+    { href:"/admin/products", label:"Sản phẩm (Dedicated/Proxy/Cronjob)", icon:"M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
+    { href:"/admin/product-orders", label:"Đơn sản phẩm", icon:"M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2 M9 5a2 2 0 002 2h2a2 2 0 002-2 M9 12h6 M9 16h6" },
     { href:"/admin/transactions", label:"Giao dịch", icon:"M12 22V12 M12 12l-3-3 M12 12l3-3" },
     { href:"/admin/reports", label:"Báo cáo", icon:"M3 3v18h18 M7 16l4-4 3 3 5-6" },
     { href:"/admin/payment-gateways", label:"Cổng thanh toán", icon:"M1 4h22v16H1z M1 10h22" },

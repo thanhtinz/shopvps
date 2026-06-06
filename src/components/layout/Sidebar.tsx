@@ -12,6 +12,7 @@ const nav = [
     { href: "/vps", label: "nav.vps", icon: "M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7 M2 19h20 M5 19v-4 M19 19v-4" },
     { href: "/hosting", label: "nav.hosting", icon: "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" },
     { href: "/domains", label: "nav.domains", icon: "M12 2a10 10 0 100 20A10 10 0 0012 2z M2 12h20 M12 2a15 15 0 010 20 M12 2a15 15 0 000 20" },
+    { href: "/products", label: "nav.products", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
   ]},
   { section: "section.finance", items: [
     { href: "/wallet", label: "nav.wallet", icon: "M20 12V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h6 M16 16h6 M19 13v6" },

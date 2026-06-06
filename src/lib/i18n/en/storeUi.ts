@@ -20,5 +20,17 @@ const m: Record<string, string> = {
   "3 tháng": "3 months",
   "6 tháng": "6 months",
   "1 năm": "1 year",
+  "Máy chủ vật lý": "Dedicated servers",
+  "Proxy": "Proxy",
+  "Cronjob": "Cronjob",
+  "Phí cài đặt:": "Setup fee:",
+  "Còn lại:": "In stock:",
+  "Hết hàng": "Out of stock",
+  "Cấu hình & mua": "Configure & buy",
+  "Nhãn dịch vụ (tuỳ chọn)": "Service label (optional)",
+  "Mua ngay": "Buy now",
+  "Đang xử lý...": "Processing...",
+  "Đặt hàng thành công": "Order placed successfully",
+  "Xem dịch vụ": "View services",
 };
 export default m;
