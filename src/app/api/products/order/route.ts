@@ -6,6 +6,8 @@ import { getTaxForUser, taxFromInclusive } from "@/lib/settings";
 import { isGroupSellable, typeLabel } from "@/lib/products";
 import { nextExpiry } from "@/lib/utils";
 import { getUserTier, tierCyclePrice } from "@/lib/pricing";
+import { getPanelConfig, panelCreateServer } from "@/lib/pterodactyl";
+import { encrypt } from "@/lib/encrypt";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
 const CYCLE_MONTHS: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 };
@@ -25,8 +27,24 @@ export async function POST(req: NextRequest) {
   if (product.stock != null && product.stock <= 0) return NextResponse.json({ error: t("Sản phẩm đã hết hàng") }, { status: 400 });
 
   const months = CYCLE_MONTHS[cycle] || 1;
+
+  // Optional game-server config: validate the game + selected modules and fold
+  // the recurring module prices into the base.
+  let normalizedConfig: any = config && typeof config === "object" ? { ...config } : undefined;
+  let game: any = null;
+  let gameMonthly = 0;
+  const gameId = config?.gameId;
+  if (gameId) {
+    game = await prisma.game.findFirst({ where: { id: gameId, isActive: true } });
+    if (!game) return NextResponse.json({ error: t("Game không hợp lệ") }, { status: 400 });
+    const moduleIds: string[] = Array.isArray(config?.moduleIds) ? config.moduleIds : [];
+    const mods = moduleIds.length ? await prisma.gameModule.findMany({ where: { id: { in: moduleIds }, isActive: true, OR: [{ gameId }, { gameId: null }] } }) : [];
+    gameMonthly = mods.reduce((s, m) => s + Number(m.priceMonthly), 0);
+    normalizedConfig = { gameId, moduleIds: mods.map((m) => m.id) };
+  }
+
   const tier = await getUserTier(session.user.id);
-  const base = await tierCyclePrice(tier, "product", product.id, Number(product.priceMonthly), product.priceYearly != null ? Number(product.priceYearly) : null, cycle);
+  const base = (await tierCyclePrice(tier, "product", product.id, Number(product.priceMonthly), product.priceYearly != null ? Number(product.priceYearly) : null, cycle)) + gameMonthly * months;
   const price = base + Number(product.setupFee || 0);
   const { rate } = await getTaxForUser(session.user.id);
   const tax = taxFromInclusive(price, rate);
@@ -49,7 +67,7 @@ export async function POST(req: NextRequest) {
           userId: session.user.id, productId: product.id, category: product.category, group: product.group,
           label: displayLabel, status: manual ? "PENDING" : "ACTIVE",
           billingCycle: cycle, price: base,
-          config: config && typeof config === "object" ? config : undefined,
+          config: normalizedConfig,
           startDate: new Date(), expiresAt: nextExpiry(null, months),
         },
       });
@@ -76,9 +94,26 @@ export async function POST(req: NextRequest) {
       return created;
     });
 
+    // Auto-provision a game server on the panel when configured; otherwise the
+    // order stays PENDING for manual setup (fallback).
+    let provisioned = false;
+    if (game && game.eggId) {
+      try {
+        const cfg = await getPanelConfig();
+        if (cfg) {
+          const srv = await panelCreateServer(cfg, { name: displayLabel.slice(0, 40), eggId: parseInt(game.eggId, 10), dockerImage: game.dockerImage || undefined, memory: game.minRam });
+          await prisma.productOrder.update({
+            where: { id: order.id },
+            data: { status: "ACTIVE", data: { ...(normalizedConfig || {}), panelServerId: srv.id, panelUrl: srv.url }, credentials: encrypt(`Panel: ${srv.url}`) },
+          });
+          provisioned = true;
+        }
+      } catch (e) { console.error("game provision error:", e); }
+    }
+
     return NextResponse.json({
       success: true, data: order,
-      message: manual ? t("Đặt hàng thành công, đang chờ kích hoạt.") : t("Đặt hàng thành công."),
+      message: provisioned ? t("Đặt hàng thành công.") : manual ? t("Đặt hàng thành công, đang chờ kích hoạt.") : t("Đặt hàng thành công."),
     });
   } catch (e: any) {
     if (e?.message === "INSUFFICIENT_BALANCE") return NextResponse.json({ error: t("Số dư không đủ. Vui lòng nạp thêm.") }, { status: 400 });

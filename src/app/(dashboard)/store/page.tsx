@@ -35,6 +35,8 @@ interface Product {
   priceMonthly: number; priceYearly: number; setupFee: number;
   specs: Record<string, unknown> | null; stock: number | null;
 }
+interface GameModule { id: string; name: string; description: string | null; priceMonthly: number; gameId: string | null }
+interface Game { id: string; name: string; slug: string; icon: string; description: string | null; minRam: number; modules: GameModule[] }
 interface Catalog {
   sell_vps: boolean; sell_hosting: boolean; sell_domain: boolean;
   [key: string]: boolean;
@@ -192,7 +194,7 @@ function HostingCard({ pkg }: { pkg: HostingPackage }) {
   );
 }
 
-function ProductCard({ product, labelPlaceholder, typeLabel }: { product: Product; labelPlaceholder: string; typeLabel?: string }) {
+function ProductCard({ product, labelPlaceholder, typeLabel, games }: { product: Product; labelPlaceholder: string; typeLabel?: string; games: Game[] }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
@@ -201,17 +203,35 @@ function ProductCard({ product, labelPlaceholder, typeLabel }: { product: Produc
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
+  const isGameServer = product.category === "game-server";
+  const [gameId, setGameId] = useState("");
+  const [moduleIds, setModuleIds] = useState<string[]>([]);
+
+  const selectedGame = games.find((g) => g.id === gameId) || null;
+  const availableModules = selectedGame
+    ? games.flatMap((g) => g.modules).filter((mod) => mod.gameId === selectedGame.id || mod.gameId == null)
+    : [];
+
   const outOfStock = product.stock != null && product.stock <= 0;
   const specEntries = product.specs ? Object.entries(product.specs) : [];
 
+  function toggleModule(modId: string) {
+    setModuleIds((prev) => (prev.includes(modId) ? prev.filter((m) => m !== modId) : [...prev, modId]));
+  }
+
   async function handleBuy() {
     setError("");
+    if (isGameServer && !gameId) { setError(t("Vui lòng chọn game")); return; }
     setSubmitting(true);
     try {
+      const body: { productId: string; billingCycle: string; label?: string; config?: { gameId: string; moduleIds: string[] } } = {
+        productId: product.id, billingCycle: cycle, label: label.trim() || undefined,
+      };
+      if (isGameServer) body.config = { gameId, moduleIds };
       const res = await fetch("/api/products/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id, billingCycle: cycle, label: label.trim() || undefined }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -267,6 +287,27 @@ function ProductCard({ product, labelPlaceholder, typeLabel }: { product: Produc
               {CYCLES.map((c) => <option key={c.key} value={c.key}>{t(c.label)}</option>)}
             </ConfigSelect>
           </div>
+          {isGameServer && (
+            <>
+              <div>
+                <label style={labelStyle}>{t("Chọn game")}</label>
+                <ConfigSelect value={gameId} onChange={(v) => { setGameId(v); setModuleIds([]); }}>
+                  <option value="">{t("Chọn game")}</option>
+                  {games.map((g) => <option key={g.id} value={g.id}>{g.icon} {g.name}</option>)}
+                </ConfigSelect>
+              </div>
+              {selectedGame && availableModules.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {availableModules.map((mod) => (
+                    <label key={mod.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--text-secondary)", cursor: "pointer" }}>
+                      <input type="checkbox" checked={moduleIds.includes(mod.id)} onChange={() => toggleModule(mod.id)} />
+                      <span>{mod.name}{mod.priceMonthly > 0 ? ` + ${formatCurrency(mod.priceMonthly)}${t("/tháng")}` : ""}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
           {error && <div style={{ fontSize: 12, color: "var(--red)" }}>{error}</div>}
           {done
             ? (
@@ -290,6 +331,7 @@ export default function StorePage() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null);
   const [groupSections, setGroupSections] = useState<GroupSection[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -298,9 +340,11 @@ export default function StorePage() {
       fetch("/api/hosting/packages").then((r) => r.json()),
       fetch("/api/catalog").then((r) => r.json()),
       fetch("/api/products/taxonomy").then((r) => r.json()),
-    ]).then(async ([v, h, c, tax]) => {
+      fetch("/api/games").then((r) => r.json()).catch(() => ({})),
+    ]).then(async ([v, h, c, tax, g]) => {
       setVps(v.data || []);
       setHosting(h.data || []);
+      setGames(g.data || []);
       const cat: Catalog | null = c.data || null;
       setCatalog(cat);
       const taxData: Taxonomy = { groups: tax.data?.groups || [], types: tax.data?.types || [] };
@@ -368,7 +412,7 @@ export default function StorePage() {
               <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{sec.label}</h2>
               <div style={gridStyle}>
                 {sec.products.map((p) => (
-                  <ProductCard key={p.id} product={p} labelPlaceholder="srv01" typeLabel={typeLabel(p.category)} />
+                  <ProductCard key={p.id} product={p} labelPlaceholder="srv01" typeLabel={typeLabel(p.category)} games={games} />
                 ))}
               </div>
             </section>

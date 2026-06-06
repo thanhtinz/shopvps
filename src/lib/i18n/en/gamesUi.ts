@@ -22,6 +22,14 @@ const m: Record<string, string> = {
   "Application API key (ptla_...)": "Application API key (ptla_...)",
   "Panel user ID sở hữu server": "Panel user ID that owns servers",
   "Location ID để deploy": "Location ID to deploy",
+  "Game không hợp lệ": "Invalid game",
+  // store + client detail (game server)
+  "Game": "Game",
+  "Chọn game": "Select game",
+  "Vui lòng chọn game": "Please select a game",
+  "Module đã chọn": "Selected modules",
+  "Mở bảng điều khiển": "Open control panel",
+  "Server game đang được tạo...": "Game server is being created...",
   // seed module descriptions (data)
   "Sao lưu tự động định kỳ": "Scheduled automatic backups",
   "Tự khởi động lại theo lịch": "Scheduled automatic restarts",

@@ -21,6 +21,9 @@ type Cronjob = {
   lastStatus: string | null;
 };
 
+type GameModule = { id: string; name: string; description: string | null; priceMonthly: number; gameId: string | null };
+type Game = { id: string; name: string; slug: string; icon: string; description: string | null; minRam: number; modules: GameModule[] };
+
 type Detail = {
   id: string;
   label: string;
@@ -34,6 +37,8 @@ type Detail = {
   product: { name: string; category: string; group: string; specs: any };
   credentials: string | null;
   cronjobs: Cronjob[];
+  config?: { gameId?: string; moduleIds?: string[] } | null;
+  data?: { panelUrl?: string } | null;
 };
 
 const card: React.CSSProperties = { background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 20 };
@@ -46,6 +51,7 @@ export default function ProductDetailPage() {
   const id = String(params?.id || "");
 
   const [order, setOrder] = useState<Detail | null>(null);
+  const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [typeLabels, setTypeLabels] = useState<Record<string, string>>({});
   const [groupLabels, setGroupLabels] = useState<Record<string, string>>({});
@@ -79,6 +85,12 @@ export default function ProductDetailPage() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (order?.config?.gameId && games.length === 0) {
+      fetch("/api/games").then(r => r.json()).then(d => setGames(d.data || [])).catch(() => {});
+    }
+  }, [order?.config?.gameId, games.length]);
 
   const statusColor: Record<string, "green" | "yellow" | "gray" | "red"> = { ACTIVE: "green", PENDING: "yellow", SUSPENDED: "gray", TERMINATED: "red" };
   const statusLabel: Record<string, string> = { ACTIVE: t("Đang hoạt động"), PENDING: t("Chờ kích hoạt"), SUSPENDED: t("Tạm dừng"), TERMINATED: t("Đã huỷ") };
@@ -124,6 +136,15 @@ export default function ProductDetailPage() {
   const isCronjob = order.category === "cronjob" || order.product?.category === "cronjob";
   const showCronManager = isCronjob && order.status === "ACTIVE";
 
+  const isGameServer = order.category === "game-server" || order.product?.category === "game-server";
+  const gameId = order.config?.gameId || null;
+  const selectedGame = gameId ? games.find(g => g.id === gameId) || null : null;
+  const allModules = games.flatMap(g => g.modules);
+  const selectedModules = (order.config?.moduleIds || [])
+    .map(mid => allModules.find(mod => mod.id === mid))
+    .filter((mod): mod is GameModule => !!mod);
+  const panelUrl = order.data?.panelUrl || null;
+
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
       <Link href="/products" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>
@@ -156,6 +177,31 @@ export default function ProductDetailPage() {
           ))}
         </div>
       </div>
+
+      {/* Game server */}
+      {isGameServer && gameId && (
+        <div style={card}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Game")}</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
+            {selectedGame ? <><span>{selectedGame.icon}</span><span>{selectedGame.name}</span></> : <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{gameId}</span>}
+          </div>
+          {selectedModules.length > 0 && (
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>{t("Module đã chọn")}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {selectedModules.map(mod => (
+                  <span key={mod.id} style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-secondary)", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "5px 10px" }}>{mod.name}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {panelUrl ? (
+            <a href={panelUrl} target="_blank" rel="noopener noreferrer" style={{ ...btn, display: "inline-flex", marginTop: 16, background: "var(--accent)", color: "white", border: "none", fontWeight: 700, textDecoration: "none" }}>{t("Mở bảng điều khiển")}</a>
+          ) : order.status === "PENDING" ? (
+            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 16, marginBottom: 0 }}>{t("Server game đang được tạo...")}</p>
+          ) : null}
+        </div>
+      )}
 
       {/* Credentials */}
       {(order.credentials || order.status === "PENDING") && (
