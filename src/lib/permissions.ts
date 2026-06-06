@@ -27,7 +27,7 @@ const SEGMENT_MODULE: Record<string, string> = {
   products: "products", addons: "products", catalog: "products", tiers: "products", "config-options": "products",
   providers: "vps", "vps-packages": "vps", vps: "vps",
   "hosting-packages": "hosting", servers: "hosting", hosting: "hosting",
-  domains: "domains", tlds: "domains",
+  domains: "domains", tlds: "domains", ssl: "domains", "ssl-plans": "domains",
   games: "games",
   tickets: "support", departments: "support",
   fraud: "security", blocklist: "security",

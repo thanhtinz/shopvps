@@ -36,6 +36,8 @@ const nav = [
     { href:"/admin/hosting-packages", label:"Gói Hosting", icon:"M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" },
     { href:"/admin/domains", label:"Tên miền", icon:"M12 2a10 10 0 100 20A10 10 0 0012 2z M2 12h20 M12 2a15 15 0 010 20 M12 2a15 15 0 000 20" },
     { href:"/admin/tlds", label:"Bảng giá TLD", icon:"M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },
+    { href:"/admin/ssl-plans", label:"Gói SSL", icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" },
+    { href:"/admin/ssl", label:"Chứng chỉ SSL", icon:"M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z M7 11V7a5 5 0 0110 0v4" },
     { href:"/admin/addons", label:"Add-on", icon:"M12 2v20 M2 12h20" },
     { href:"/admin/servers", label:"WHM Servers", icon:"M2 2h20v8H2z M2 14h20v8H2z M6 6h.01 M6 18h.01" },
     { href:"/admin/coupons", label:"Coupon", icon:"M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z M7 7h.01" },

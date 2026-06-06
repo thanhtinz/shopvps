@@ -17,6 +17,7 @@ const vi: Record<string, string> = {
   "nav.vps": "VPS",
   "nav.hosting": "Hosting",
   "nav.domains": "Tên miền",
+  "nav.ssl": "Chứng chỉ SSL",
   "nav.wallet": "Ví & Nạp tiền",
   "nav.invoices": "Hoá đơn",
   "nav.quotes": "Báo giá",
@@ -58,6 +59,7 @@ const en: Record<string, string> = {
   "nav.vps": "VPS",
   "nav.hosting": "Hosting",
   "nav.domains": "Domains",
+  "nav.ssl": "SSL certificates",
   "nav.wallet": "Wallet & Top-up",
   "nav.invoices": "Invoices",
   "nav.quotes": "Quotes",
@@ -138,6 +140,7 @@ import enDomainsUi from "./en/domainsUi";
 import enStaffUi from "./en/staffUi";
 import enReportsUi from "./en/reportsUi";
 import enSiteUi from "./en/siteUi";
+import enSslUi from "./en/sslUi";
 
 Object.assign(
   DICTS.en,
@@ -147,7 +150,7 @@ Object.assign(
   enApiAdmin, enApiServices, enApiMisc, enEmails,
   enUiPublic, enUiMisc, enSrvNotif, enSrvMisc, enFixups, enBilling, enUpgradeUi,
   enQuotes, enQuotesUi, enQuotesAdminUi, enStoreUi, enCartUi, enCouponsUi, enRefundUi, enCancelUi,
-  enRegistrarUi, enTaxUi, enProductsUi, enProductsAdminUi, enProductsClientUi, enPayoutsUi, enFraudUi, enTiersUi, enGamesUi, enDomainsUi, enStaffUi, enReportsUi, enSiteUi,
+  enRegistrarUi, enTaxUi, enProductsUi, enProductsAdminUi, enProductsClientUi, enPayoutsUi, enFraudUi, enTiersUi, enGamesUi, enDomainsUi, enStaffUi, enReportsUi, enSiteUi, enSslUi,
 );
 
 export function translate(locale: Locale, key: string): string {

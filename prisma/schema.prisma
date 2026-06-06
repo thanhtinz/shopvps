@@ -61,6 +61,7 @@ model User {
   activityLogs      ActivityLog[]
   serviceRequests   ServiceRequest[]
   domainOrders      DomainOrder[]
+  sslOrders         SslOrder[]
   quotes            Quote[]
   productOrders     ProductOrder[]
 
@@ -963,6 +964,51 @@ model TierPrice {
   @@map("tier_prices")
 }
 
+model SslPlan {
+  id        String   @id @default(cuid())
+  name      String
+  brand     String? // Sectigo / Let's Encrypt / ...
+  type      String   @default("DV") // DV | OV | EV
+  wildcard  Boolean  @default(false)
+  years     Int      @default(1)
+  price     Decimal  @db.Decimal(15, 2)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  orders SslOrder[]
+
+  @@map("ssl_plans")
+}
+
+model SslOrder {
+  id               String    @id @default(cuid())
+  userId           String
+  planId           String?
+  commonName       String // domain the cert is for
+  provider         String    @default("manual") // manual | letsencrypt
+  type             String    @default("DV")
+  validationMethod String    @default("DNS") // DNS | HTTP | EMAIL
+  approverEmail    String?
+  status           SslStatus @default(PENDING)
+  csr              String?   @db.Text
+  certificate      String?   @db.Text
+  caBundle         String?   @db.Text
+  years            Int       @default(1)
+  price            Decimal   @db.Decimal(15, 2)
+  issuedAt         DateTime?
+  expiresAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User     @relation(fields: [userId], references: [id])
+  plan SslPlan? @relation(fields: [planId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("ssl_orders")
+}
+
 model ConfigOption {
   id          String   @id @default(cuid())
   scope       String   @default("product") // product | global
@@ -1219,6 +1265,14 @@ enum DomainStatus {
   EXPIRED
   CANCELLED
   TRANSFERRED
+}
+
+enum SslStatus {
+  PENDING
+  AWAITING_VALIDATION
+  ISSUED
+  REVOKED
+  EXPIRED
 }
 
 enum ServiceRequestStatus {
