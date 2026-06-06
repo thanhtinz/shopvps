@@ -1,5 +1,5 @@
 "use client";
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -25,6 +25,21 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [siteKey, setSiteKey] = useState("");
+
+  // Load reCAPTCHA v3 (invisible) when the admin has configured a site key.
+  useEffect(() => {
+    fetch("/api/recaptcha").then(r => r.json()).then(d => {
+      if (d.siteKey) {
+        setSiteKey(d.siteKey);
+        if (!document.getElementById("recaptcha-v3")) {
+          const s = document.createElement("script");
+          s.id = "recaptcha-v3"; s.async = true; s.src = `https://www.google.com/recaptcha/api.js?render=${d.siteKey}`;
+          document.body.appendChild(s);
+        }
+      }
+    }).catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setError("");
@@ -32,9 +47,14 @@ function RegisterForm() {
     if (password.length < 8) { setError(t("Mật khẩu tối thiểu 8 ký tự")); return; }
     setLoading(true);
     try {
+      let recaptchaToken: string | undefined;
+      const grecaptcha = (window as any).grecaptcha;
+      if (siteKey && grecaptcha) {
+        recaptchaToken = await new Promise<string>((resolve) => grecaptcha.ready(() => grecaptcha.execute(siteKey, { action: "register" }).then(resolve).catch(() => resolve(""))));
+      }
       const res = await fetch("/api/auth/register", {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ name, email, password, ref }),
+        body: JSON.stringify({ name, email, password, ref, recaptchaToken }),
       });
       const data = await res.json();
       if (!data.success) { setError(data.error || t("Đã có lỗi xảy ra")); return; }

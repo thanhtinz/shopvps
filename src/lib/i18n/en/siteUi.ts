@@ -7,5 +7,13 @@ const m: Record<string, string> = {
   "ID chat (Tawk/Crisp widget ID, m.me hoặc zalo.me ID)": "Chat ID (Tawk/Crisp widget ID, m.me or zalo.me ID)",
   "Bật banner cookie (true/false)": "Enable cookie banner (true/false)",
   "Nội dung banner cookie": "Cookie banner text",
+  // security settings + register
+  "Bảo mật (reCAPTCHA & MaxMind)": "Security (reCAPTCHA & MaxMind)",
+  "reCAPTCHA v3 Site Key": "reCAPTCHA v3 Site Key",
+  "reCAPTCHA v3 Secret Key": "reCAPTCHA v3 Secret Key",
+  "Ngưỡng điểm reCAPTCHA (0-1, mặc định 0.5)": "reCAPTCHA score threshold (0-1, default 0.5)",
+  "MaxMind Account ID": "MaxMind Account ID",
+  "MaxMind License Key (minFraud)": "MaxMind License Key (minFraud)",
+  "Xác minh reCAPTCHA thất bại": "reCAPTCHA verification failed",
 };
 export default m;

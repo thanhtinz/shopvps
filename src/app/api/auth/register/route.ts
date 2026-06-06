@@ -5,16 +5,20 @@ import { sendEmail, verifyEmailTemplate } from "@/lib/email";
 import { generateAffiliateCode } from "@/lib/utils";
 import crypto from "crypto";
 import { getServerT } from "@/lib/i18n/server";
-import { isBlocked, assessSignup, getClientIp, getCountry } from "@/lib/fraud";
+import { isBlocked, assessSignup, getClientIp, getCountry, verifyRecaptcha } from "@/lib/fraud";
 
 export async function POST(req: NextRequest) {
   const { t, locale } = await getServerT();
   try {
-    const { name, email, password, ref } = await req.json();
+    const { name, email, password, ref, recaptchaToken } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: t("Thiếu thông tin bắt buộc") }, { status: 400 });
     }
+
+    // Bot protection (skipped automatically when reCAPTCHA isn't configured).
+    const captcha = await verifyRecaptcha(recaptchaToken, getClientIp(req.headers));
+    if (!captcha.ok) return NextResponse.json({ error: t("Xác minh reCAPTCHA thất bại") }, { status: 400 });
 
     if (password.length < 8) {
       return NextResponse.json({ error: t("Mật khẩu phải ít nhất 8 ký tự") }, { status: 400 });

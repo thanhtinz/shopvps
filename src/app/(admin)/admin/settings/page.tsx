@@ -9,6 +9,13 @@ const SECTIONS = [
     { key:"app_name", label:"Tên website" },
     { key:"app_url", label:"URL website" },
   ]},
+  { title:"Bảo mật (reCAPTCHA & MaxMind)", fields:[
+    { key:"recaptcha_site_key", label:"reCAPTCHA v3 Site Key" },
+    { key:"recaptcha_secret", label:"reCAPTCHA v3 Secret Key" },
+    { key:"recaptcha_min_score", label:"Ngưỡng điểm reCAPTCHA (0-1, mặc định 0.5)" },
+    { key:"maxmind_account_id", label:"MaxMind Account ID" },
+    { key:"maxmind_license_key", label:"MaxMind License Key (minFraud)" },
+  ]},
   { title:"Live chat & Cookie/GDPR", fields:[
     { key:"chat_provider", label:"Nhà cung cấp chat (tawk | crisp | messenger | zalo)" },
     { key:"chat_id", label:"ID chat (Tawk/Crisp widget ID, m.me hoặc zalo.me ID)" },
