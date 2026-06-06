@@ -18,6 +18,7 @@ const nav = [
     { href:"/admin/payouts", label:"Rút tiền (Payouts)", icon:"M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },
     { href:"/admin/fraud", label:"Chống gian lận", icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4" },
     { href:"/admin/tiers", label:"Bậc giá / Reseller", icon:"M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" },
+    { href:"/admin/games", label:"Game hosting", icon:"M6 11h4 M8 9v4 M15 12h.01 M18 10h.01 M17.32 5H6.68a4 4 0 00-3.98 3.59l-.84 8A3 3 0 004.84 20a3 3 0 002.65-1.6l.72-1.4h7.58l.72 1.4A3 3 0 0019.16 20a3 3 0 003-3.41l-.84-8A4 4 0 0017.32 5z" },
     { href:"/admin/transactions", label:"Giao dịch", icon:"M12 22V12 M12 12l-3-3 M12 12l3-3" },
     { href:"/admin/reports", label:"Báo cáo", icon:"M3 3v18h18 M7 16l4-4 3 3 5-6" },
     { href:"/admin/payment-gateways", label:"Cổng thanh toán", icon:"M1 4h22v16H1z M1 10h22" },

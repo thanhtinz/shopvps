@@ -962,6 +962,43 @@ model TierPrice {
   @@map("tier_prices")
 }
 
+model Game {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  icon        String?
+  description String?  @db.Text
+  eggId       String? // Pterodactyl egg id
+  dockerImage String?
+  minRam      Int      @default(1024) // MB
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  modules GameModule[]
+
+  @@map("games")
+}
+
+model GameModule {
+  id           String   @id @default(cuid())
+  gameId       String? // null = global module (any game)
+  name         String
+  slug         String
+  description  String?  @db.Text
+  priceMonthly Decimal  @default(0) @db.Decimal(10, 2)
+  autoConfig   Json?
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  game Game? @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
+  @@map("game_modules")
+}
+
 // ============================================================
 // ENUMS
 // ============================================================

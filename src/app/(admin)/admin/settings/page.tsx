@@ -27,6 +27,12 @@ const SECTIONS = [
     { key:"business_country", label:"Quốc gia doanh nghiệp (ISO-2, vd VN)" },
     { key:"eu_reverse_charge", label:"EU reverse charge cho B2B có VAT ID (true/false)" },
   ]},
+  { title:"Game panel (Pterodactyl/Pelican)", fields:[
+    { key:"panel_url", label:"URL panel (vd https://panel.example.com)" },
+    { key:"panel_api_key", label:"Application API key (ptla_...)" },
+    { key:"panel_user_id", label:"Panel user ID sở hữu server" },
+    { key:"panel_location_id", label:"Location ID để deploy" },
+  ]},
   { title:"Tên miền (Registrar)", fields:[
     { key:"registrar", label:"Nhà đăng ký (namesilo / manual)" },
     { key:"registrar_api_key", label:"API key registrar" },
