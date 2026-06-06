@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
+import DnsManager from "@/components/DnsManager";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 
@@ -140,7 +141,7 @@ export default function DomainsPage() {
 
       {manage && (
         <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:50 }} onClick={()=>setManage(null)}>
-          <div style={{ background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-xl)", padding:"26px", width:480, maxWidth:"92vw" }} onClick={e=>e.stopPropagation()}>
+          <div style={{ background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-xl)", padding:"26px", width:580, maxWidth:"94vw", maxHeight:"90vh", overflowY:"auto" }} onClick={e=>e.stopPropagation()}>
             <h3 style={{ fontSize:16, fontWeight:700, color:"var(--text-primary)", marginBottom:4 }}>{manage.domain}</h3>
             <div style={{ fontSize:12.5, color:"var(--text-muted)", marginBottom:18 }}>{statusLabel[manage.status]?tr(statusLabel[manage.status]):manage.status} · {tr("Hết hạn")} {manage.expiresAt?formatDate(manage.expiresAt):"—"}</div>
 
@@ -155,6 +156,8 @@ export default function DomainsPage() {
               <button onClick={()=>saveManage({ nameservers: ns, autoRenew: manage.autoRenew })} style={{ flex:1, padding:"10px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, fontSize:13, cursor:"pointer" }}>{tr("Lưu")}</button>
               {manage.status==="ACTIVE" && <button onClick={()=>saveManage({ action:"renew", years:1 })} style={{ flex:1, padding:"10px", background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-primary)", fontWeight:600, fontSize:13, cursor:"pointer" }}>{tr("Gia hạn 1 năm")}</button>}
             </div>
+
+            {manage.status==="ACTIVE" && <DnsManager domainOrderId={manage.id} />}
             <button onClick={()=>setManage(null)} style={{ width:"100%", padding:"9px", background:"transparent", border:"none", color:"var(--text-muted)", fontSize:12.5, cursor:"pointer" }}>{tr("Đóng")}</button>
           </div>
         </div>

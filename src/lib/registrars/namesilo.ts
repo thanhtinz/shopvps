@@ -1,4 +1,4 @@
-import type { RegistrarAPI, RegisterResult } from "./types";
+import type { RegistrarAPI, RegisterResult, DnsRecord } from "./types";
 
 /**
  * Namesilo registrar (HTTP API, JSON mode). Uses the account's default
@@ -66,5 +66,45 @@ export class NamesiloRegistrar implements RegistrarAPI {
     // Transfers complete asynchronously; 300/301 both indicate the request was accepted.
     const ok = ["300", "301", 300, 301].includes(reply?.code);
     return { ok, message: reply?.detail };
+  }
+
+  // --- DNS management (Namesilo-hosted zone) ---
+
+  async listDns(domain: string): Promise<DnsRecord[]> {
+    const reply = await this.call("dnsListRecords", { domain });
+    const raw = reply?.resource_record;
+    if (!raw) return [];
+    const list = Array.isArray(raw) ? raw : [raw];
+    return list.map((r: any) => ({
+      id: String(r.record_id),
+      type: String(r.type),
+      host: String(r.host || ""),
+      value: String(r.value || ""),
+      ttl: parseInt(r.ttl, 10) || 3600,
+      priority: r.distance != null ? parseInt(r.distance, 10) : undefined,
+    }));
+  }
+
+  private dnsParams(domain: string, rec: Omit<DnsRecord, "id">): Record<string, string> {
+    // Namesilo expects the host WITHOUT the apex domain ("www" not "www.example.com").
+    const host = rec.host.replace(new RegExp(`\\.?${domain.replace(/\./g, "\\.")}$`, "i"), "").replace(/^@$/, "");
+    const p: Record<string, string> = { domain, rrtype: rec.type, rrhost: host, rrvalue: rec.value, rrttl: String(rec.ttl || 3600) };
+    if (rec.type === "MX") p.rrdistance = String(rec.priority ?? 10);
+    return p;
+  }
+
+  async addDns(domain: string, rec: Omit<DnsRecord, "id">): Promise<RegisterResult> {
+    const reply = await this.call("dnsAddRecord", this.dnsParams(domain, rec));
+    return { ok: ["300", 300].includes(reply?.code), message: reply?.detail };
+  }
+
+  async updateDns(domain: string, id: string, rec: Omit<DnsRecord, "id">): Promise<RegisterResult> {
+    const reply = await this.call("dnsUpdateRecord", { rrid: id, ...this.dnsParams(domain, rec) });
+    return { ok: ["300", 300].includes(reply?.code), message: reply?.detail };
+  }
+
+  async deleteDns(domain: string, id: string): Promise<RegisterResult> {
+    const reply = await this.call("dnsDeleteRecord", { domain, rrid: id });
+    return { ok: ["300", 300].includes(reply?.code), message: reply?.detail };
   }
 }
