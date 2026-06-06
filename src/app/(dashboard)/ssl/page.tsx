@@ -149,6 +149,15 @@ export default function SslPage() {
                     <pre style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 12, fontSize: 11.5, color: "var(--text-secondary)", overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-all", margin: 0, maxHeight: 200 }}>{view.caBundle}</pre>
                   </div>
                 )}
+                {view.privateKey && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{tr("Private Key")}</label>
+                      <button onClick={() => copy(view.privateKey || "", "key")} style={{ padding: "4px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-surface)", color: "var(--accent)", fontSize: 11.5, cursor: "pointer" }}>{copied === "key" ? tr("Đã sao chép") : tr("Sao chép")}</button>
+                    </div>
+                    <pre style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 12, fontSize: 11.5, color: "var(--text-secondary)", overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-all", margin: 0, maxHeight: 200 }}>{view.privateKey}</pre>
+                  </div>
+                )}
               </>
             ) : (
               <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>{tr("Chứng chỉ chưa được cấp. Vui lòng chờ xử lý.")}</p>

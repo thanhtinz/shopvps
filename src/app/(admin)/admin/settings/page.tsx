@@ -16,6 +16,11 @@ const SECTIONS = [
     { key:"maxmind_account_id", label:"MaxMind Account ID" },
     { key:"maxmind_license_key", label:"MaxMind License Key (minFraud)" },
   ]},
+  { title:"SSL tự động (Let's Encrypt / ACME)", fields:[
+    { key:"acme_enabled", label:"Bật cấp SSL tự động (true/false)" },
+    { key:"acme_email", label:"Email ACME (đăng ký Let's Encrypt)" },
+    { key:"acme_directory", label:"ACME directory URL (trống = LE production)" },
+  ]},
   { title:"Live chat & Cookie/GDPR", fields:[
     { key:"chat_provider", label:"Nhà cung cấp chat (tawk | crisp | messenger | zalo)" },
     { key:"chat_id", label:"ID chat (Tawk/Crisp widget ID, m.me hoặc zalo.me ID)" },

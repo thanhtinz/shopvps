@@ -1,6 +1,14 @@
 // EN translations for the SSL center pages (admin ssl-plans, admin ssl, client ssl).
 const m: Record<string, string> = {
   "Gói SSL": "SSL plans",
+  // ACME / Let's Encrypt automation
+  "Cấp tự động (Let's Encrypt)": "Auto-issue (Let's Encrypt)",
+  "Cấp tự động thất bại — kiểm tra cấu hình ACME/DNS hoặc cấp thủ công.": "Auto-issue failed — check ACME/DNS config or issue manually.",
+  "Private Key": "Private Key",
+  "SSL tự động (Let's Encrypt / ACME)": "Automatic SSL (Let's Encrypt / ACME)",
+  "Bật cấp SSL tự động (true/false)": "Enable automatic SSL issuance (true/false)",
+  "Email ACME (đăng ký Let's Encrypt)": "ACME email (Let's Encrypt account)",
+  "ACME directory URL (trống = LE production)": "ACME directory URL (blank = LE production)",
   // Admin: ssl-plans
   "Gói chứng chỉ SSL": "SSL certificate plans",
   "Thêm gói": "Add plan",

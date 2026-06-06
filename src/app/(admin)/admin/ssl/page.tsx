@@ -39,6 +39,15 @@ export default function AdminSslOrdersPage() {
     setManage(null); load();
   }
 
+  async function autoIssue() {
+    setBusy(true);
+    const res = await fetch(`/api/admin/ssl/${manage.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "autoissue" }) });
+    const d = await res.json();
+    setBusy(false);
+    if (!res.ok) { alert(d.error || t("Lỗi")); return; }
+    setManage(null); load();
+  }
+
   async function revoke() {
     if (!confirm(t("Thu hồi chứng chỉ này?"))) return;
     setBusy(true);
@@ -109,6 +118,7 @@ export default function AdminSslOrdersPage() {
             <input type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)} placeholder={t("Mặc định: cộng số năm của gói từ hôm nay")} style={{ ...inp, marginBottom: 6 }} />
             <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginBottom: 18 }}>{t("Mặc định: cộng số năm của gói từ hôm nay")}</p>
 
+            <button onClick={autoIssue} disabled={busy} style={{ width: "100%", padding: "10px", background: "var(--green)", border: "none", borderRadius: "var(--radius-md)", color: "white", fontWeight: 600, fontSize: 13, cursor: "pointer", marginBottom: 10 }}>{busy ? "..." : t("Cấp tự động (Let's Encrypt)")}</button>
             <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
               <button onClick={issue} disabled={busy} style={{ flex: 1, padding: "10px", background: "var(--accent)", border: "none", borderRadius: "var(--radius-md)", color: "white", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>{busy ? "..." : t("Cấp chứng chỉ")}</button>
               <button onClick={revoke} disabled={busy} style={{ flex: 1, padding: "10px", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", color: "var(--red)", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>{t("Thu hồi")}</button>

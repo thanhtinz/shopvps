@@ -994,6 +994,7 @@ model SslOrder {
   csr              String?   @db.Text
   certificate      String?   @db.Text
   caBundle         String?   @db.Text
+  privateKey       String?   @db.Text // set when we generate the key (ACME auto-issue)
   years            Int       @default(1)
   price            Decimal   @db.Decimal(15, 2)
   issuedAt         DateTime?
