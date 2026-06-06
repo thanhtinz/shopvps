@@ -22,6 +22,11 @@ const m: Record<string, string> = {
   "Application API key (ptla_...)": "Application API key (ptla_...)",
   "Panel user ID sở hữu server": "Panel user ID that owns servers",
   "Location ID để deploy": "Location ID to deploy",
+  "Game-VPS: provider ID (cloud-init fallback)": "Game-VPS: provider ID (cloud-init fallback)",
+  "Game-VPS: plan/size slug": "Game-VPS: plan/size slug",
+  "Game-VPS: region": "Game-VPS: region",
+  "Game-VPS: OS image ID": "Game-VPS: OS image ID",
+  "Script cài đặt (cloud-init) cho VPS game — tuỳ chọn": "Install script (cloud-init) for game VPS — optional",
   "Game không hợp lệ": "Invalid game",
   // store + client detail (game server)
   "Game": "Game",

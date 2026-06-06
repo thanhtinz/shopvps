@@ -970,6 +970,7 @@ model Game {
   description String?  @db.Text
   eggId       String? // Pterodactyl egg id
   dockerImage String?
+  installScript String? @db.Text // cloud-init / user_data to auto-install on a VPS
   minRam      Int      @default(1024) // MB
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)

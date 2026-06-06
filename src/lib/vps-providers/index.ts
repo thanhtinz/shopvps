@@ -17,6 +17,7 @@ export interface CreateServerParams {
   regionId: string;
   osId: string;
   password?: string;
+  userData?: string; // cloud-init script (game auto-install)
 }
 
 export interface ServerInfo {

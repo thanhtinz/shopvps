@@ -20,6 +20,7 @@ export class VultrProvider implements VpsProviderAPI {
       region: params.regionId,
       os_id: params.osId,
       password: params.password,
+      user_data: params.userData ? Buffer.from(params.userData).toString("base64") : undefined,
     });
     return this.mapServer(data.instance);
   }

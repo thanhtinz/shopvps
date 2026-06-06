@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   const game = await prisma.game.create({
     data: {
       name: String(b.name), slug: slugify(b.slug || b.name), icon: b.icon || null, description: b.description || null,
-      eggId: b.eggId || null, dockerImage: b.dockerImage || null, minRam: parseInt(b.minRam, 10) || 1024,
+      eggId: b.eggId || null, dockerImage: b.dockerImage || null, installScript: b.installScript || null, minRam: parseInt(b.minRam, 10) || 1024,
       isActive: b.isActive !== false, sortOrder: parseInt(b.sortOrder, 10) || 0,
     },
   });

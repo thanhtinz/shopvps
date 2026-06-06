@@ -7,6 +7,7 @@ import { isGroupSellable, typeLabel } from "@/lib/products";
 import { nextExpiry } from "@/lib/utils";
 import { getUserTier, tierCyclePrice } from "@/lib/pricing";
 import { getPanelConfig, panelCreateServer } from "@/lib/pterodactyl";
+import { provisionGameVps } from "@/lib/game-provision";
 import { encrypt } from "@/lib/encrypt";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
@@ -94,19 +95,28 @@ export async function POST(req: NextRequest) {
       return created;
     });
 
-    // Auto-provision a game server on the panel when configured; otherwise the
-    // order stays PENDING for manual setup (fallback).
+    // Auto-provision a game server: prefer the panel (container), else deploy a
+    // real VPS that self-installs via cloud-init. Falls back to PENDING (manual).
     let provisioned = false;
-    if (game && game.eggId) {
+    if (game) {
       try {
-        const cfg = await getPanelConfig();
-        if (cfg) {
+        const cfg = game.eggId ? await getPanelConfig() : null;
+        if (cfg && game.eggId) {
           const srv = await panelCreateServer(cfg, { name: displayLabel.slice(0, 40), eggId: parseInt(game.eggId, 10), dockerImage: game.dockerImage || undefined, memory: game.minRam });
           await prisma.productOrder.update({
             where: { id: order.id },
             data: { status: "ACTIVE", data: { ...(normalizedConfig || {}), panelServerId: srv.id, panelUrl: srv.url }, credentials: encrypt(`Panel: ${srv.url}`) },
           });
           provisioned = true;
+        } else {
+          const vps = await provisionGameVps(game, `${game.slug}-${order.id.slice(-6)}`);
+          if (vps) {
+            await prisma.productOrder.update({
+              where: { id: order.id },
+              data: { status: "ACTIVE", data: { ...(normalizedConfig || {}), providerVpsId: vps.providerVpsId, ipAddress: vps.ip }, credentials: encrypt(`IP: ${vps.ip}\nUser: root\nPassword: ${vps.password}`) },
+            });
+            provisioned = true;
+          }
         }
       } catch (e) { console.error("game provision error:", e); }
     }

@@ -19,6 +19,7 @@ export class HetznerProvider implements VpsProviderAPI {
       server_type: params.planId,
       location: params.regionId,
       image: params.osId,
+      user_data: params.userData || undefined,
     });
     return this.mapServer(data.server);
   }

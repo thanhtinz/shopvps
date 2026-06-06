@@ -19,6 +19,7 @@ export class DigitalOceanProvider implements VpsProviderAPI {
       size: params.planId,
       region: params.regionId,
       image: params.osId,
+      user_data: params.userData || undefined,
     });
     return this.mapServer(data.droplet);
   }

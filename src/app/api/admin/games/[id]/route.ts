@@ -10,7 +10,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params;
   const b = await req.json();
   const data: any = {};
-  for (const k of ["name", "icon", "description", "eggId", "dockerImage"]) if (b[k] != null) data[k] = b[k] || null;
+  for (const k of ["name", "icon", "description", "eggId", "dockerImage", "installScript"]) if (b[k] != null) data[k] = b[k] || null;
   if (b.minRam != null) data.minRam = parseInt(b.minRam, 10) || 1024;
   if (b.sortOrder != null) data.sortOrder = parseInt(b.sortOrder, 10) || 0;
   if (typeof b.isActive === "boolean") data.isActive = b.isActive;

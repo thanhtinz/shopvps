@@ -12,7 +12,7 @@ export default function AdminGamesPage() {
   const [globalModules, setGlobalModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [g, setG] = useState({ name: "", icon: "", eggId: "", minRam: "2048", description: "" });
+  const [g, setG] = useState({ name: "", icon: "", eggId: "", minRam: "2048", description: "", installScript: "" });
   const [open, setOpen] = useState<string | null>(null);
   const [mod, setMod] = useState({ name: "", priceMonthly: "", description: "" });
 
@@ -25,7 +25,7 @@ export default function AdminGamesPage() {
   async function addGame(e: React.FormEvent) {
     e.preventDefault();
     const res = await fetch("/api/admin/games", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(g) });
-    if ((await res.json()).success) { setG({ name: "", icon: "", eggId: "", minRam: "2048", description: "" }); setShowForm(false); load(); }
+    if ((await res.json()).success) { setG({ name: "", icon: "", eggId: "", minRam: "2048", description: "", installScript: "" }); setShowForm(false); load(); }
   }
   async function patchGame(id: string, data: any) { await fetch(`/api/admin/games/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); load(); }
   async function delGame(id: string) { if (!confirm(t("Xoá game này?"))) return; await fetch(`/api/admin/games/${id}`, { method: "DELETE" }); load(); }
@@ -73,6 +73,7 @@ export default function AdminGamesPage() {
           <input value={g.eggId} onChange={e => setG(p => ({ ...p, eggId: e.target.value }))} placeholder={t("Pterodactyl egg ID")} style={inp} />
           <input type="number" value={g.minRam} onChange={e => setG(p => ({ ...p, minRam: e.target.value }))} placeholder={t("RAM tối thiểu (MB)")} style={inp} />
           <input value={g.description} onChange={e => setG(p => ({ ...p, description: e.target.value }))} placeholder={t("Mô tả")} style={{ ...inp, gridColumn: "1/-1" }} />
+          <textarea value={g.installScript} onChange={e => setG(p => ({ ...p, installScript: e.target.value }))} placeholder={t("Script cài đặt (cloud-init) cho VPS game — tuỳ chọn")} rows={4} style={{ ...inp, gridColumn: "1/-1", fontFamily: "monospace", fontSize: 12, resize: "vertical" }} />
           <button type="submit" style={{ gridColumn: "1/-1", padding: "9px", background: "var(--accent)", border: "none", borderRadius: "var(--radius-md)", color: "white", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{t("Lưu game")}</button>
         </form>
       )}
