@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
+import ConfigHelp from "@/components/ConfigHelp";
 import { useLocale } from "@/components/LocaleProvider";
 
 const inputStyle = { width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--text-primary)", fontSize:13, outline:"none", fontFamily:"inherit" };
@@ -48,6 +49,11 @@ export default function AdminServersPage() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg> {t("Thêm server")}
         </button>
       </div>
+
+      <ConfigHelp
+        help="Server cPanel/WHM để tự tạo tài khoản hosting. Tạo API Token trong WHM (Development → Manage API Tokens), port mặc định 2087, user root."
+        docs={[{ label:"WHM API Tokens", url:"https://docs.cpanel.net/whm/development/manage-api-tokens-in-whm/" }]}
+      />
 
       {servers.length === 0 ? (
         <div style={{ textAlign:"center", padding:"80px 20px", background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-xl)" }}>

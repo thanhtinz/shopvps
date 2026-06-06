@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
+import ConfigHelp from "@/components/ConfigHelp";
 import { useLocale } from "@/components/LocaleProvider";
 
 const empty = { tld: "", registerPrice: "", renewPrice: "", transferPrice: "", isActive: true };
@@ -38,6 +39,11 @@ export default function AdminTldsPage() {
         <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>{tr("Bảng giá TLD")}</h1>
         <button onClick={()=>setOpen(true)} style={{ padding:"9px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>{tr("+ Thêm TLD")}</button>
       </div>
+
+      <ConfigHelp
+        help="Bảng giá đuôi tên miền (.com, .net…) khách có thể đăng ký/gia hạn/transfer. Cấu hình nhà đăng ký (NameSilo API key) ở Cài đặt → Tên miền (Registrar) để tự động hoá."
+        docs={[{ label:"Cấu hình Registrar", url:"/admin/settings" }]}
+      />
 
       <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", overflow:"hidden" }}>
         {loading ? <div className="skeleton" style={{ height:200, margin:16, borderRadius:"var(--radius-md)" }}/> : (

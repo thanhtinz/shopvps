@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import ConfigHelp from "@/components/ConfigHelp";
 import { formatDate } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 
@@ -45,6 +46,12 @@ export default function AdminApiKeysPage() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg> {t("Tạo API Key")}
         </button>
       </div>
+
+      <ConfigHelp
+        help="Khoá API cho bên thứ ba/reseller gọi vào hệ thống. Khoá chỉ hiện 1 lần khi tạo — lưu lại ngay. Gửi qua header Authorization: Bearer <key>."
+        docs={[{ label:"Reseller API", url:"/reseller" }]}
+      />
+
 
       {newKey && (
         <div style={{ background:"var(--green-soft)", border:"1px solid rgba(34,197,94,0.3)", borderRadius:"var(--radius-lg)", padding:"16px 20px", marginBottom:16 }}>

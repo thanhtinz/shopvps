@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
+import ConfigHelp from "@/components/ConfigHelp";
 import { useLocale } from "@/components/LocaleProvider";
 
 const inputStyle = { width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--text-primary)", fontSize:13, outline:"none", fontFamily:"inherit" };
@@ -42,6 +43,14 @@ export default function AdminProvidersPage() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg> {t("Thêm provider")}
         </button>
       </div>
+      <ConfigHelp
+        help="Nhập API token của nhà cung cấp để tự khởi tạo VPS. slug phải đúng: vultr | hetzner | digitalocean. apiEndpoint để trống dùng mặc định."
+        docs={[
+          { label:"Hetzner Cloud API token", url:"https://console.hetzner.cloud/" },
+          { label:"Vultr API key", url:"https://my.vultr.com/settings/#settingsapi" },
+          { label:"DigitalOcean token", url:"https://cloud.digitalocean.com/account/api/tokens" },
+        ]}
+      />
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {providers.map(p=>(
           <div key={p.id} style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"18px 20px", display:"flex", alignItems:"center", gap:14 }}>

@@ -1,5 +1,19 @@
 // EN translations for the admin Settings guidance, doc links, webhook URLs.
 const m: Record<string, string> = {
+  // ConfigHelp on other admin pages
+  "Nhập API token của nhà cung cấp để tự khởi tạo VPS. slug phải đúng: vultr | hetzner | digitalocean. apiEndpoint để trống dùng mặc định.": "Enter the provider API token to auto-provision VPS. slug must be exact: vultr | hetzner | digitalocean. Leave apiEndpoint blank for the default.",
+  "Hetzner Cloud API token": "Hetzner Cloud API token",
+  "Vultr API key": "Vultr API key",
+  "DigitalOcean token": "DigitalOcean token",
+  "Server cPanel/WHM để tự tạo tài khoản hosting. Tạo API Token trong WHM (Development → Manage API Tokens), port mặc định 2087, user root.": "cPanel/WHM server to auto-create hosting accounts. Create an API Token in WHM (Development → Manage API Tokens); default port 2087, user root.",
+  "WHM API Tokens": "WHM API Tokens",
+  "Map mỗi game tới egg ID của Pterodactyl (cấu hình panel ở Cài đặt → Game panel) để tự cấp server. Hoặc dán Script cài đặt (cloud-init) để tự dựng trên VPS khi không dùng panel. Bấm Seed game mẫu để tạo nhanh.": "Map each game to a Pterodactyl egg ID (configure the panel under Settings → Game panel) to auto-provision servers. Or paste an install script (cloud-init) to build on a VPS without a panel. Click Seed sample games for a quick start.",
+  "Cấu hình Game panel": "Configure Game panel",
+  "Pterodactyl Eggs": "Pterodactyl Eggs",
+  "Bảng giá đuôi tên miền (.com, .net…) khách có thể đăng ký/gia hạn/transfer. Cấu hình nhà đăng ký (NameSilo API key) ở Cài đặt → Tên miền (Registrar) để tự động hoá.": "TLD price list (.com, .net…) customers can register/renew/transfer. Configure the registrar (NameSilo API key) under Settings → Domains (Registrar) to automate.",
+  "Cấu hình Registrar": "Configure Registrar",
+  "Khoá API cho bên thứ ba/reseller gọi vào hệ thống. Khoá chỉ hiện 1 lần khi tạo — lưu lại ngay. Gửi qua header Authorization: Bearer <key>.": "API keys for third parties/resellers to call the system. The key is shown only once on creation — save it now. Send it via the Authorization: Bearer <key> header.",
+  "Reseller API": "Reseller API",
   // section help
   "Tên và URL hiển thị toàn site, dùng trong email, hoá đơn và các liên kết.": "Name and URL shown across the site, used in emails, invoices and links.",
   "Chống bot khi đăng ký và chấm điểm gian lận. Để trống = tắt (không chặn ai).": "Bot protection on signup + fraud scoring. Leave blank to disable (blocks no one).",

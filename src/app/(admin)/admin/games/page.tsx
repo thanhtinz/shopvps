@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
+import ConfigHelp from "@/components/ConfigHelp";
 import { formatCurrency } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 
@@ -65,6 +66,11 @@ export default function AdminGamesPage() {
           <button onClick={() => setShowForm(s => !s)} style={{ padding: "8px 16px", background: "var(--accent)", border: "none", borderRadius: "var(--radius-md)", color: "white", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{t("Thêm game")}</button>
         </div>
       </div>
+
+      <ConfigHelp
+        help="Map mỗi game tới egg ID của Pterodactyl (cấu hình panel ở Cài đặt → Game panel) để tự cấp server. Hoặc dán Script cài đặt (cloud-init) để tự dựng trên VPS khi không dùng panel. Bấm Seed game mẫu để tạo nhanh."
+        docs={[{ label:"Cấu hình Game panel", url:"/admin/settings" }, { label:"Pterodactyl Eggs", url:"https://pterodactyl.io/community/config/eggs/creating_a_custom_egg.html" }]}
+      />
 
       {showForm && (
         <form onSubmit={addGame} style={{ ...card, padding: 16, marginBottom: 18, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
