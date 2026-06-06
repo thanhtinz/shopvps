@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getSettings, getTaxConfig, taxFromInclusive } from "@/lib/settings";
+import { getSettings, getTaxForUser, taxFromInclusive } from "@/lib/settings";
 import { generateInvoiceNumber, CYCLE_MONTHS, nextExpiry } from "@/lib/utils";
 import { translate, type Locale } from "@/lib/i18n/dictionaries";
 
@@ -60,7 +60,7 @@ interface RenewableOrder {
 export async function createRenewalInvoice(kind: ServiceKind, order: RenewableOrder, label: string) {
   const months = CYCLE_MONTHS[order.billingCycle] || 1;
   const subtotal = Number(order.price) * months;
-  const { rate, label: taxLabel } = await getTaxConfig();
+  const { rate, label: taxLabel } = await getTaxForUser(order.userId);
   const tax = taxFromInclusive(subtotal, rate);
   const total = subtotal; // prices are tax-inclusive (VN convention)
 

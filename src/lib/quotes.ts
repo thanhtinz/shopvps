@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { generateInvoiceNumber } from "@/lib/utils";
-import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
+import { getTaxForUser, resolveTax, taxFromInclusive } from "@/lib/settings";
 
 export function generateQuoteNumber(): string {
   const d = new Date();
@@ -12,7 +12,7 @@ export function generateQuoteNumber(): string {
 export interface QuoteItemInput { description: string; quantity?: number; unitPrice: number; }
 
 /** Compute line + document totals for a quote (prices are tax-inclusive). */
-export async function quoteTotals(items: QuoteItemInput[], discount = 0) {
+export async function quoteTotals(items: QuoteItemInput[], discount = 0, userId?: string) {
   const lines = items
     .filter((i) => i.description?.trim() && Number(i.unitPrice) >= 0)
     .map((i) => {
@@ -22,7 +22,7 @@ export async function quoteTotals(items: QuoteItemInput[], discount = 0) {
     });
   const subtotal = lines.reduce((s, l) => s + l.total, 0);
   const total = Math.max(0, subtotal - (Number(discount) || 0));
-  const { rate } = await getTaxConfig();
+  const { rate } = userId ? await getTaxForUser(userId) : await resolveTax({});
   const tax = taxFromInclusive(total, rate);
   return { lines, subtotal, discount: Number(discount) || 0, tax, total };
 }

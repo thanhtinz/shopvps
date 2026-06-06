@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { queueHostingProvision } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
-import { getTaxConfig, taxFromInclusive } from "@/lib/settings";
+import { getTaxForUser, taxFromInclusive } from "@/lib/settings";
 import { encrypt } from "@/lib/encrypt";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 import { validateCoupon } from "@/lib/coupons";
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   const expiresAt = new Date();
   expiresAt.setMonth(expiresAt.getMonth() + months);
   const invoiceNumber = generateInvoiceNumber();
-  const { rate: taxRate } = await getTaxConfig();
+  const { rate: taxRate } = await getTaxForUser(session.user.id);
   const tax = taxFromInclusive(finalPrice, taxRate);
 
   let result;

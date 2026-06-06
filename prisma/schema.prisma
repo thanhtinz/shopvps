@@ -936,6 +936,18 @@ enum QuoteStatus {
   EXPIRED
 }
 
+model TaxRule {
+  id        String   @id @default(cuid())
+  country   String   @unique // ISO-2 country code, or "*" for the default rule
+  label     String   @default("VAT")
+  rate      Decimal  @db.Decimal(5, 2) // percent
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tax_rules")
+}
+
 enum CouponType {
   PERCENTAGE
   FIXED

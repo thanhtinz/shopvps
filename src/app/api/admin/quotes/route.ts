@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const customer = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true } });
   if (!customer) return NextResponse.json({ error: t("Người dùng không tồn tại") }, { status: 404 });
 
-  const { lines, subtotal, discount: disc, tax, total } = await quoteTotals(items, discount);
+  const { lines, subtotal, discount: disc, tax, total } = await quoteTotals(items, discount, userId);
   if (lines.length === 0) return NextResponse.json({ error: t("Thiếu thông tin") }, { status: 400 });
 
   const quote = await prisma.quote.create({

@@ -21,6 +21,8 @@ const SECTIONS = [
   { title:"Thuế (VAT)", fields:[
     { key:"tax_rate", label:"Thuế suất VAT (%) — 0 để tắt. Giá đã bao gồm VAT" },
     { key:"tax_label", label:"Tên thuế (vd: VAT)" },
+    { key:"business_country", label:"Quốc gia doanh nghiệp (ISO-2, vd VN)" },
+    { key:"eu_reverse_charge", label:"EU reverse charge cho B2B có VAT ID (true/false)" },
   ]},
   { title:"Tên miền (Registrar)", fields:[
     { key:"registrar", label:"Nhà đăng ký (namesilo / manual)" },
