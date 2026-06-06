@@ -30,6 +30,9 @@ const m: Record<string, string> = {
   "Ngưỡng tự động rút (đ)": "Auto-payout threshold (đ)",
   // admin page + nav
   "Rút tiền (Payouts)": "Payouts",
+  "Xuất CSV để đối soát": "Export CSV for reconciliation",
+  "Giao dịch": "Transactions",
+  "Rút tiền": "Payouts",
   "Yêu cầu rút tiền": "Payout requests",
   "Phương thức": "Method",
   "Nơi nhận": "Destination",

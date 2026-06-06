@@ -46,6 +46,8 @@ export default function AdminReportsPage() {
         </div>
       </div>
 
+      <ExportCsv t={t} />
+
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:12, marginBottom:24 }}>
         {cards.map(c=>(
           <div key={c.label} style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"16px 18px" }}>
@@ -126,6 +128,34 @@ export default function AdminReportsPage() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ExportCsv({ t }: { t: (k: string) => string }) {
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const dl = (type: string) => {
+    const qs = new URLSearchParams({ type });
+    if (from) qs.set("from", from);
+    if (to) qs.set("to", new Date(to + "T23:59:59").toISOString());
+    window.open(`/api/admin/export?${qs.toString()}`, "_blank");
+  };
+  const inp = { background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"8px 10px", fontSize:12.5, color:"var(--text-primary)", colorScheme:"dark" as const };
+  const btn = { padding:"8px 14px", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", background:"var(--bg-elevated)", color:"var(--accent)", fontSize:12.5, fontWeight:600, cursor:"pointer" };
+  return (
+    <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"16px 18px", marginBottom:24, display:"flex", gap:10, alignItems:"flex-end", flexWrap:"wrap" }}>
+      <div>
+        <label style={{ display:"block", fontSize:11, color:"var(--text-muted)", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.05em" }}>{t("Xuất CSV để đối soát")}</label>
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <input type="date" value={from} onChange={e=>setFrom(e.target.value)} style={inp} />
+          <span style={{ color:"var(--text-muted)" }}>→</span>
+          <input type="date" value={to} onChange={e=>setTo(e.target.value)} style={inp} />
+        </div>
+      </div>
+      <button onClick={()=>dl("transactions")} style={btn}>{t("Giao dịch")}</button>
+      <button onClick={()=>dl("invoices")} style={btn}>{t("Hoá đơn")}</button>
+      <button onClick={()=>dl("payouts")} style={btn}>{t("Rút tiền")}</button>
     </div>
   );
 }
