@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resolveTld, isValidDomain } from "@/lib/domains";
+import { getRegistrar } from "@/lib/registrars";
+import { getSettings } from "@/lib/settings";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
@@ -54,7 +56,36 @@ export async function POST(req: NextRequest) {
       });
       return created;
     });
-    return NextResponse.json({ success: true, data: order, message: t("Đơn tên miền đã được tạo, đang chờ xử lý.") });
+
+    // Auto-provision via the configured registrar (best-effort). Registration
+    // activates the domain; transfers are accepted and complete asynchronously.
+    // With no registrar configured the order stays PENDING for manual handling.
+    let registered = false;
+    try {
+      const registrar = await getRegistrar();
+      if (registrar) {
+        const code = (await getSettings(["registrar"])).registrar || "manual";
+        const ns = order.nameservers ? order.nameservers.split(",").map((x: string) => x.trim()).filter(Boolean) : undefined;
+        if (kind === "register") {
+          const r = await registrar.register(domain, years, ns);
+          if (r.ok) {
+            await prisma.domainOrder.update({ where: { id: order.id }, data: { status: "ACTIVE", registrar: code, registeredAt: new Date(), expiresAt: r.expiresAt ?? null } });
+            registered = true;
+          }
+        } else {
+          const r = await registrar.transfer(domain, years, order.authCode || "");
+          if (r.ok) await prisma.domainOrder.update({ where: { id: order.id }, data: { registrar: code } });
+        }
+      }
+    } catch (e) {
+      console.error("domain registrar provisioning error:", e);
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: order,
+      message: registered ? t("Tên miền đã được đăng ký thành công.") : t("Đơn tên miền đã được tạo, đang chờ xử lý."),
+    });
   } catch (e: any) {
     if (e?.message === "INSUFFICIENT_BALANCE") return NextResponse.json({ error: t("Số dư không đủ. Vui lòng nạp thêm.") }, { status: 400 });
     console.error("domain order error:", e);

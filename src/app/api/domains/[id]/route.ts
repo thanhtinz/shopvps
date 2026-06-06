@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resolveTld } from "@/lib/domains";
+import { getRegistrar } from "@/lib/registrars";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -32,6 +33,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const { t: tn } = await getUserT(session.user.id);
         await tx.transaction.create({ data: { userId: session.user.id, type: "PURCHASE", amount: price, balanceBefore: balanceAfter + price, balanceAfter, description: `${tn("Gia hạn tên miền")} ${domain.domain} (${years} ${tn("năm")})`, status: "COMPLETED" } });
       });
+      // Best-effort: renew at the registrar (DB expiry is the billing source of truth).
+      try {
+        const registrar = await getRegistrar();
+        if (registrar && domain.registrar !== "manual") await registrar.renew(domain.domain, years);
+      } catch (e) { console.error("domain registrar renew error:", e); }
       return NextResponse.json({ success: true });
     } catch (e: any) {
       if (e?.message === "INSUFFICIENT_BALANCE") return NextResponse.json({ error: t("Số dư không đủ") }, { status: 400 });

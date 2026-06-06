@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { resolveTld, isValidDomain, checkAvailability } from "@/lib/domains";
+import { resolveTld, isValidDomain } from "@/lib/domains";
+import { checkDomainAvailability } from "@/lib/registrars";
 import { getServerT } from "@/lib/i18n/server";
 
 export async function GET(req: NextRequest) {
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
   const owned = await prisma.domainOrder.findFirst({ where: { domain, status: { in: ["ACTIVE", "PENDING"] } } });
   if (owned) return NextResponse.json({ success: true, data: { domain, available: false, tld: tld.tld, registerPrice: Number(tld.registerPrice) } });
 
-  const available = await checkAvailability(domain);
+  const available = await checkDomainAvailability(domain);
   return NextResponse.json({
     success: true,
     data: {
