@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 export default function EmailMarketingPage() {
   const { t } = useLocale();
@@ -41,7 +42,7 @@ export default function EmailMarketingPage() {
             <textarea value={html} onChange={e=>setHtml(e.target.value)} rows={10} required style={{ ...inputStyle, resize:"vertical", fontFamily:"var(--font-mono)", fontSize:12 }} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
           </div>
           <div style={{ background:"var(--yellow-soft)", border:"1px solid rgba(245,158,11,0.2)", borderRadius:"var(--radius-md)", padding:"10px 14px", marginBottom:16, fontSize:12.5, color:"var(--yellow)" }}>
-            ⚠ {t("Email sẽ được gửi qua hàng đợi BullMQ. Kiểm tra kỹ nội dung trước khi gửi.")}
+            <WarnIcon /> {t("Email sẽ được gửi qua hàng đợi BullMQ. Kiểm tra kỹ nội dung trước khi gửi.")}
           </div>
           {result && (
             <div style={{ background:result.success?"var(--green-soft)":"var(--red-soft)", border:`1px solid ${result.success?"rgba(34,197,94,0.2)":"rgba(239,68,68,0.2)"}`, borderRadius:"var(--radius-md)", padding:"10px 14px", marginBottom:16, fontSize:13, color:result.success?"var(--green)":"var(--red)" }}>

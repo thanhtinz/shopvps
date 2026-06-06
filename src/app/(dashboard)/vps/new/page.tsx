@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import AddonPicker from "@/components/AddonPicker";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
@@ -270,7 +271,7 @@ export default function BuyVpsPage() {
               <div style={{ textAlign:"center", padding:"24px 0", color:"var(--text-muted)", fontSize:13 }}>{t("Chọn gói VPS để xem giá")}</div>
             )}
 
-            {error && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:12.5, marginBottom:12 }}>⚠ {error}</div>}
+            {error && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:12.5, marginBottom:12 }}><WarnIcon /> {error}</div>}
 
             <button onClick={order} disabled={ordering||!selectedPkg||!hostname.trim()} style={{
               width:"100%", padding:"13px", border:"none", borderRadius:"var(--radius-md)",

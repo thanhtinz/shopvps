@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 const inputStyle = {
   width: "100%", boxSizing: "border-box" as const,
@@ -70,7 +71,7 @@ export default function LoginPage() {
                 <button type="button" onClick={()=>setShowPw(!showPw)} style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", color:"#4a5568", cursor:"pointer" }}>{showPw?"":""}</button>
               </div>
             </div>
-            {error && <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"10px 12px", color:"#ef4444", fontSize:13, marginBottom:14 }}>⚠ {error}</div>}
+            {error && <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"10px 12px", color:"#ef4444", fontSize:13, marginBottom:14 }}><WarnIcon /> {error}</div>}
             <button type="submit" disabled={loading} style={{ width:"100%", padding:"12px", background:loading?"rgba(79,124,255,0.4)":"#4f7cff", border:"none", borderRadius:10, color:"white", fontSize:14, fontWeight:700, cursor:loading?"not-allowed":"pointer" }}>
               {loading?t("Đang đăng nhập..."):t("Đăng nhập →")}
             </button>
@@ -84,7 +85,7 @@ export default function LoginPage() {
             <input type="text" value={totpCode} onChange={e=>setTotpCode(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder="000000" maxLength={6}
               style={{ ...inputStyle, textAlign:"center", fontSize:26, fontFamily:"monospace", letterSpacing:"0.35em", marginBottom:16 }}
               onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.08)"}/>
-            {error && <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"10px 12px", color:"#ef4444", fontSize:13, marginBottom:14 }}>⚠ {error}</div>}
+            {error && <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"10px 12px", color:"#ef4444", fontSize:13, marginBottom:14 }}><WarnIcon /> {error}</div>}
             <button type="submit" disabled={loading||totpCode.length!==6} style={{ width:"100%", padding:"12px", background:totpCode.length===6?"#4f7cff":"rgba(79,124,255,0.3)", border:"none", borderRadius:10, color:"white", fontSize:14, fontWeight:700, cursor:totpCode.length===6?"pointer":"not-allowed" }}>
               {loading?t("Đang xác thực..."):t("Xác nhận")}
             </button>

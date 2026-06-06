@@ -5,6 +5,7 @@ import Badge from "@/components/ui/Badge";
 import { formatCurrency } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 import { useCart } from "@/components/CartProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 const CYCLE_MONTHS: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, SEMI_ANNUAL: 6, ANNUAL: 12 };
 
@@ -184,7 +185,7 @@ export default function CartPage() {
                 {couponBusy ? t("Đang kiểm tra...") : t("Áp dụng")}
               </button>
             </div>
-            {couponError && <div style={{ fontSize: 12, color: "var(--red)", marginBottom: 12 }}>⚠ {couponError}</div>}
+            {couponError && <div style={{ fontSize: 12, color: "var(--red)", marginBottom: 12 }}><WarnIcon /> {couponError}</div>}
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: discountTotal ? 8 : 16 }}>
               <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("Tạm tính:")}</span>

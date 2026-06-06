@@ -4,6 +4,7 @@ import { useAppearance } from "@/components/AppearanceProvider";
 import { ACCENT_PRESETS, FONT_PRESETS } from "@/lib/appearance";
 import { useLocale } from "@/components/LocaleProvider";
 import { LOCALES } from "@/lib/i18n/dictionaries";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
@@ -116,7 +117,7 @@ export default function SettingsPage() {
               <div style={{ fontSize:16, fontWeight:700, color:"var(--text-primary)" }}>{profile?.name}</div>
               <div style={{ fontSize:13, color:"var(--text-muted)" }}>{profile?.email}</div>
               <div style={{ fontSize:11.5, color:"var(--text-muted)", marginTop:2 }}>
-                {profile?.emailVerified ? <>&#10003; {t("Email đã xác thực")}</> : <>⚠ {t("Email chưa xác thực")}</>}
+                {profile?.emailVerified ? <>&#10003; {t("Email đã xác thực")}</> : <><WarnIcon /> {t("Email chưa xác thực")}</>}
               </div>
             </div>
           </div>
@@ -237,7 +238,7 @@ export default function SettingsPage() {
                 <input type="password" value={f.val} onChange={e=>f.set(e.target.value)} required style={inputStyle} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
               </div>
             ))}
-            {pwError && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:13, marginBottom:14 }}>⚠ {pwError}</div>}
+            {pwError && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:13, marginBottom:14 }}><WarnIcon /> {pwError}</div>}
             {pwMsg && <div style={{ background:"var(--green-soft)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--green)", fontSize:13, marginBottom:14 }}>&#10003; {pwMsg}</div>}
             <button type="submit" disabled={savingPw} style={{ padding:"10px 20px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>
               {savingPw?t("Đang đổi..."):t("Đổi mật khẩu")}
@@ -262,7 +263,7 @@ export default function SettingsPage() {
           </div>
 
           {twoFAMsg && <div style={{ background:"var(--green-soft)", border:"1px solid rgba(34,197,94,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--green)", fontSize:13, marginBottom:16 }}>&#10003; {twoFAMsg}</div>}
-          {twoFAError && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:13, marginBottom:16 }}>⚠ {twoFAError}</div>}
+          {twoFAError && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:13, marginBottom:16 }}><WarnIcon /> {twoFAError}</div>}
 
           {!profile?.twoFactorEnabled && twoFAStep === "idle" && (
             <div>

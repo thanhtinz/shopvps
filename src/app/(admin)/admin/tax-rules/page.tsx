@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 const inputStyle = { boxSizing: "border-box" as const, background: "var(--bg-surface)", border: "1.5px solid var(--border)", borderRadius: "var(--radius-md)", padding: "9px 12px", color: "var(--text-primary)", fontSize: 13, outline: "none", fontFamily: "inherit" };
 
@@ -46,7 +47,7 @@ export default function AdminTaxRulesPage() {
         <input type="number" step="0.01" value={form.rate} onChange={e => setForm(p => ({ ...p, rate: e.target.value }))} placeholder={t("Thuế suất %")} required style={{ ...inputStyle, width: 120 }} />
         <button type="submit" style={{ padding: "9px 18px", background: "var(--accent)", border: "none", borderRadius: "var(--radius-md)", color: "white", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{t("Lưu")}</button>
       </form>
-      {error && <div style={{ background: "var(--red-soft)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "var(--radius-md)", padding: "9px 12px", color: "var(--red)", fontSize: 13, marginBottom: 14 }}>⚠ {error}</div>}
+      {error && <div style={{ background: "var(--red-soft)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "var(--radius-md)", padding: "9px 12px", color: "var(--red)", fontSize: 13, marginBottom: 14 }}><WarnIcon /> {error}</div>}
 
       <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>

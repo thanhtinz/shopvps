@@ -3,6 +3,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 function ResetForm() {
   const { t } = useLocale();
@@ -53,7 +54,7 @@ function ResetForm() {
                 <input type="password" value={f.val} onChange={e => f.set(e.target.value)} required style={inputStyle} onFocus={e => e.target.style.borderColor = "rgba(79,124,255,0.5)"} onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.08)"} />
               </div>
             ))}
-            {error && <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "10px 12px", color: "#ef4444", fontSize: 13, marginBottom: 14 }}>⚠ {error}</div>}
+            {error && <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, padding: "10px 12px", color: "#ef4444", fontSize: 13, marginBottom: 14 }}><WarnIcon /> {error}</div>}
             <button type="submit" disabled={loading} style={{ width: "100%", padding: "12px", background: loading ? "rgba(79,124,255,0.4)" : "#4f7cff", border: "none", borderRadius: 10, color: "white", fontSize: 14, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer" }}>
               {loading ? t("Đang đặt lại...") : t("Đặt lại mật khẩu →")}
             </button>

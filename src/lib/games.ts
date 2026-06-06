@@ -5,15 +5,15 @@ import { prisma } from "@/lib/prisma";
 export interface GameSeed { name: string; slug: string; icon: string; minRam: number; description: string }
 
 export const GAME_SEEDS: GameSeed[] = [
-  { name: "Minecraft Java", slug: "minecraft-java", icon: "🟩", minRam: 2048, description: "Paper / Forge / Fabric, plugin & modpack" },
-  { name: "Minecraft Bedrock", slug: "minecraft-bedrock", icon: "🟫", minRam: 1024, description: "Bedrock Dedicated Server" },
-  { name: "Counter-Strike 2", slug: "cs2", icon: "🔫", minRam: 2048, description: "CS2 dedicated server" },
-  { name: "Rust", slug: "rust", icon: "🪓", minRam: 4096, description: "Rust dedicated + Oxide/uMod" },
-  { name: "ARK: Survival", slug: "ark", icon: "🦖", minRam: 6144, description: "ARK survival server" },
-  { name: "Valheim", slug: "valheim", icon: "⚔️", minRam: 2048, description: "Valheim dedicated server" },
-  { name: "FiveM (GTA RP)", slug: "fivem", icon: "🚓", minRam: 4096, description: "FiveM / txAdmin resource server" },
-  { name: "Palworld", slug: "palworld", icon: "🐾", minRam: 8192, description: "Palworld dedicated server" },
-  { name: "Terraria", slug: "terraria", icon: "🌳", minRam: 1024, description: "Terraria / TShock server" },
+  { name: "Minecraft Java", slug: "minecraft-java", icon: "", minRam: 2048, description: "Paper / Forge / Fabric, plugin & modpack" },
+  { name: "Minecraft Bedrock", slug: "minecraft-bedrock", icon: "", minRam: 1024, description: "Bedrock Dedicated Server" },
+  { name: "Counter-Strike 2", slug: "cs2", icon: "", minRam: 2048, description: "CS2 dedicated server" },
+  { name: "Rust", slug: "rust", icon: "", minRam: 4096, description: "Rust dedicated + Oxide/uMod" },
+  { name: "ARK: Survival", slug: "ark", icon: "", minRam: 6144, description: "ARK survival server" },
+  { name: "Valheim", slug: "valheim", icon: "", minRam: 2048, description: "Valheim dedicated server" },
+  { name: "FiveM (GTA RP)", slug: "fivem", icon: "", minRam: 4096, description: "FiveM / txAdmin resource server" },
+  { name: "Palworld", slug: "palworld", icon: "", minRam: 8192, description: "Palworld dedicated server" },
+  { name: "Terraria", slug: "terraria", icon: "", minRam: 1024, description: "Terraria / TShock server" },
 ];
 
 // Global modules offered for every game.

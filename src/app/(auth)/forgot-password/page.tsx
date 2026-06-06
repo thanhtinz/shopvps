@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 export default function ForgotPasswordPage() {
   const { t } = useLocale();
@@ -40,7 +41,7 @@ export default function ForgotPasswordPage() {
             <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" required
               style={{ width:"100%", boxSizing:"border-box" as const, background:"rgba(255,255,255,0.04)", border:"1.5px solid rgba(255,255,255,0.08)", borderRadius:10, padding:"11px 14px", color:"#e8edf5", fontSize:14, outline:"none", marginBottom:16, fontFamily:"inherit" }}
               onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.08)"}/>
-            {error && <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"10px 12px", color:"#ef4444", fontSize:13, marginBottom:14 }}>⚠ {error}</div>}
+            {error && <div style={{ background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:8, padding:"10px 12px", color:"#ef4444", fontSize:13, marginBottom:14 }}><WarnIcon /> {error}</div>}
             <button type="submit" disabled={loading} style={{ width:"100%", padding:"12px", background:loading?"rgba(79,124,255,0.4)":"#4f7cff", border:"none", borderRadius:10, color:"white", fontSize:14, fontWeight:700, cursor:loading?"not-allowed":"pointer" }}>
               {loading?t("Đang gửi..."):t("Gửi link đặt lại →")}
             </button>

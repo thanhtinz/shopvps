@@ -185,8 +185,9 @@ export default function WalletPage() {
             )}
 
             {bonus && finalAmount > 0 && (
-              <div style={{ marginTop: 10, padding: "10px 12px", background: "var(--accent-soft)", borderRadius: "var(--radius-md)", fontSize: 12.5 }}>
-                ★ {tr("Bạn nhận thêm")} <strong style={{ color: "var(--accent)" }}>{formatCurrency(Math.floor(finalAmount * Number(bonus.bonusPercent) / 100))}</strong> {tr("bonus!")}
+              <div style={{ marginTop: 10, padding: "10px 12px", background: "var(--accent-soft)", borderRadius: "var(--radius-md)", fontSize: 12.5, display: "flex", alignItems: "center", gap: 7 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ color: "var(--accent)", flexShrink: 0 }} aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" /></svg>
+                <span>{tr("Bạn nhận thêm")} <strong style={{ color: "var(--accent)" }}>{formatCurrency(Math.floor(finalAmount * Number(bonus.bonusPercent) / 100))}</strong> {tr("bonus!")}</span>
               </div>
             )}
           </div>

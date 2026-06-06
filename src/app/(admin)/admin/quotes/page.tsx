@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Badge from "@/components/ui/Badge";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 const inputStyle = { width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--text-primary)", fontSize:13, outline:"none", fontFamily:"inherit" };
 const labelStyle = { display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase" as const, marginBottom:5 };
@@ -206,7 +207,7 @@ export default function AdminQuotesPage() {
               <span style={{ color:"var(--text-primary)", fontWeight:800, fontSize:16 }}>{formatCurrency(previewTotal)}</span>
             </div>
 
-            {error && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:13, marginBottom:14 }}>⚠ {error}</div>}
+            {error && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--red)", fontSize:13, marginBottom:14 }}><WarnIcon /> {error}</div>}
 
             <div style={{ display:"flex", gap:10 }}>
               <button type="button" onClick={closeForm} style={{ flex:1, padding:"10px", background:"var(--bg-hover)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", cursor:"pointer", fontSize:13 }}>{t("Huỷ")}</button>

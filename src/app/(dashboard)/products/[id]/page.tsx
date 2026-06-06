@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import Badge from "@/components/ui/Badge";
 import GamePanel from "@/components/GamePanel";
+import GameIcon from "@/components/GameIcon";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 
@@ -206,7 +207,7 @@ export default function ProductDetailPage() {
         <div style={card}>
           <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Game")}</h3>
           <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
-            {selectedGame ? <><span>{selectedGame.icon}</span><span>{selectedGame.name}</span></> : <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{gameId}</span>}
+            {selectedGame ? <><span style={{ color: "var(--accent)", display: "inline-flex" }}><GameIcon icon={selectedGame.icon} size={20} /></span><span>{selectedGame.name}</span></> : <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{gameId}</span>}
           </div>
           {selectedModules.length > 0 && (
             <div style={{ marginTop: 14 }}>

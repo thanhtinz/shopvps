@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 function Icon({ d, size = 15 }: { d: string; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{d.split(" M").map((p,i)=><path key={i} d={i===0?p:"M"+p}/>)}</svg>;
@@ -148,7 +149,7 @@ export default function TeamPage() {
                   </div>
                 ))}
               </div>
-              {error && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--red)", fontSize:13, marginBottom:14 }}>⚠ {error}</div>}
+              {error && <div style={{ background:"var(--red-soft)", border:"1px solid rgba(239,68,68,0.2)", borderRadius:"var(--radius-md)", padding:"10px 12px", color:"var(--red)", fontSize:13, marginBottom:14 }}><WarnIcon /> {error}</div>}
               <div style={{ display:"flex", gap:10 }}>
                 <button type="button" onClick={()=>setShowInvite(false)} style={{ flex:1, padding:"10px", background:"var(--bg-hover)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", cursor:"pointer", fontSize:13 }}>{tr("Huỷ")}</button>
                 <button type="submit" disabled={inviting} style={{ flex:2, padding:"10px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontWeight:600, cursor:inviting?"not-allowed":"pointer", fontSize:13 }}>

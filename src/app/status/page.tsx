@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
   OPERATIONAL:   { label: "Hoạt động bình thường", color: "#22c55e", dot: "#22c55e" },
@@ -55,7 +56,9 @@ export default function StatusPage() {
           display: "flex", alignItems: "center", gap: 16,
         }}>
           <div style={{ width: 48, height: 48, borderRadius: "50%", background: allOperational ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
-            {loading ? "" : allOperational ? "&#10003;" : "⚠"}
+            {loading ? null : allOperational
+              ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+              : <WarnIcon size={22} />}
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#e8edf5", marginBottom: 2 }}>

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
 import ConfigHelp from "@/components/ConfigHelp";
+import GameIcon from "@/components/GameIcon";
 import { formatCurrency } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 
@@ -75,7 +76,7 @@ export default function AdminGamesPage() {
       {showForm && (
         <form onSubmit={addGame} style={{ ...card, padding: 16, marginBottom: 18, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <input value={g.name} onChange={e => setG(p => ({ ...p, name: e.target.value }))} placeholder={t("Tên game")} required style={inp} />
-          <input value={g.icon} onChange={e => setG(p => ({ ...p, icon: e.target.value }))} placeholder={t("Icon (emoji/URL)")} style={inp} />
+          <input value={g.icon} onChange={e => setG(p => ({ ...p, icon: e.target.value }))} placeholder={t("URL ảnh icon (tuỳ chọn)")} style={inp} />
           <input value={g.eggId} onChange={e => setG(p => ({ ...p, eggId: e.target.value }))} placeholder={t("Pterodactyl egg ID")} style={inp} />
           <input type="number" value={g.minRam} onChange={e => setG(p => ({ ...p, minRam: e.target.value }))} placeholder={t("RAM tối thiểu (MB)")} style={inp} />
           <input value={g.description} onChange={e => setG(p => ({ ...p, description: e.target.value }))} placeholder={t("Mô tả")} style={{ ...inp, gridColumn: "1/-1" }} />
@@ -89,7 +90,7 @@ export default function AdminGamesPage() {
         {games.map(game => (
           <div key={game.id} style={{ ...card, overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
-              <span style={{ fontSize: 22 }}>{game.icon || "🎮"}</span>
+              <span style={{ color: "var(--accent)", display: "inline-flex" }}><GameIcon icon={game.icon} size={22} /></span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, color: "var(--text-primary)" }}>{game.name} {!game.isActive && <Badge color="gray">{t("Tắt")}</Badge>} {!game.eggId && <Badge color="yellow">{t("Chưa map egg")}</Badge>}</div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{game.slug} · {game.minRam}MB{game.eggId ? ` · egg ${game.eggId}` : ""}</div>

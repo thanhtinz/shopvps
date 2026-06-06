@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Badge from "@/components/ui/Badge";
 import ConfigHelp from "@/components/ConfigHelp";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 const inputStyle = { width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--text-primary)", fontSize:13, outline:"none", fontFamily:"inherit" };
 
@@ -116,7 +117,7 @@ export default function AdminServersPage() {
                 ))}
               </div>
               <div style={{ background:"var(--yellow-soft)", border:"1px solid rgba(245,158,11,0.2)", borderRadius:"var(--radius-md)", padding:"10px 14px", marginBottom:16, fontSize:12, color:"var(--yellow)" }}>
-                ⚠ {t("WHM API Token được mã hoá AES-256 trước khi lưu DB")}
+                <WarnIcon /> {t("WHM API Token được mã hoá AES-256 trước khi lưu DB")}
               </div>
               <div style={{ display:"flex", gap:10 }}>
                 <button type="button" onClick={()=>setShowForm(false)} style={{ flex:1, padding:"10px", background:"var(--bg-hover)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", color:"var(--text-secondary)", cursor:"pointer", fontSize:13 }}>{t("Huỷ")}</button>

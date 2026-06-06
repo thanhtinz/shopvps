@@ -5,7 +5,7 @@ const m: Record<string, string> = {
   "Thêm game": "Add game",
   "Xoá game này?": "Delete this game?",
   "Tên game": "Game name",
-  "Icon (emoji/URL)": "Icon (emoji/URL)",
+  "URL ảnh icon (tuỳ chọn)": "Icon image URL (optional)",
   "Pterodactyl egg ID": "Pterodactyl egg ID",
   "RAM tối thiểu (MB)": "Minimum RAM (MB)",
   "Lưu game": "Save game",

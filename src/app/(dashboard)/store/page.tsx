@@ -440,7 +440,7 @@ function ProductCard({ product, labelPlaceholder, typeLabel, games }: { product:
                 <label style={labelStyle}>{t("Chọn game")}</label>
                 <ConfigSelect value={gameId} onChange={(v) => { setGameId(v); setModuleIds([]); }}>
                   <option value="">{t("Chọn game")}</option>
-                  {games.map((g) => <option key={g.id} value={g.id}>{g.icon} {g.name}</option>)}
+                  {games.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
                 </ConfigSelect>
               </div>
               {selectedGame && availableModules.length > 0 && (

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/components/LocaleProvider";
+import WarnIcon from "@/components/ui/WarnIcon";
 
 type Step = 1 | 2 | 3;
 
@@ -239,7 +240,7 @@ export default function SetupPage() {
                   color: "#f87171", fontSize: 13, marginBottom: 16,
                   display: "flex", alignItems: "center", gap: 8,
                 }}>
-                  <span>⚠</span> {error}
+                  <span><WarnIcon /></span> {error}
                 </div>
               )}
 
@@ -368,7 +369,7 @@ export default function SetupPage() {
                   borderRadius: 10, padding: "10px 14px",
                   color: "#f87171", fontSize: 13, marginBottom: 16,
                 }}>
-                  ⚠ {error}
+                  <WarnIcon /> {error}
                 </div>
               )}
 
