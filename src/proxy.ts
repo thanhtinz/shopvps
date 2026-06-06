@@ -7,7 +7,6 @@ const BYPASS = ["/_next", "/api/auth", "/api/setup", "/api/webhook", "/favicon.i
 const SETUP_ROUTE = "/setup";
 const LICENSE_ERROR_ROUTE = "/license-error";
 const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/status", "/verify-email"];
-const ADMIN_ROUTES = ["/admin"];
 
 export default auth((req: any) => {
   const { pathname } = req.nextUrl;

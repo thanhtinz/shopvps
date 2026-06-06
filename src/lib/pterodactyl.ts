@@ -90,5 +90,8 @@ export async function clientCommand(cfg: ClientConfig, identifier: string, comma
 /** Short-lived websocket token + node socket URL for the live console. */
 export async function clientWebsocket(cfg: ClientConfig, identifier: string): Promise<{ token: string; socket: string }> {
   const d = await clientCall(cfg, "GET", `/servers/${identifier}/websocket`);
-  return { token: d?.data?.token, socket: d?.data?.socket };
+  const token = d?.data?.token;
+  const socket = d?.data?.socket;
+  if (!token || !socket) throw new Error("Invalid websocket response: missing token or socket");
+  return { token, socket };
 }

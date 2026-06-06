@@ -24,7 +24,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 const TYPES = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SRV"];
-function parseRec(b: any, t: (s: string) => string) {
+function parseRec(b: any) {
   if (!TYPES.includes(b.type) || !b.value) return null;
   return { type: String(b.type), host: String(b.host || "").trim(), value: String(b.value).trim(), ttl: parseInt(b.ttl, 10) || 3600, priority: b.priority != null ? parseInt(b.priority, 10) : undefined };
 }
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const r = await resolve((await params).id, session.user.id);
   if ("error" in r) return NextResponse.json({ error: r.error }, { status: r.status });
   const b = await req.json();
-  const rec = parseRec(b, t);
+  const rec = parseRec(b);
   if (!rec || !r.reg.addDns) return NextResponse.json({ error: t("Thiếu thông tin") }, { status: 400 });
   try { const res = await r.reg.addDns(r.domain, rec); return res.ok ? NextResponse.json({ success: true }) : NextResponse.json({ error: res.message || "DNS error" }, { status: 502 }); }
   catch (e: any) { return NextResponse.json({ error: e.message || "DNS error" }, { status: 502 }); }
@@ -49,7 +49,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const r = await resolve((await params).id, session.user.id);
   if ("error" in r) return NextResponse.json({ error: r.error }, { status: r.status });
   const b = await req.json();
-  const rec = parseRec(b, t);
+  const rec = parseRec(b);
   if (!b.recordId || !rec || !r.reg.updateDns) return NextResponse.json({ error: t("Thiếu thông tin") }, { status: 400 });
   try { const res = await r.reg.updateDns(r.domain, String(b.recordId), rec); return res.ok ? NextResponse.json({ success: true }) : NextResponse.json({ error: res.message || "DNS error" }, { status: 502 }); }
   catch (e: any) { return NextResponse.json({ error: e.message || "DNS error" }, { status: 502 }); }

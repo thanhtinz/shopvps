@@ -38,7 +38,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user, trigger }: any) {
-      if (user) { token.id = user.id; token.role = user.role; token.adminPermissions = user.adminPermissions || []; }
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        // Credentials login supplies adminPermissions; OAuth (adapter) may not,
+        // so fetch from the DB when it's missing to avoid demoting staff.
+        if (user.adminPermissions !== undefined) token.adminPermissions = user.adminPermissions || [];
+        else if (user.id) {
+          const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { role: true, adminPermissions: true } });
+          token.role = dbUser?.role ?? token.role;
+          token.adminPermissions = dbUser?.adminPermissions || [];
+        } else token.adminPermissions = [];
+      }
       // Refresh staff permissions on demand (e.g. after an admin edits them).
       if (trigger === "update" && token.id) {
         const fresh = await prisma.user.findUnique({ where: { id: token.id }, select: { role: true, adminPermissions: true } });

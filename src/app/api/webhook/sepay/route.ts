@@ -30,9 +30,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    const amount = payload.transferAmount;
+    const amount = Number(payload.transferAmount);
     const content = payload.content || payload.description || "";
     const reference = payload.referenceCode;
+
+    // Guard against a missing/non-numeric amount (would otherwise credit NaN).
+    if (!Number.isFinite(amount) || amount <= 0) {
+      console.error("SePay webhook: invalid transferAmount:", payload.transferAmount);
+      return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+    }
 
     // Check duplicate
     const existing = await prisma.transaction.findFirst({
