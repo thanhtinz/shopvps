@@ -34,7 +34,7 @@ const SECTIONS = [
     { key:"sell_hosting", label:"Module Hosting tích hợp (true/false)" },
     { key:"sell_domain", label:"Module Tên miền tích hợp (true/false)" },
     { key:"sell_group_SERVER_HOSTING", label:"Nhóm Server & Hosting (true/false)" },
-    { key:"sell_group_NETWORK", label:"Nhóm Network (true/false)" },
+    { key:"sell_group_PROXY", label:"Nhóm Proxy (true/false)" },
     { key:"sell_group_SECURITY", label:"Nhóm Security (true/false)" },
     { key:"sell_group_DOMAIN", label:"Nhóm Tên miền (catalog) (true/false)" },
     { key:"sell_group_DATABASE_STORAGE", label:"Nhóm Database & Storage (true/false)" },

@@ -10,7 +10,7 @@ export interface ProductTypeDef { group: string; type: string; label: string; au
 
 export const PRODUCT_GROUPS: ProductGroupDef[] = [
   { id: "SERVER_HOSTING", label: "Server & Hosting" },
-  { id: "NETWORK", label: "Network" },
+  { id: "PROXY", label: "Proxy" },
   { id: "SECURITY", label: "Security" },
   { id: "DOMAIN", label: "Tên miền" },
   { id: "DATABASE_STORAGE", label: "Database & Storage" },
@@ -36,20 +36,20 @@ export const PRODUCT_TYPES: ProductTypeDef[] = [
   { group: "SERVER_HOSTING", type: "reseller-hosting", label: "Reseller Hosting" },
   { group: "SERVER_HOSTING", type: "wordpress-hosting", label: "WordPress Hosting" },
   { group: "SERVER_HOSTING", type: "email-hosting", label: "Email Hosting" },
-  // Network
-  { group: "NETWORK", type: "ipv4-lease", label: "IPv4 Lease", autoActivate: true },
-  { group: "NETWORK", type: "ipv6-lease", label: "IPv6 Lease", autoActivate: true },
-  { group: "NETWORK", type: "datacenter-proxy", label: "Datacenter Proxy", autoActivate: true },
-  { group: "NETWORK", type: "residential-proxy", label: "Residential Proxy", autoActivate: true },
-  { group: "NETWORK", type: "mobile-proxy", label: "Mobile Proxy", autoActivate: true },
-  { group: "NETWORK", type: "socks5-proxy", label: "SOCKS5 Proxy", autoActivate: true },
-  { group: "NETWORK", type: "http-proxy", label: "HTTP/HTTPS Proxy", autoActivate: true },
-  { group: "NETWORK", type: "vpn", label: "VPN" },
-  { group: "NETWORK", type: "cdn", label: "CDN" },
+  // Proxy
+  { group: "PROXY", type: "ipv4-lease", label: "IPv4 Lease", autoActivate: true },
+  { group: "PROXY", type: "ipv6-lease", label: "IPv6 Lease", autoActivate: true },
+  { group: "PROXY", type: "datacenter-proxy", label: "Datacenter Proxy", autoActivate: true },
+  { group: "PROXY", type: "residential-proxy", label: "Residential Proxy", autoActivate: true },
+  { group: "PROXY", type: "mobile-proxy", label: "Mobile Proxy", autoActivate: true },
+  { group: "PROXY", type: "socks5-proxy", label: "SOCKS5 Proxy", autoActivate: true },
+  { group: "PROXY", type: "http-proxy", label: "HTTP/HTTPS Proxy", autoActivate: true },
+  { group: "PROXY", type: "vpn", label: "VPN" },
   // Security
   { group: "SECURITY", type: "ssl", label: "SSL Certificate" },
   { group: "SECURITY", type: "ddos-protection", label: "DDoS Protection" },
   { group: "SECURITY", type: "waf", label: "WAF" },
+  { group: "SECURITY", type: "cdn", label: "CDN" },
   { group: "SECURITY", type: "backup-service", label: "Backup Service" },
   // Domain
   { group: "DOMAIN", type: "domain-register", label: "Đăng ký tên miền" },
@@ -61,7 +61,6 @@ export const PRODUCT_TYPES: ProductTypeDef[] = [
   { group: "DATABASE_STORAGE", type: "mysql-hosting", label: "MySQL Hosting" },
   { group: "DATABASE_STORAGE", type: "postgresql-hosting", label: "PostgreSQL Hosting" },
   { group: "DATABASE_STORAGE", type: "redis-hosting", label: "Redis Hosting" },
-  { group: "DATABASE_STORAGE", type: "managed-database", label: "Managed Database" },
   { group: "DATABASE_STORAGE", type: "object-storage", label: "Object Storage (S3)", autoActivate: true },
   { group: "DATABASE_STORAGE", type: "backup-storage", label: "Backup Storage", autoActivate: true },
   // Developer Services

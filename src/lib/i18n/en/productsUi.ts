@@ -35,7 +35,7 @@ const m: Record<string, string> = {
   "Module Hosting tích hợp (true/false)": "Integrated Hosting module (true/false)",
   "Module Tên miền tích hợp (true/false)": "Integrated Domain module (true/false)",
   "Nhóm Server & Hosting (true/false)": "Server & Hosting group (true/false)",
-  "Nhóm Network (true/false)": "Network group (true/false)",
+  "Nhóm Proxy (true/false)": "Proxy group (true/false)",
   "Nhóm Security (true/false)": "Security group (true/false)",
   "Nhóm Tên miền (catalog) (true/false)": "Domain group (catalog) (true/false)",
   "Nhóm Database & Storage (true/false)": "Database & Storage group (true/false)",
