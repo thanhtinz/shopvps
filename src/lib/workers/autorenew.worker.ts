@@ -1,6 +1,6 @@
 import { Worker, Job } from "bullmq";
 import { prisma } from "@/lib/prisma";
-import { queueEmail, renewQueue } from "./index";
+import { queueEmail, getQueue } from "./index";
 import { getVpsProvider } from "@/lib/vps-providers";
 import { getWHMClient } from "@/lib/whm";
 import { decrypt } from "@/lib/encrypt";
@@ -72,7 +72,7 @@ async function chargeAndExtend(
 // just-completed one).
 async function scheduleNext(orderId: string, type: "vps" | "hosting", renewAt: Date) {
   const delay = Math.max(0, renewAt.getTime() - Date.now());
-  await renewQueue.add("renew", { orderId, type }, { delay, jobId: `renew-${type}-${orderId}-${renewAt.getTime()}` });
+  await getQueue("auto-renew").add("renew", { orderId, type }, { delay, jobId: `renew-${type}-${orderId}-${renewAt.getTime()}` });
 }
 
 async function renewVps(orderId: string) {
