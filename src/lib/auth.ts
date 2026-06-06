@@ -32,17 +32,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const valid = speakeasy.totp.verify({ secret: user.twoFactorSecret, encoding: "base32", token: credentials.totpCode, window: 2 });
           if (!valid) throw new Error("INVALID_2FA");
         }
-        return { id: user.id, email: user.email, name: user.name, image: user.image, role: user.role };
+        return { id: user.id, email: user.email, name: user.name, image: user.image, role: user.role, adminPermissions: user.adminPermissions };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: any) {
-      if (user) { token.id = user.id; token.role = user.role; }
+    async jwt({ token, user, trigger }: any) {
+      if (user) { token.id = user.id; token.role = user.role; token.adminPermissions = user.adminPermissions || []; }
+      // Refresh staff permissions on demand (e.g. after an admin edits them).
+      if (trigger === "update" && token.id) {
+        const fresh = await prisma.user.findUnique({ where: { id: token.id }, select: { role: true, adminPermissions: true } });
+        if (fresh) { token.role = fresh.role; token.adminPermissions = fresh.adminPermissions || []; }
+      }
       return token;
     },
     async session({ session, token }: any) {
-      if (token && session.user) { session.user.id = token.id; session.user.role = token.role; }
+      if (token && session.user) { session.user.id = token.id; session.user.role = token.role; session.user.adminPermissions = token.adminPermissions || []; }
       return session;
     },
   },

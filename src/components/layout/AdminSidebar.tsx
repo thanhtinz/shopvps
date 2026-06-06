@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useLocale } from "@/components/LocaleProvider";
+import { canAccessPath } from "@/lib/permissions";
 
 const nav = [
   { section: null, items: [
@@ -49,6 +51,7 @@ const nav = [
     { href:"/admin/license", label:"Giấy phép", icon:"M9 12l2 2 4-4 M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" },
   ]},
   { section: "Hệ thống", items: [
+    { href:"/admin/staff", label:"Nhân viên & phân quyền", icon:"M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z M22 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75", super:true },
     { href:"/admin/activity-log", label:"Activity Log", icon:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8" },
     { href:"/admin/settings", label:"Cài đặt", icon:"M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4" },
   ]},
@@ -61,7 +64,22 @@ function NavIcon({ d }: { d: string }) {
 export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const { t } = useLocale();
+  const [me, setMe] = useState<{ role: string; adminPermissions: string[] } | null>(null);
+  useEffect(() => { fetch("/api/admin/me").then(r => r.json()).then(d => d.success && setMe(d.data)).catch(() => {}); }, []);
   const isActive = (href: string) => href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+
+  // Hide nav the current admin can't reach. Super-only items (e.g. staff RBAC)
+  // are visible to SUPER_ADMIN only.
+  const role = me?.role || "";
+  const perms = me?.adminPermissions || [];
+  const canSee = (item: any) => {
+    if (role === "SUPER_ADMIN") return true;
+    if (item.super) return false;
+    return canAccessPath(role, perms, item.href);
+  };
+  const visibleNav = nav
+    .map(g => ({ ...g, items: g.items.filter(canSee) }))
+    .filter(g => g.items.length > 0);
 
   return (
     <aside style={{ width:"var(--sidebar-w)", height:"100%", background:"var(--bg-surface)", borderRight:"1px solid var(--border)", display:"flex", flexDirection:"column", flexShrink:0 }}>
@@ -75,7 +93,7 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
         </div>
       </div>
       <nav style={{ flex:1, overflowY:"auto", padding:"10px 8px" }}>
-        {nav.map((g, gi) => (
+        {visibleNav.map((g, gi) => (
           <div key={gi} style={{ marginBottom:2 }}>
             {g.section && <div style={{ padding:"10px 10px 3px", fontSize:10, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.1em", textTransform:"uppercase" }}>{t(g.section)}</div>}
             {g.items.map(item => {

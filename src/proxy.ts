@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { moduleForPath } from "@/lib/permissions";
 
 const BYPASS = ["/_next", "/api/auth", "/api/setup", "/api/webhook", "/favicon.ico"];
 const SETUP_ROUTE = "/setup";
@@ -37,10 +38,23 @@ export default auth((req: any) => {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (ADMIN_ROUTES.some(r => pathname.startsWith(r))) {
+  // Admin area: role gate + per-module staff RBAC (pages and APIs).
+  const isAdminArea = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+  if (isAdminArea) {
     const role = (session?.user as any)?.role;
+    const isApi = pathname.startsWith("/api/");
     if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      return isApi ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+    if (role !== "SUPER_ADMIN") {
+      const seg = pathname.match(/^\/(?:api\/)?admin\/([^/?]+)/)?.[1];
+      const mod = moduleForPath(pathname);
+      const perms = (session?.user as any)?.adminPermissions || [];
+      // staff RBAC management is SUPER_ADMIN only.
+      const denied = seg === "staff" || (mod ? !(Array.isArray(perms) && perms.includes(mod)) : false);
+      if (denied) {
+        return isApi ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL(`/admin?denied=${mod || seg}`, req.url));
+      }
     }
   }
 

@@ -19,6 +19,7 @@ model User {
   password          String?
   image             String?
   role              Role      @default(USER)
+  adminPermissions  Json?     // staff RBAC: list of module keys an ADMIN may access
   status            UserStatus @default(ACTIVE)
   balance           Decimal   @default(0) @db.Decimal(15, 2)
   preferredCurrency String    @default("VND")
