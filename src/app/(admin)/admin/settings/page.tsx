@@ -29,6 +29,14 @@ const SECTIONS = [
     { key:"registrar_api_key", label:"API key registrar" },
     { key:"registrar_sandbox", label:"Chế độ sandbox (true/false)" },
   ]},
+  { title:"Danh mục bán hàng (bật/tắt)", fields:[
+    { key:"sell_vps", label:"Bán VPS (true/false)" },
+    { key:"sell_hosting", label:"Bán Hosting (true/false)" },
+    { key:"sell_domain", label:"Bán Tên miền (true/false)" },
+    { key:"sell_dedicated", label:"Bán Máy chủ vật lý (true/false)" },
+    { key:"sell_proxy", label:"Bán Proxy (true/false)" },
+    { key:"sell_cronjob", label:"Bán Cronjob (true/false)" },
+  ]},
   { title:"Billing tự động", fields:[
     { key:"billing_invoice_lead_days", label:"Tạo hoá đơn trước hạn (số ngày, mặc định 7)" },
     { key:"billing_auto_pay", label:"Tự động trừ ví để gia hạn (true/false, mặc định true)" },

@@ -55,6 +55,7 @@ model User {
   serviceRequests   ServiceRequest[]
   domainOrders      DomainOrder[]
   quotes            Quote[]
+  productOrders     ProductOrder[]
 
   @@map("users")
 }
@@ -332,12 +333,97 @@ model InvoiceItem {
   total          Decimal @db.Decimal(10, 2)
   vpsOrderId     String?
   hostingOrderId String?
+  productOrderId String?
 
   invoice      Invoice       @relation(fields: [invoiceId], references: [id])
   vpsOrder     VpsOrder?     @relation(fields: [vpsOrderId], references: [id])
   hostingOrder HostingOrder? @relation(fields: [hostingOrderId], references: [id])
+  productOrder ProductOrder? @relation(fields: [productOrderId], references: [id])
 
   @@map("invoice_items")
+}
+
+enum ProductCategory {
+  DEDICATED
+  PROXY
+  CRONJOB
+}
+
+enum ProductOrderStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+model Product {
+  id           String          @id @default(cuid())
+  category     ProductCategory
+  name         String
+  slug         String
+  description  String?         @db.Text
+  priceMonthly Decimal         @db.Decimal(10, 2)
+  priceYearly  Decimal?        @db.Decimal(10, 2)
+  setupFee     Decimal         @default(0) @db.Decimal(10, 2)
+  specs        Json?
+  stock        Int?
+  isActive     Boolean         @default(true)
+  sortOrder    Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  orders ProductOrder[]
+
+  @@map("products")
+}
+
+model ProductOrder {
+  id              String             @id @default(cuid())
+  userId          String
+  productId       String
+  category        ProductCategory
+  label           String
+  status          ProductOrderStatus @default(PENDING)
+  billingCycle    BillingCycle       @default(MONTHLY)
+  price           Decimal            @db.Decimal(10, 2)
+  config          Json?
+  credentials     String?            @db.Text
+  data            Json?
+  startDate       DateTime?
+  expiresAt       DateTime?
+  autoRenew       Boolean            @default(true)
+  renewReminderAt DateTime?
+  notes           String?            @db.Text
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  product      Product       @relation(fields: [productId], references: [id])
+  cronjobs     Cronjob[]
+  invoiceItems InvoiceItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("product_orders")
+}
+
+model Cronjob {
+  id         String    @id @default(cuid())
+  orderId    String
+  name       String
+  url        String    @db.Text
+  method     String    @default("GET")
+  schedule   String // cron expression
+  isActive   Boolean   @default(true)
+  lastRunAt  DateTime?
+  lastStatus String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  order ProductOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("cronjobs")
 }
 
 model BankAccount {

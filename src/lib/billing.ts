@@ -32,15 +32,18 @@ export async function getBillingConfig(): Promise<BillingConfig> {
   };
 }
 
-export type ServiceKind = "vps" | "hosting";
+export type ServiceKind = "vps" | "hosting" | "product";
+
+function itemFilterFor(kind: ServiceKind, orderId: string) {
+  if (kind === "vps") return { some: { vpsOrderId: orderId } };
+  if (kind === "hosting") return { some: { hostingOrderId: orderId } };
+  return { some: { productOrderId: orderId } };
+}
 
 /** The existing UNPAID renewal invoice for an order, if one is already open. */
 export async function getOpenRenewalInvoice(kind: ServiceKind, orderId: string) {
   return prisma.invoice.findFirst({
-    where: {
-      status: "UNPAID",
-      items: kind === "vps" ? { some: { vpsOrderId: orderId } } : { some: { hostingOrderId: orderId } },
-    },
+    where: { status: "UNPAID", items: itemFilterFor(kind, orderId) },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -83,6 +86,7 @@ export async function createRenewalInvoice(kind: ServiceKind, order: RenewableOr
           total,
           vpsOrderId: kind === "vps" ? order.id : null,
           hostingOrderId: kind === "hosting" ? order.id : null,
+          productOrderId: kind === "product" ? order.id : null,
         },
       },
     },
@@ -151,6 +155,13 @@ export async function payInvoiceFromWallet(invoiceId: string, userId: string): P
             const months = CYCLE_MONTHS[o.billingCycle] || 1;
             await tx.hostingOrder.update({ where: { id: item.hostingOrderId }, data: { expiresAt: nextExpiry(o.expiresAt, months, now), status: "ACTIVE" } });
             if (o.status === "SUSPENDED") reactivated.hosting.push(item.hostingOrderId);
+          }
+        }
+        if (item.productOrderId) {
+          const o = await tx.productOrder.findUnique({ where: { id: item.productOrderId }, select: { billingCycle: true, expiresAt: true, status: true } });
+          if (o && o.status !== "TERMINATED") {
+            const months = CYCLE_MONTHS[o.billingCycle] || 1;
+            await tx.productOrder.update({ where: { id: item.productOrderId }, data: { expiresAt: nextExpiry(o.expiresAt, months, now), status: "ACTIVE" } });
           }
         }
       }

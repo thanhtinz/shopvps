@@ -5,6 +5,12 @@ export async function getSettings(keys: string[]): Promise<Record<string, string
   return Object.fromEntries(rows.map((r) => [r.key, r.value]));
 }
 
+/** Boolean setting flag, defaulting to `def` when unset. */
+export async function isFlagOn(key: string, def = true): Promise<boolean> {
+  const s = await getSettings([key]);
+  return (s[key] ?? (def ? "true" : "false")) !== "false";
+}
+
 /** Configured VAT rate (percent) and label. Defaults to 0% (disabled). */
 export async function getTaxConfig(): Promise<{ rate: number; label: string }> {
   const s = await getSettings(["tax_rate", "tax_label"]);

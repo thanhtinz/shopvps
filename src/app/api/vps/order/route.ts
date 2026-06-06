@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { queueVpsProvision } from "@/lib/workers";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { recordReferralCommission } from "@/lib/affiliate";
-import { getTaxForUser, taxFromInclusive } from "@/lib/settings";
+import { getTaxForUser, taxFromInclusive, isFlagOn } from "@/lib/settings";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 import { validateCoupon } from "@/lib/coupons";
 
@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
   const { t, locale } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isFlagOn("sell_vps"))) return NextResponse.json({ error: t("Sản phẩm hiện không được bán") }, { status: 400 });
 
   const { packageId, os, billingCycle, hostname, couponCode, region, addonIds } = await req.json();
   if (!packageId || !os || !hostname)

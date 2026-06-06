@@ -67,13 +67,26 @@ async function generateUpcomingInvoices(leadDays: number) {
     await notifyInvoiceGenerated(o.userId, o.user?.email || null, inv, `Hosting ${o.domain}`);
   }
 
+  const products = await prisma.productOrder.findMany({
+    where: { status: { in: ["ACTIVE", "SUSPENDED"] }, expiresAt: { not: null, lte: cutoff } },
+    include: { user: { select: { email: true } }, product: { select: { name: true } } },
+  });
+  for (const o of products) {
+    if (await getOpenRenewalInvoice("product", o.id)) continue;
+    const { t } = await getUserT(o.userId);
+    const label = `${t("Gia hạn")} ${o.product?.name || ""} — ${o.label}`.trim();
+    const inv = await createRenewalInvoice("product", o as any, label);
+    created++;
+    await notifyInvoiceGenerated(o.userId, o.user?.email || null, inv, `${o.product?.name || ""} ${o.label}`.trim());
+  }
+
   if (created) console.log(`[Billing Worker] Generated ${created} renewal invoices`);
 }
 
 /** Auto-pay open renewal invoices from the wallet for auto-renew services. */
 async function autoPayDueInvoices() {
   const invoices = await prisma.invoice.findMany({
-    where: { status: "UNPAID", items: { some: { OR: [{ vpsOrderId: { not: null } }, { hostingOrderId: { not: null } }] } } },
+    where: { status: "UNPAID", items: { some: { OR: [{ vpsOrderId: { not: null } }, { hostingOrderId: { not: null } }, { productOrderId: { not: null } }] } } },
     include: { items: true },
   });
 
@@ -101,7 +114,7 @@ async function autoPayDueInvoices() {
 async function runDunning(suspendGraceDays: number, terminateDays: number) {
   const now = Date.now();
   const invoices = await prisma.invoice.findMany({
-    where: { status: "UNPAID", dueDate: { not: null }, items: { some: { OR: [{ vpsOrderId: { not: null } }, { hostingOrderId: { not: null } }] } } },
+    where: { status: "UNPAID", dueDate: { not: null }, items: { some: { OR: [{ vpsOrderId: { not: null } }, { hostingOrderId: { not: null } }, { productOrderId: { not: null } }] } } },
     include: { items: true },
   });
 
@@ -114,6 +127,7 @@ async function runDunning(suspendGraceDays: number, terminateDays: number) {
     for (const item of inv.items) {
       if (item.vpsOrderId) await dunVps(item.vpsOrderId, terminate, t);
       if (item.hostingOrderId) await dunHosting(item.hostingOrderId, terminate, t);
+      if (item.productOrderId) await dunProduct(item.productOrderId, terminate, t);
     }
 
     if (terminate) {
@@ -150,6 +164,19 @@ async function dunHosting(orderId: string, terminate: boolean, t: (k: string) =>
   }
 }
 
+async function dunProduct(orderId: string, terminate: boolean, t: (k: string) => string) {
+  const o = await prisma.productOrder.findUnique({ where: { id: orderId }, include: { user: { select: { email: true } }, product: { select: { name: true } } } });
+  if (!o || o.status === "TERMINATED") return;
+  const label = `${o.product?.name || ""} ${o.label}`.trim();
+  if (terminate) {
+    await prisma.productOrder.update({ where: { id: orderId }, data: { status: "TERMINATED" } });
+    await notifyDunning(o.userId, o.user?.email || null, t, label, true);
+  } else if (o.status === "ACTIVE") {
+    await prisma.productOrder.update({ where: { id: orderId }, data: { status: "SUSPENDED" } });
+    await notifyDunning(o.userId, o.user?.email || null, t, label, false);
+  }
+}
+
 async function isAutoRenew(items: any[]): Promise<boolean> {
   for (const it of items) {
     if (it.vpsOrderId) {
@@ -158,6 +185,10 @@ async function isAutoRenew(items: any[]): Promise<boolean> {
     }
     if (it.hostingOrderId) {
       const o = await prisma.hostingOrder.findUnique({ where: { id: it.hostingOrderId }, select: { autoRenew: true } });
+      if (o?.autoRenew) return true;
+    }
+    if (it.productOrderId) {
+      const o = await prisma.productOrder.findUnique({ where: { id: it.productOrderId }, select: { autoRenew: true } });
       if (o?.autoRenew) return true;
     }
   }

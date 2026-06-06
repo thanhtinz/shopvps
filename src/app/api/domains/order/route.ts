@@ -3,13 +3,14 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resolveTld, isValidDomain } from "@/lib/domains";
 import { getRegistrar } from "@/lib/registrars";
-import { getSettings } from "@/lib/settings";
+import { getSettings, isFlagOn } from "@/lib/settings";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
   const { t } = await getServerT();
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isFlagOn("sell_domain"))) return NextResponse.json({ error: t("Sản phẩm hiện không được bán") }, { status: 400 });
 
   const { domain: rawDomain, years: rawYears, nameservers, authCode, type } = await req.json();
   const domain = String(rawDomain || "").toLowerCase().trim();
