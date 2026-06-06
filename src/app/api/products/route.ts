@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { isProductCategory, isCategorySellable } from "@/lib/products";
+import { isKnownGroup, isKnownType, groupOfType, isGroupSellable } from "@/lib/products";
 
-// Active products of a category for the store (only if the category is sellable).
+// Active products for the store, filtered by ?group= or ?category= (type slug).
+// Only returns items whose taxonomy group is currently sellable.
 export async function GET(req: NextRequest) {
-  const category = (new URL(req.url).searchParams.get("category") || "").toUpperCase();
-  if (!isProductCategory(category)) return NextResponse.json({ error: "Invalid category" }, { status: 400 });
-  if (!(await isCategorySellable(category))) return NextResponse.json({ success: true, data: [] });
+  const sp = new URL(req.url).searchParams;
+  const group = sp.get("group") || "";
+  const category = sp.get("category") || "";
+
+  const where: any = { isActive: true };
+  if (group) {
+    if (!isKnownGroup(group)) return NextResponse.json({ error: "Invalid group" }, { status: 400 });
+    if (!(await isGroupSellable(group))) return NextResponse.json({ success: true, data: [] });
+    where.group = group;
+  } else if (category) {
+    if (!isKnownType(category)) return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+    if (!(await isGroupSellable(groupOfType(category)))) return NextResponse.json({ success: true, data: [] });
+    where.category = category;
+  } else {
+    return NextResponse.json({ error: "Missing group or category" }, { status: 400 });
+  }
+
   const products = await prisma.product.findMany({
-    where: { category, isActive: true },
-    orderBy: [{ sortOrder: "asc" }, { priceMonthly: "asc" }],
+    where, orderBy: [{ sortOrder: "asc" }, { priceMonthly: "asc" }],
   });
   return NextResponse.json({ success: true, data: products });
 }

@@ -19,6 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (b.sortOrder != null) data.sortOrder = parseInt(b.sortOrder, 10) || 0;
   if (b.stock !== undefined) data.stock = b.stock === "" || b.stock == null ? null : parseInt(b.stock, 10);
   if (typeof b.isActive === "boolean") data.isActive = b.isActive;
+  if (typeof b.autoActivate === "boolean") data.autoActivate = b.autoActivate;
   if (b.specs !== undefined) { try { data.specs = b.specs ? (typeof b.specs === "string" ? JSON.parse(b.specs) : b.specs) : null; } catch { return NextResponse.json({ error: t("Specs JSON không hợp lệ") }, { status: 400 }); } }
   const product = await prisma.product.update({ where: { id }, data });
   return NextResponse.json({ success: true, data: product });

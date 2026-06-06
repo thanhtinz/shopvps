@@ -7,17 +7,22 @@ import { useLocale } from "@/components/LocaleProvider";
 const inputStyle = { width:"100%", boxSizing:"border-box" as const, background:"var(--bg-surface)", border:"1.5px solid var(--border)", borderRadius:"var(--radius-md)", padding:"9px 12px", color:"var(--text-primary)", fontSize:13, outline:"none", fontFamily:"inherit" };
 const labelStyle = { display:"block", fontSize:11, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.08em", textTransform:"uppercase" as const, marginBottom:5 };
 
-const CATEGORIES = ["DEDICATED","PROXY","CRONJOB"] as const;
+type GroupDef = { id: string; label: string };
+type TypeDef = { group: string; type: string; label: string; autoActivate?: boolean };
 
 export default function AdminProductsPage() {
   const { t } = useLocale();
-  const catLabel = (c: string) => c==="DEDICATED" ? t("Máy chủ vật lý") : c==="PROXY" ? t("Proxy") : t("Cronjob");
+  const [groups, setGroups] = useState<GroupDef[]>([]);
+  const [types, setTypes] = useState<TypeDef[]>([]);
+  const groupLabel = (id: string) => groups.find(g=>g.id===id)?.label ?? id;
+  const typeLabel = (slug: string) => types.find(tp=>tp.type===slug)?.label ?? slug;
+
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string|null>(null);
-  const emptyForm = { category:"DEDICATED", name:"", slug:"", description:"", priceMonthly:"", priceYearly:"", setupFee:"", stock:"", sortOrder:"", specs:"", isActive:true };
+  const emptyForm = { group:"", category:"", name:"", slug:"", description:"", priceMonthly:"", priceYearly:"", setupFee:"", stock:"", sortOrder:"", specs:"", autoActivate:false, isActive:true };
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -27,7 +32,12 @@ export default function AdminProductsPage() {
     const d = await fetch("/api/admin/products").then(r=>r.json());
     setProducts(d.data||[]); setLoading(false);
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    fetch("/api/products/taxonomy").then(r=>r.json()).then(d=>{
+      setGroups(d.data?.groups||[]); setTypes(d.data?.types||[]);
+    });
+    load();
+  }, []);
 
   function openCreate() {
     setEditId(null); setForm(emptyForm); setError(""); setShowForm(true);
@@ -35,6 +45,7 @@ export default function AdminProductsPage() {
   function openEdit(p: any) {
     setEditId(p.id); setError("");
     setForm({
+      group: p.group ?? "",
       category: p.category,
       name: p.name ?? "",
       slug: p.slug ?? "",
@@ -45,9 +56,18 @@ export default function AdminProductsPage() {
       stock: p.stock==null ? "" : p.stock.toString(),
       sortOrder: p.sortOrder?.toString() ?? "",
       specs: p.specs ? JSON.stringify(p.specs, null, 2) : "",
+      autoActivate: !!p.autoActivate,
       isActive: !!p.isActive,
     });
     setShowForm(true);
+  }
+
+  function pickGroup(groupId: string) {
+    setForm(p=>({ ...p, group:groupId, category:"" }));
+  }
+  function pickType(slug: string) {
+    const td = types.find(tp=>tp.type===slug);
+    setForm(p=>({ ...p, category:slug, autoActivate: td ? !!td.autoActivate : p.autoActivate }));
   }
 
   async function save(e: React.FormEvent) {
@@ -61,6 +81,7 @@ export default function AdminProductsPage() {
       stock: form.stock === "" ? null : parseInt(form.stock),
       sortOrder: form.sortOrder ? parseInt(form.sortOrder) : 0,
       specs: form.specs,
+      autoActivate: form.autoActivate,
       isActive: form.isActive,
     };
     if (form.slug) body.slug = form.slug;
@@ -83,7 +104,8 @@ export default function AdminProductsPage() {
     await load();
   }
 
-  const shown = filter ? products.filter(p=>p.category===filter) : products;
+  const shown = filter ? products.filter(p=>p.group===filter) : products;
+  const typesForGroup = types.filter(tp=>tp.group===form.group);
 
   if (loading) return <div className="skeleton" style={{ height:300, borderRadius:"var(--radius-lg)" }}/>;
 
@@ -96,8 +118,8 @@ export default function AdminProductsPage() {
         </button>
       </div>
 
-      <div style={{ display:"flex", gap:8, marginBottom:16 }}>
-        {[{v:"",l:t("Tất cả")},{v:"DEDICATED",l:t("Máy chủ vật lý")},{v:"PROXY",l:t("Proxy")},{v:"CRONJOB",l:t("Cronjob")}].map(o=>(
+      <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+        {[{v:"",l:t("Tất cả")}, ...groups.map(g=>({v:g.id,l:g.label}))].map(o=>(
           <button key={o.v} onClick={()=>setFilter(o.v)} style={{ padding:"7px 14px", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", background:filter===o.v?"var(--accent)":"var(--bg-elevated)", color:filter===o.v?"white":"var(--text-secondary)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>{o.l}</button>
         ))}
       </div>
@@ -122,7 +144,7 @@ export default function AdminProductsPage() {
               >
                 <td style={{ padding:"12px 14px" }}>
                   <div style={{ fontSize:13.5, fontWeight:700, color:"var(--text-primary)", marginBottom:4 }}>{p.name}</div>
-                  <Badge color={p.category==="DEDICATED"?"purple":p.category==="PROXY"?"cyan":"blue"}>{catLabel(p.category)}</Badge>
+                  <div style={{ fontSize:11.5, color:"var(--text-muted)" }}>{groupLabel(p.group)} · {typeLabel(p.category)}</div>
                 </td>
                 <td style={{ padding:"12px 14px", fontSize:13, fontWeight:700, color:"var(--text-primary)" }}>{formatCurrency(p.priceMonthly)}</td>
                 <td style={{ padding:"12px 14px", fontSize:12.5, color:"var(--text-secondary)" }}>{formatCurrency(p.setupFee)}</td>
@@ -144,10 +166,18 @@ export default function AdminProductsPage() {
             <h3 style={{ fontSize:16, fontWeight:700, color:"var(--text-primary)", marginBottom:20 }}>{editId?t("Sửa sản phẩm"):t("Tạo sản phẩm")}</h3>
             <form onSubmit={save}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
-                <div style={{ gridColumn:"1/-1" }}>
-                  <label style={labelStyle}>{t("Danh mục")}</label>
-                  <select value={form.category} disabled={!!editId} onChange={e=>setForm(p=>({...p,category:e.target.value}))} style={{ ...inputStyle, cursor:editId?"not-allowed":"pointer", opacity:editId?0.6:1 }}>
-                    {CATEGORIES.map(c=><option key={c} value={c}>{catLabel(c)}</option>)}
+                <div>
+                  <label style={labelStyle}>{t("Nhóm")}</label>
+                  <select value={form.group} disabled={!!editId} onChange={e=>pickGroup(e.target.value)} style={{ ...inputStyle, cursor:editId?"not-allowed":"pointer", opacity:editId?0.6:1 }}>
+                    <option value="">—</option>
+                    {groups.map(g=><option key={g.id} value={g.id}>{g.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>{t("Loại")}</label>
+                  <select value={form.category} disabled={!!editId} onChange={e=>pickType(e.target.value)} required style={{ ...inputStyle, cursor:editId?"not-allowed":"pointer", opacity:editId?0.6:1 }}>
+                    <option value="">—</option>
+                    {typesForGroup.map(tp=><option key={tp.type} value={tp.type}>{tp.label}</option>)}
                   </select>
                 </div>
                 <div style={{ gridColumn:"1/-1" }}>
@@ -180,7 +210,13 @@ export default function AdminProductsPage() {
                 </div>
                 <div style={{ gridColumn:"1/-1" }}>
                   <label style={labelStyle}>{t("Thông số kỹ thuật (JSON)")}</label>
-                  <textarea value={form.specs} onChange={e=>setForm(p=>({...p,specs:e.target.value}))} rows={5} placeholder={form.category==="DEDICATED"?'{"cpu":"Xeon E5","ram":"32GB","disk":"2x1TB"}':form.category==="PROXY"?'{"type":"SOCKS5","count":10}':'{"maxJobs":20,"minInterval":"1m"}'} style={{ ...inputStyle, resize:"vertical", fontFamily:"var(--font-mono)" }} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
+                  <textarea value={form.specs} onChange={e=>setForm(p=>({...p,specs:e.target.value}))} rows={5} placeholder='{"cpu":"Xeon E5","ram":"32GB","disk":"2x1TB"}' style={{ ...inputStyle, resize:"vertical", fontFamily:"var(--font-mono)" }} onFocus={e=>e.target.style.borderColor="rgba(79,124,255,0.5)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
+                </div>
+                <div style={{ gridColumn:"1/-1" }}>
+                  <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:13, color:"var(--text-secondary)", cursor:"pointer" }}>
+                    <input type="checkbox" checked={form.autoActivate} onChange={e=>setForm(p=>({...p,autoActivate:e.target.checked}))}/>
+                    {t("Tự động kích hoạt khi mua")}
+                  </label>
                 </div>
                 <div style={{ gridColumn:"1/-1" }}>
                   <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:13, color:"var(--text-secondary)", cursor:"pointer" }}>

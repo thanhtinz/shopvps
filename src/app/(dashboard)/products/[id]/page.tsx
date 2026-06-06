@@ -24,13 +24,14 @@ type Cronjob = {
 type Detail = {
   id: string;
   label: string;
-  category: "DEDICATED" | "PROXY" | "CRONJOB";
+  group: string;
+  category: string;
   status: "PENDING" | "ACTIVE" | "SUSPENDED" | "TERMINATED";
   billingCycle: string;
   price: number;
   createdAt: string;
   expiresAt: string | null;
-  product: { name: string; category: string; specs: any };
+  product: { name: string; category: string; group: string; specs: any };
   credentials: string | null;
   cronjobs: Cronjob[];
 };
@@ -46,10 +47,28 @@ export default function ProductDetailPage() {
 
   const [order, setOrder] = useState<Detail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [typeLabels, setTypeLabels] = useState<Record<string, string>>({});
+  const [groupLabels, setGroupLabels] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState({ name: "", url: "", method: "GET", schedule: "" });
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/products/taxonomy").then(r => r.json()).then(d => {
+      const types: Array<{ type: string; label: string }> = d.data?.types || [];
+      const groups: Array<{ id: string; label: string }> = d.data?.groups || [];
+      const tl: Record<string, string> = {};
+      for (const ty of types) tl[ty.type] = ty.label;
+      const gl: Record<string, string> = {};
+      for (const g of groups) gl[g.id] = g.label;
+      setTypeLabels(tl);
+      setGroupLabels(gl);
+    }).catch(() => {});
+  }, []);
+
+  const typeLabel = (slug: string) => typeLabels[slug] || slug;
+  const groupLabel = (id: string) => groupLabels[id] || id;
 
   const load = useCallback(() => {
     if (!id) return;
@@ -102,7 +121,8 @@ export default function ProductDetailPage() {
   );
 
   const specs = order.product?.specs && typeof order.product.specs === "object" ? order.product.specs : null;
-  const showCronManager = order.category === "CRONJOB" && order.status === "ACTIVE";
+  const isCronjob = order.category === "cronjob" || order.product?.category === "cronjob";
+  const showCronManager = isCronjob && order.status === "ACTIVE";
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -113,6 +133,8 @@ export default function ProductDetailPage() {
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <h1 style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.03em" }}>{order.product?.name}</h1>
         <Badge color={statusColor[order.status] || "gray"}>{statusLabel[order.status] || order.status}</Badge>
+        <Badge color="blue">{typeLabel(order.category)}</Badge>
+        <span style={{ fontSize: 12.5, color: "var(--text-muted)" }}>{groupLabel(order.group)}</span>
         <span style={{ fontSize: 12.5, color: "var(--text-muted)" }}>{order.label}</span>
       </div>
 

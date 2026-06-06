@@ -8,19 +8,21 @@ import { useLocale } from "@/components/LocaleProvider";
 type Order = {
   id: string;
   label: string;
-  category: "DEDICATED" | "PROXY" | "CRONJOB";
+  group: string;
+  category: string;
   status: "PENDING" | "ACTIVE" | "SUSPENDED" | "TERMINATED";
   billingCycle: string;
   price: number;
   createdAt: string;
   expiresAt: string | null;
-  product: { name: string; category: string; specs: any };
+  product: { name: string; category: string; group: string; specs: any };
 };
 
 export default function ProductsPage() {
   const { t } = useLocale();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [typeLabels, setTypeLabels] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetch("/api/products/orders").then(r => r.json()).then(d => {
@@ -29,10 +31,19 @@ export default function ProductsPage() {
     }).catch(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetch("/api/products/taxonomy").then(r => r.json()).then(d => {
+      const types: Array<{ type: string; label: string }> = d.data?.types || [];
+      const tl: Record<string, string> = {};
+      for (const ty of types) tl[ty.type] = ty.label;
+      setTypeLabels(tl);
+    }).catch(() => {});
+  }, []);
+
+  const typeLabel = (slug: string) => typeLabels[slug] || slug;
+
   const statusColor: Record<string, "green" | "yellow" | "gray" | "red"> = { ACTIVE: "green", PENDING: "yellow", SUSPENDED: "gray", TERMINATED: "red" };
   const statusLabel: Record<string, string> = { ACTIVE: t("Đang hoạt động"), PENDING: t("Chờ kích hoạt"), SUSPENDED: t("Tạm dừng"), TERMINATED: t("Đã huỷ") };
-  const categoryLabel: Record<string, string> = { DEDICATED: t("Máy chủ vật lý"), PROXY: t("Proxy"), CRONJOB: t("Cronjob") };
-  const categoryColor: Record<string, "blue" | "purple" | "cyan"> = { DEDICATED: "blue", PROXY: "purple", CRONJOB: "cyan" };
 
   if (loading) return <div style={{ maxWidth: 900, margin: "0 auto" }}><div className="skeleton" style={{ height: 300, borderRadius: "var(--radius-lg)" }} /></div>;
 
@@ -66,7 +77,7 @@ export default function ProductsPage() {
                     <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{o.product?.name}</div>
                     <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{o.label}</div>
                   </td>
-                  <td style={{ padding: "12px 16px" }}><Badge color={categoryColor[o.category] || "gray"}>{categoryLabel[o.category] || o.category}</Badge></td>
+                  <td style={{ padding: "12px 16px" }}><Badge color="blue">{typeLabel(o.category)}</Badge></td>
                   <td style={{ padding: "12px 16px" }}><Badge color={statusColor[o.status] || "gray"}>{statusLabel[o.status] || o.status}</Badge></td>
                   <td style={{ padding: "12px 16px", fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{formatCurrency(o.price)}</td>
                   <td style={{ padding: "12px 16px", fontSize: 12, color: "var(--text-muted)", whiteSpace: "nowrap" }}>{o.expiresAt ? formatDate(o.expiresAt) : "—"}</td>

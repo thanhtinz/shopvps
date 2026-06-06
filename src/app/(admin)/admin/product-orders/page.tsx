@@ -9,9 +9,15 @@ const labelStyle = { display:"block", fontSize:11, fontWeight:700, color:"var(--
 
 const STATUSES = ["PENDING","ACTIVE","SUSPENDED","TERMINATED"] as const;
 
+type GroupDef = { id: string; label: string };
+type TypeDef = { group: string; type: string; label: string; autoActivate?: boolean };
+
 export default function AdminProductOrdersPage() {
   const { t } = useLocale();
-  const catLabel = (c: string) => c==="DEDICATED" ? t("Máy chủ vật lý") : c==="PROXY" ? t("Proxy") : t("Cronjob");
+  const [groups, setGroups] = useState<GroupDef[]>([]);
+  const [types, setTypes] = useState<TypeDef[]>([]);
+  const groupLabel = (id: string) => groups.find(g=>g.id===id)?.label ?? id;
+  const typeLabel = (slug: string) => types.find(tp=>tp.type===slug)?.label ?? slug;
   const statusLabel = (s: string) => s==="PENDING" ? t("Chờ kích hoạt") : s==="ACTIVE" ? t("Đang hoạt động") : s==="SUSPENDED" ? t("Tạm dừng") : t("Đã huỷ");
   const statusColor = (s: string): any => s==="ACTIVE" ? "green" : s==="PENDING" ? "yellow" : s==="SUSPENDED" ? "gray" : "red";
 
@@ -23,11 +29,17 @@ export default function AdminProductOrdersPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  async function load(cat: string) {
+  async function load(group: string) {
     setLoading(true);
-    const d = await fetch(`/api/admin/product-orders?category=${cat}`).then(r=>r.json());
+    const url = group ? `/api/admin/product-orders?group=${group}` : "/api/admin/product-orders";
+    const d = await fetch(url).then(r=>r.json());
     setOrders(d.data||[]); setLoading(false);
   }
+  useEffect(() => {
+    fetch("/api/products/taxonomy").then(r=>r.json()).then(d=>{
+      setGroups(d.data?.groups||[]); setTypes(d.data?.types||[]);
+    });
+  }, []);
   useEffect(() => { load(filter); }, [filter]);
 
   function openManage(o: any) {
@@ -58,8 +70,8 @@ export default function AdminProductOrdersPage() {
         <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em" }}>{t("Đơn sản phẩm")}</h1>
       </div>
 
-      <div style={{ display:"flex", gap:8, marginBottom:16 }}>
-        {[{v:"",l:t("Tất cả")},{v:"DEDICATED",l:t("Máy chủ vật lý")},{v:"PROXY",l:t("Proxy")},{v:"CRONJOB",l:t("Cronjob")}].map(o=>(
+      <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+        {[{v:"",l:t("Tất cả")}, ...groups.map(g=>({v:g.id,l:g.label}))].map(o=>(
           <button key={o.v} onClick={()=>setFilter(o.v)} style={{ padding:"7px 14px", borderRadius:"var(--radius-md)", border:"1px solid var(--border)", background:filter===o.v?"var(--accent)":"var(--bg-elevated)", color:filter===o.v?"white":"var(--text-secondary)", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>{o.l}</button>
         ))}
       </div>
@@ -90,7 +102,10 @@ export default function AdminProductOrdersPage() {
                   <div style={{ fontSize:13, fontWeight:600, color:"var(--text-primary)" }}>{o.product?.name}</div>
                   {o.label && <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:2 }}>{o.label}</div>}
                 </td>
-                <td style={{ padding:"12px 14px" }}><Badge color={o.category==="DEDICATED"?"purple":o.category==="PROXY"?"cyan":"blue"}>{catLabel(o.category)}</Badge></td>
+                <td style={{ padding:"12px 14px" }}>
+                  <Badge color="blue">{typeLabel(o.category)}</Badge>
+                  <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:4 }}>{groupLabel(o.group)}</div>
+                </td>
                 <td style={{ padding:"12px 14px", fontSize:13, fontWeight:700, color:"var(--text-primary)" }}>{formatCurrency(o.price)}</td>
                 <td style={{ padding:"12px 14px" }}><Badge color={statusColor(o.status)}>{statusLabel(o.status)}</Badge></td>
                 <td style={{ padding:"12px 14px", fontSize:12, color:"var(--text-muted)", whiteSpace:"nowrap" }}>{formatDate(o.createdAt)}</td>

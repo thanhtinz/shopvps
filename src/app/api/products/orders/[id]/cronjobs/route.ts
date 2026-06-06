@@ -6,7 +6,7 @@ import { isValidCron } from "@/lib/cron";
 import { getServerT } from "@/lib/i18n/server";
 
 async function ownedCronOrder(userId: string, id: string) {
-  return prisma.productOrder.findFirst({ where: { id, userId, category: "CRONJOB" }, include: { product: { select: { specs: true } }, cronjobs: true } });
+  return prisma.productOrder.findFirst({ where: { id, userId, category: "cronjob" }, include: { product: { select: { specs: true } }, cronjobs: true } });
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

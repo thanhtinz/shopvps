@@ -29,5 +29,16 @@ const m: Record<string, string> = {
   "Bán Máy chủ vật lý (true/false)": "Sell Dedicated servers (true/false)",
   "Bán Proxy (true/false)": "Sell Proxies (true/false)",
   "Bán Cronjob (true/false)": "Sell Cronjobs (true/false)",
+  // Catalog group toggles
+  "Module VPS tích hợp (true/false)": "Integrated VPS module (true/false)",
+  "Module Hosting tích hợp (true/false)": "Integrated Hosting module (true/false)",
+  "Module Tên miền tích hợp (true/false)": "Integrated Domain module (true/false)",
+  "Nhóm Server & Hosting (true/false)": "Server & Hosting group (true/false)",
+  "Nhóm Network & Security (true/false)": "Network & Security group (true/false)",
+  "Nhóm Tên miền (catalog) (true/false)": "Domain group (catalog) (true/false)",
+  "Nhóm Developer Services (true/false)": "Developer Services group (true/false)",
+  "Nhóm AI Services (true/false)": "AI Services group (true/false)",
+  "Nhóm MMO & Marketing (true/false)": "MMO & Marketing group (true/false)",
+  "Nhóm License Services (true/false)": "License Services group (true/false)",
 };
 export default m;

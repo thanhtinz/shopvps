@@ -31,14 +31,18 @@ interface HostingPackage {
   priceMonthly: number; server: { id: string; name: string };
 }
 interface Product {
-  id: string; category: string; name: string; description: string | null;
+  id: string; group: string; category: string; name: string; description: string | null;
   priceMonthly: number; priceYearly: number; setupFee: number;
   specs: Record<string, unknown> | null; stock: number | null;
 }
 interface Catalog {
   sell_vps: boolean; sell_hosting: boolean; sell_domain: boolean;
-  sell_dedicated: boolean; sell_proxy: boolean; sell_cronjob: boolean;
+  [key: string]: boolean;
 }
+interface TaxonomyGroup { id: string; label: string }
+interface TaxonomyType { group: string; type: string; label: string; autoActivate?: boolean }
+interface Taxonomy { groups: TaxonomyGroup[]; types: TaxonomyType[] }
+interface GroupSection { id: string; label: string; products: Product[] }
 
 const cardStyle: React.CSSProperties = {
   background: "var(--bg-surface)", border: "1px solid var(--border)",
@@ -188,7 +192,7 @@ function HostingCard({ pkg }: { pkg: HostingPackage }) {
   );
 }
 
-function ProductCard({ product, labelPlaceholder }: { product: Product; labelPlaceholder: string }) {
+function ProductCard({ product, labelPlaceholder, typeLabel }: { product: Product; labelPlaceholder: string; typeLabel?: string }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
@@ -227,6 +231,7 @@ function ProductCard({ product, labelPlaceholder }: { product: Product; labelPla
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
         <div>
           <div style={{ fontSize: 14.5, fontWeight: 700, color: "var(--text-primary)" }}>{product.name}</div>
+          {typeLabel && <div style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", marginTop: 2 }}>{typeLabel}</div>}
           {product.description && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{product.description}</div>}
         </div>
         <div style={{ fontSize: 15, fontWeight: 800, color: "var(--accent)", whiteSpace: "nowrap" }}>
@@ -283,9 +288,8 @@ export default function StorePage() {
   const [vps, setVps] = useState<VpsPackage[]>([]);
   const [hosting, setHosting] = useState<HostingPackage[]>([]);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
-  const [dedicated, setDedicated] = useState<Product[]>([]);
-  const [proxy, setProxy] = useState<Product[]>([]);
-  const [cronjob, setCronjob] = useState<Product[]>([]);
+  const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null);
+  const [groupSections, setGroupSections] = useState<GroupSection[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -293,19 +297,31 @@ export default function StorePage() {
       fetch("/api/vps/packages").then((r) => r.json()),
       fetch("/api/hosting/packages").then((r) => r.json()),
       fetch("/api/catalog").then((r) => r.json()),
-      fetch("/api/products?category=DEDICATED").then((r) => r.json()),
-      fetch("/api/products?category=PROXY").then((r) => r.json()),
-      fetch("/api/products?category=CRONJOB").then((r) => r.json()),
-    ]).then(([v, h, c, d, p, cj]) => {
+      fetch("/api/products/taxonomy").then((r) => r.json()),
+    ]).then(async ([v, h, c, tax]) => {
       setVps(v.data || []);
       setHosting(h.data || []);
-      setCatalog(c.data || null);
-      setDedicated(d.data || []);
-      setProxy(p.data || []);
-      setCronjob(cj.data || []);
+      const cat: Catalog | null = c.data || null;
+      setCatalog(cat);
+      const taxData: Taxonomy = { groups: tax.data?.groups || [], types: tax.data?.types || [] };
+      setTaxonomy(taxData);
+
+      const enabledGroups = taxData.groups.filter((g) => cat?.[`sell_group_${g.id}`]);
+      const fetched = await Promise.all(
+        enabledGroups.map(async (g) => {
+          const res = await fetch(`/api/products?group=${g.id}`).then((r) => r.json()).catch(() => ({}));
+          return { id: g.id, label: g.label, products: (res.data || []) as Product[] };
+        })
+      );
+      setGroupSections(fetched.filter((s) => s.products.length > 0));
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
+
+  const typeLabel = (slug: string): string => {
+    const found = taxonomy?.types.find((t2) => t2.type === slug);
+    return found?.label || slug;
+  };
 
   const gridStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 };
 
@@ -347,26 +363,16 @@ export default function StorePage() {
             </section>
           )}
 
-          {catalog?.sell_dedicated && dedicated.length > 0 && (
-            <section style={{ marginBottom: 32 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Máy chủ vật lý")}</h2>
-              <div style={gridStyle}>{dedicated.map((p) => <ProductCard key={p.id} product={p} labelPlaceholder="srv01" />)}</div>
+          {groupSections.map((sec) => (
+            <section key={sec.id} style={{ marginBottom: 32 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{sec.label}</h2>
+              <div style={gridStyle}>
+                {sec.products.map((p) => (
+                  <ProductCard key={p.id} product={p} labelPlaceholder="srv01" typeLabel={typeLabel(p.category)} />
+                ))}
+              </div>
             </section>
-          )}
-
-          {catalog?.sell_proxy && proxy.length > 0 && (
-            <section style={{ marginBottom: 32 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Proxy")}</h2>
-              <div style={gridStyle}>{proxy.map((p) => <ProductCard key={p.id} product={p} labelPlaceholder="proxy-vn" />)}</div>
-            </section>
-          )}
-
-          {catalog?.sell_cronjob && cronjob.length > 0 && (
-            <section>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Cronjob")}</h2>
-              <div style={gridStyle}>{cronjob.map((p) => <ProductCard key={p.id} product={p} labelPlaceholder="job-01" />)}</div>
-            </section>
-          )}
+          ))}
         </>
       )}
     </div>

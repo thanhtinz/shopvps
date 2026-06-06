@@ -20,7 +20,7 @@ cronjobQueue.add("tick", {}, { repeat: { every: 60_000 } }).catch(() => {});
 async function runDueCronjobs() {
   const now = new Date();
   const jobs = await prisma.cronjob.findMany({
-    where: { isActive: true, order: { status: "ACTIVE", category: "CRONJOB" } },
+    where: { isActive: true, order: { status: "ACTIVE", category: "cronjob" } },
   });
 
   for (const job of jobs) {

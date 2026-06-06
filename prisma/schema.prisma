@@ -343,12 +343,6 @@ model InvoiceItem {
   @@map("invoice_items")
 }
 
-enum ProductCategory {
-  DEDICATED
-  PROXY
-  CRONJOB
-}
-
 enum ProductOrderStatus {
   PENDING
   ACTIVE
@@ -357,23 +351,26 @@ enum ProductOrderStatus {
 }
 
 model Product {
-  id           String          @id @default(cuid())
-  category     ProductCategory
+  id           String   @id @default(cuid())
+  group        String   // taxonomy group id, e.g. NETWORK_SECURITY
+  category     String   // taxonomy type slug, e.g. proxy-ipv4
   name         String
   slug         String
-  description  String?         @db.Text
-  priceMonthly Decimal         @db.Decimal(10, 2)
-  priceYearly  Decimal?        @db.Decimal(10, 2)
-  setupFee     Decimal         @default(0) @db.Decimal(10, 2)
+  description  String?  @db.Text
+  priceMonthly Decimal  @db.Decimal(10, 2)
+  priceYearly  Decimal? @db.Decimal(10, 2)
+  setupFee     Decimal  @default(0) @db.Decimal(10, 2)
   specs        Json?
   stock        Int?
-  isActive     Boolean         @default(true)
-  sortOrder    Int             @default(0)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  autoActivate Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   orders ProductOrder[]
 
+  @@index([group])
   @@map("products")
 }
 
@@ -381,7 +378,8 @@ model ProductOrder {
   id              String             @id @default(cuid())
   userId          String
   productId       String
-  category        ProductCategory
+  group           String             @default("")
+  category        String
   label           String
   status          ProductOrderStatus @default(PENDING)
   billingCycle    BillingCycle       @default(MONTHLY)

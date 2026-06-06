@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateInvoiceNumber } from "@/lib/utils";
 import { getTaxForUser, taxFromInclusive } from "@/lib/settings";
-import { cyclePrice, isCategorySellable, MANUAL_CATEGORIES, CATEGORY_LABEL } from "@/lib/products";
+import { cyclePrice, isGroupSellable, typeLabel } from "@/lib/products";
 import { nextExpiry } from "@/lib/utils";
 import { getServerT, getUserT } from "@/lib/i18n/server";
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   const product = await prisma.product.findFirst({ where: { id: productId, isActive: true } });
   if (!product) return NextResponse.json({ error: t("Sản phẩm không tồn tại") }, { status: 404 });
-  if (!(await isCategorySellable(product.category))) return NextResponse.json({ error: t("Sản phẩm hiện không được bán") }, { status: 400 });
+  if (!(await isGroupSellable(product.group))) return NextResponse.json({ error: t("Sản phẩm hiện không được bán") }, { status: 400 });
   if (product.stock != null && product.stock <= 0) return NextResponse.json({ error: t("Sản phẩm đã hết hàng") }, { status: 400 });
 
   const months = CYCLE_MONTHS[cycle] || 1;
@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { status: true } });
   if (user && user.status !== "ACTIVE") return NextResponse.json({ error: t("Tài khoản đã bị khoá") }, { status: 403 });
 
-  const manual = MANUAL_CATEGORIES.includes(product.category as any);
-  const displayLabel = (typeof label === "string" && label.trim()) ? label.trim() : `${CATEGORY_LABEL[product.category as keyof typeof CATEGORY_LABEL]} ${product.name}`;
+  const manual = !product.autoActivate;
+  const displayLabel = (typeof label === "string" && label.trim()) ? label.trim() : `${typeLabel(product.category)} ${product.name}`;
 
   try {
     const order = await prisma.$transaction(async (tx: any) => {
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
       const created = await tx.productOrder.create({
         data: {
-          userId: session.user.id, productId: product.id, category: product.category,
+          userId: session.user.id, productId: product.id, category: product.category, group: product.group,
           label: displayLabel, status: manual ? "PENDING" : "ACTIVE",
           billingCycle: cycle, price: cyclePrice(product, cycle),
           config: config && typeof config === "object" ? config : undefined,
