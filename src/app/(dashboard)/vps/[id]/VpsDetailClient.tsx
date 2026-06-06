@@ -28,6 +28,7 @@ export default function VpsDetailClient({ vps }: { vps: any }) {
   const [packages, setPackages] = useState<any[]>([]);
   const [selectedPkg, setSelectedPkg] = useState("");
   const [changing, setChanging] = useState(false);
+  const [pendingChange, setPendingChange] = useState<{ type: string } | null>(null);
   const [pendingCancel, setPendingCancel] = useState<{ cancelMode: string } | null>(null);
   const [cancelMode, setCancelMode] = useState<"END_OF_TERM" | "IMMEDIATE">("END_OF_TERM");
   const [cancelNote, setCancelNote] = useState("");
@@ -39,8 +40,11 @@ export default function VpsDetailClient({ vps }: { vps: any }) {
 
   useEffect(() => {
     fetch(`/api/services/request`).then(r => r.json()).then(d => {
-      const req = (d.data || []).find((r: any) => r.status === "PENDING" && r.type === "CANCEL" && r.vpsOrderId === vps.id);
-      if (req) setPendingCancel({ cancelMode: req.cancelMode });
+      const mine = (d.data || []).filter((r: any) => r.status === "PENDING" && r.vpsOrderId === vps.id);
+      const cancel = mine.find((r: any) => r.type === "CANCEL");
+      if (cancel) setPendingCancel({ cancelMode: cancel.cancelMode });
+      const change = mine.find((r: any) => r.type === "UPGRADE" || r.type === "DOWNGRADE");
+      if (change) setPendingChange({ type: change.type });
     }).catch(() => {});
   }, [vps.id]);
 
@@ -77,14 +81,16 @@ export default function VpsDetailClient({ vps }: { vps: any }) {
 
   async function changePackage() {
     if (!selectedPkg) return;
+    const pkg = packages.find(p => p.id === selectedPkg);
+    const type = pkg && estimateDiff(pkg.priceMonthly) >= 0 ? "UPGRADE" : "DOWNGRADE";
     setChanging(true); setMsg(null);
     try {
-      const res = await fetch(`/api/vps/${vps.id}/change-package`, {
+      const res = await fetch(`/api/services/request`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packageId: selectedPkg }),
+        body: JSON.stringify({ serviceType: "vps", orderId: vps.id, type, targetPackageId: selectedPkg }),
       });
       const d = await res.json();
-      if (res.ok) { setMsg({ type: "ok", text: d.message || t("Thao tác thành công") }); location.reload(); }
+      if (res.ok) { setMsg({ type: "ok", text: t("Đã gửi yêu cầu đổi gói, chờ quản trị viên duyệt") }); setPendingChange({ type }); }
       else setMsg({ type: "err", text: d.error || t("Thất bại") });
     } catch { setMsg({ type: "err", text: t("Không thể kết nối") }); }
     finally { setChanging(false); }
@@ -182,7 +188,9 @@ export default function VpsDetailClient({ vps }: { vps: any }) {
       {/* Change plan */}
       <div style={card}>
         <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>{t("Đổi gói")}</h3>
-        {packages.length === 0 ? (
+        {pendingChange ? (
+          <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{t("Đang chờ duyệt yêu cầu đổi gói")}</p>
+        ) : packages.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("Không có gói nào khác để đổi.")}</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -198,17 +206,18 @@ export default function VpsDetailClient({ vps }: { vps: any }) {
               const diff = estimateDiff(pkg.priceMonthly);
               return (
                 <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                  {diff > 0 ? (
-                    <span>{t("Phí nâng cấp (trừ vào ví):")} {formatCurrency(diff)}</span>
-                  ) : (
-                    <span>{t("Hạ cấp — áp dụng giá mới từ kỳ gia hạn sau, không hoàn tiền.")}</span>
-                  )}
+                  {diff > 0
+                    ? <span>{t("Phí chênh lệch (tạm tính, trừ ví khi duyệt):")} {formatCurrency(diff)}</span>
+                    : diff < 0
+                      ? <span>{t("Hoàn lại (tạm tính, cộng ví khi duyệt):")} {formatCurrency(-diff)}</span>
+                      : <span>{t("Không phát sinh chênh lệch.")}</span>}
                 </div>
               );
             })()}
+            <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{t("Yêu cầu đổi gói sẽ được quản trị viên duyệt trước khi áp dụng.")}</p>
             <div>
               <button onClick={changePackage} disabled={!selectedPkg || changing} style={{ ...btn, background: "var(--accent)", color: "white", border: "none", opacity: (!selectedPkg || changing) ? 0.6 : 1 }}>
-                {changing ? t("Đang xử lý...") : t("Xác nhận đổi gói")}
+                {changing ? t("Đang xử lý...") : t("Gửi yêu cầu đổi gói")}
               </button>
             </div>
           </div>

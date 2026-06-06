@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CYCLE_MONTHS } from "@/lib/proration";
 import { getServerT, getUserT } from "@/lib/i18n/server";
+import { resizeVpsAtProvider, changeHostingPackageAtProvider, terminateVpsAtProvider, terminateHostingAtProvider } from "@/lib/billing-provider";
 
 function isAdmin(session: any) {
   return session && ["ADMIN", "SUPER_ADMIN"].includes((session.user as any).role);
@@ -59,6 +60,9 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
+  // Provider-side effect to run after the DB transaction commits (best-effort).
+  let effect: { kind: "resize" | "terminate"; serviceType: string; orderId: string; plan?: string } | null = null;
+
   try {
     await prisma.$transaction(async (tx: any) => {
       const r = await tx.serviceRequest.findUnique({ where: { id } });
@@ -93,9 +97,11 @@ export async function PATCH(req: NextRequest) {
       // Apply the order change.
       const orderId = r.serviceType === "vps" ? r.vpsOrderId : r.hostingOrderId;
       if (r.type === "CANCEL") {
-        const data: any = r.cancelMode === "IMMEDIATE" ? { status: "TERMINATED", autoRenew: false } : { autoRenew: false };
+        const immediate = r.cancelMode === "IMMEDIATE";
+        const data: any = immediate ? { status: "TERMINATED", autoRenew: false } : { autoRenew: false };
         if (r.serviceType === "vps") await tx.vpsOrder.update({ where: { id: orderId }, data });
         else await tx.hostingOrder.update({ where: { id: orderId }, data });
+        if (immediate) effect = { kind: "terminate", serviceType: r.serviceType, orderId };
       } else if (r.type === "UPGRADE" || r.type === "DOWNGRADE") {
         const order: any = r.serviceType === "vps"
           ? await tx.vpsOrder.findUnique({ where: { id: orderId } })
@@ -107,6 +113,8 @@ export async function PATCH(req: NextRequest) {
           const newPrice = cyclePrice(pkg, order.billingCycle);
           if (r.serviceType === "vps") await tx.vpsOrder.update({ where: { id: orderId }, data: { packageId: r.targetPackageId, price: newPrice } });
           else await tx.hostingOrder.update({ where: { id: orderId }, data: { packageId: r.targetPackageId, price: newPrice } });
+          // VPS resizes to the plan slug; hosting switches to the WHM package name.
+          effect = { kind: "resize", serviceType: r.serviceType, orderId, plan: r.serviceType === "vps" ? pkg.slug : pkg.name };
         }
       }
 
@@ -126,6 +134,18 @@ export async function PATCH(req: NextRequest) {
     if (e?.message === "INSUFFICIENT_BALANCE") return NextResponse.json({ error: t("Khách không đủ số dư để thanh toán phần chênh lệch") }, { status: 400 });
     console.error("service-request approve error:", e);
     return NextResponse.json({ error: t("Không thể xử lý yêu cầu") }, { status: 500 });
+  }
+
+  // Apply the provider-side effect after the DB change is committed.
+  if (effect) {
+    const ef = effect as { kind: "resize" | "terminate"; serviceType: string; orderId: string; plan?: string };
+    if (ef.kind === "resize" && ef.plan) {
+      if (ef.serviceType === "vps") await resizeVpsAtProvider(ef.orderId, ef.plan);
+      else await changeHostingPackageAtProvider(ef.orderId, ef.plan);
+    } else if (ef.kind === "terminate") {
+      if (ef.serviceType === "vps") await terminateVpsAtProvider(ef.orderId);
+      else await terminateHostingAtProvider(ef.orderId);
+    }
   }
 
   return NextResponse.json({ success: true });
