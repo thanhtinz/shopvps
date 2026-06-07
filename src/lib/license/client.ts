@@ -28,6 +28,7 @@ function licenseTimestamp(): number | string {
 export interface VerifyResult {
   valid: boolean;
   reason?: string;
+  message?: string;
   runtimeKey?: string;
   expiresAt?: string;
   fromCache?: boolean;
@@ -73,7 +74,16 @@ export async function verifyLicense(opts: {
     });
 
     clearTimeout(timeout);
-    const data = await res.json();
+
+    // Surface non-2xx responses with the server's text (e.g. a 403 "Host not in
+    // allowlist" from the license server) instead of letting res.json() throw
+    // into the generic "unreachable" path — so the setup UI shows the real cause.
+    if (!res.ok) {
+      const text = (await res.text().catch(() => "")).slice(0, 200);
+      return { valid: false, reason: `SERVER_${res.status}`, message: text || `License server HTTP ${res.status}` };
+    }
+
+    const data = await res.json().catch(() => ({} as any));
 
     cache = {
       valid: data.valid,

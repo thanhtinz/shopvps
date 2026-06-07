@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
         RATE_LIMITED: t("Quá nhiều yêu cầu, vui lòng thử lại sau"),
         LICENSE_SERVER_UNREACHABLE: t("Không thể kết nối máy chủ license"),
       };
-      return NextResponse.json({ valid: false, error: messages[result.reason || ""] || result.reason });
+      return NextResponse.json({ valid: false, error: messages[result.reason || ""] || result.message || result.reason });
     }
 
     return NextResponse.json({ valid: true, domain, expiresAt: result.expiresAt, hwFingerprint: getHardwareFingerprint() });
