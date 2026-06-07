@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   // Bật instrumentation hook cho license scheduler
   experimental: {
   },
+  // Cho phép dev resources qua domain deploy (chỉ có tác dụng ở chế độ dev).
+  allowedDevOrigins: ["*.up.railway.app", "*.railway.app"],
   // Bảo vệ: không expose source maps ra production
   productionBrowserSourceMaps: false,
   // Headers bảo mật
