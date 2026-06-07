@@ -7,6 +7,9 @@ import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
+  // Behind a proxy (Railway/Vercel) trust the forwarded host so callbacks and
+  // redirects use the real public domain instead of NEXTAUTH_URL/localhost.
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login", error: "/login" },
   providers: [
