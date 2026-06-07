@@ -5,6 +5,17 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+// Tolerate auth URL env vars set without a scheme (a common deploy mistake on
+// Railway, e.g. "shopvps-production.up.railway.app"). NextAuth does new URL(...)
+// on these, which throws "Invalid URL" and breaks every request. Normalise to
+// include https:// before NextAuth reads them.
+for (const k of ["AUTH_URL", "NEXTAUTH_URL", "NEXTAUTH_URL_INTERNAL", "NEXT_PUBLIC_APP_URL"]) {
+  const v = process.env[k];
+  if (v && v.trim() && !/^https?:\/\//i.test(v.trim())) {
+    process.env[k] = `https://${v.trim().replace(/^\/+/, "")}`;
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   // Behind a proxy (Railway/Vercel) trust the forwarded host so callbacks and
