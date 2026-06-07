@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyLicense } from "@/lib/license/client";
 import { getHardwareFingerprint } from "@/lib/license/fingerprint";
+import { resolveLicenseDomain } from "@/lib/license/domain";
 import bcrypt from "bcryptjs";
 import { generateAffiliateCode } from "@/lib/utils";
 import { getServerT } from "@/lib/i18n/server";
@@ -18,8 +19,7 @@ export async function POST(req: NextRequest) {
     if (adminPassword.length < 8)
       return NextResponse.json({ error: t("Mật khẩu tối thiểu 8 ký tự") }, { status: 400 });
 
-    const host = req.headers.get("host") || "localhost";
-    const domain = host.replace(/:\d+$/, "");
+    const domain = resolveLicenseDomain(req);
 
     const result = await verifyLicense({ licenseKey: licenseKey.trim(), domain });
     if (!result.valid) return NextResponse.json({ error: t("License key không hợp lệ") }, { status: 400 });

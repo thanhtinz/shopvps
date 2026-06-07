@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyLicense } from "@/lib/license/client";
 import { getHardwareFingerprint } from "@/lib/license/fingerprint";
+import { resolveLicenseDomain } from "@/lib/license/domain";
 import { getServerT } from "@/lib/i18n/server";
 
 export async function POST(req: NextRequest) {
@@ -9,8 +10,7 @@ export async function POST(req: NextRequest) {
     const { licenseKey } = await req.json();
     if (!licenseKey?.trim()) return NextResponse.json({ error: t("Vui lòng nhập license key") }, { status: 400 });
 
-    const host = req.headers.get("host") || "localhost";
-    const domain = host.replace(/:\d+$/, "");
+    const domain = resolveLicenseDomain(req);
 
     const result = await verifyLicense({ licenseKey: licenseKey.trim(), domain });
 
