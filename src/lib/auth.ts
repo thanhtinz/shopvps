@@ -7,12 +7,20 @@ import { prisma } from "@/lib/prisma";
 
 // Tolerate auth URL env vars set without a scheme (a common deploy mistake on
 // Railway, e.g. "shopvps-production.up.railway.app"). NextAuth does new URL(...)
-// on these, which throws "Invalid URL" and breaks every request. Normalise to
-// include https:// before NextAuth reads them.
-for (const k of ["AUTH_URL", "NEXTAUTH_URL", "NEXTAUTH_URL_INTERNAL", "NEXT_PUBLIC_APP_URL"]) {
-  const v = process.env[k];
-  if (v && v.trim() && !/^https?:\/\//i.test(v.trim())) {
-    process.env[k] = `https://${v.trim().replace(/^\/+/, "")}`;
+// on these, which throws "Invalid URL" and breaks every request.
+// Railway also exposes RAILWAY_PUBLIC_DOMAIN (host only, no scheme) — use it to
+// auto-fill the auth URL when it isn't set, so deploys work out of the box.
+{
+  const railway = process.env.RAILWAY_PUBLIC_DOMAIN;
+  if (railway && !process.env.AUTH_URL && !process.env.NEXTAUTH_URL) {
+    process.env.NEXTAUTH_URL = `https://${railway}`;
+    process.env.AUTH_URL = `https://${railway}`;
+  }
+  for (const k of ["AUTH_URL", "NEXTAUTH_URL", "NEXTAUTH_URL_INTERNAL", "NEXT_PUBLIC_APP_URL"]) {
+    const v = process.env[k];
+    if (v && v.trim() && !/^https?:\/\//i.test(v.trim())) {
+      process.env[k] = `https://${v.trim().replace(/^\/+/, "")}`;
+    }
   }
 }
 
