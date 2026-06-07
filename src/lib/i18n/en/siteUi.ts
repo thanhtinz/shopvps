@@ -1,5 +1,6 @@
 // EN translations for site widgets (chat + cookie consent) and their settings.
 const m: Record<string, string> = {
+  "Tiếng Việt": "Vietnamese",
   "Chúng tôi dùng cookie để cải thiện trải nghiệm. Tiếp tục nghĩa là bạn đồng ý.": "We use cookies to improve your experience. By continuing you agree.",
   "Đồng ý": "Accept",
   "Live chat & Cookie/GDPR": "Live chat & Cookie/GDPR",

@@ -78,6 +78,9 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const canSee = (item: any) => {
     if (role === "SUPER_ADMIN") return true;
     if (item.super) return false;
+    // Until /api/admin/me resolves (or if it fails), show everything — the API
+    // routes + proxy still enforce permissions, so this only affects visibility.
+    if (!me) return true;
     return canAccessPath(role, perms, item.href);
   };
   const visibleNav = nav

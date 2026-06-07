@@ -90,6 +90,14 @@ export default function PublicShell({
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", display: "flex", flexDirection: "column" }}>
+      <style>{`
+        .psh-burger { display: none; }
+        @media (max-width: 860px) {
+          .psh-desktop { display: none !important; }
+          .psh-burger { display: inline-flex !important; }
+        }
+        @media (min-width: 861px) { .psh-mobile { display: none !important; } }
+      `}</style>
       {/* Nav */}
       <nav
         style={{
@@ -112,7 +120,7 @@ export default function PublicShell({
           <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.02em" }}>{appName}</span>
         </Link>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div className="psh-desktop" style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <div className="psh-navlinks" style={{ display: "flex", alignItems: "center", gap: 2 }}>
             {navLinks.map((l) => (
               <Link
@@ -163,7 +171,41 @@ export default function PublicShell({
             {t("Đăng ký miễn phí")}
           </Link>
         </div>
+
+        {/* Mobile burger */}
+        <button
+          className="psh-burger"
+          onClick={() => setMenuOpen((o) => !o)}
+          aria-label="Menu"
+          style={{ alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 9, background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, color: C.text, cursor: "pointer" }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            {menuOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
+          </svg>
+        </button>
       </nav>
+
+      {/* Mobile menu panel */}
+      {menuOpen && (
+        <div className="psh-mobile" style={{ position: "sticky", top: 64, zIndex: 49, background: "rgba(8,11,18,0.97)", backdropFilter: "blur(12px)", borderBottom: `1px solid ${C.border}`, padding: "12px clamp(16px,4vw,48px) 18px", display: "flex", flexDirection: "column", gap: 4 }}>
+          {navLinks.map((l) => (
+            <Link key={l.label} href={l.href} onClick={() => setMenuOpen(false)} style={{ padding: "11px 8px", borderRadius: 8, color: C.muted, textDecoration: "none", fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.border}` }}>
+              {l.label}
+            </Link>
+          ))}
+          <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+            <Link href="/login" onClick={() => setMenuOpen(false)} style={{ flex: 1, textAlign: "center", padding: "11px", borderRadius: 9, border: `1px solid ${C.border}`, color: C.text, textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
+              {t("Đăng nhập")}
+            </Link>
+            <Link href="/register" onClick={() => setMenuOpen(false)} style={{ flex: 1, textAlign: "center", padding: "11px", borderRadius: 9, background: C.grad, color: "white", textDecoration: "none", fontSize: 14, fontWeight: 700 }}>
+              {t("Đăng ký miễn phí")}
+            </Link>
+          </div>
+          <button onClick={() => { setLocale(locale === "vi" ? "en" : "vi"); }} style={{ marginTop: 8, padding: "10px", borderRadius: 9, background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, color: C.muted, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            {locale === "vi" ? "English" : t("Tiếng Việt")}
+          </button>
+        </div>
+      )}
 
       <div style={{ flex: 1 }}>{children}</div>
 
