@@ -36,9 +36,9 @@ export default function WalletPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/wallet/balance").then(r => r.json()),
-      fetch("/api/wallet/transactions").then(r => r.json()),
-      fetch("/api/payments/gateways").then(r => r.json()),
+      fetch("/api/wallet/balance").then(r => r.json()).catch(() => ({})),
+      fetch("/api/wallet/transactions").then(r => r.json()).catch(() => ({})),
+      fetch("/api/payments/gateways").then(r => r.json()).catch(() => ({})),
     ]).then(([b, t, g]) => {
       setBalance(b.data);
       setTransactions(t.data?.items || []);
@@ -47,8 +47,7 @@ export default function WalletPage() {
       setCurrencies(g.data?.currencies || []);
       setCurCode(g.data?.preferred || g.data?.base || "VND");
       if (gw[0]) setGateway(gw[0].code);
-      setLoading(false);
-    });
+    }).finally(() => setLoading(false));
     const p = new URLSearchParams(window.location.search).get("deposit");
     if (p === "success") setNotice(tr("Thanh toán thành công! Số dư sẽ được cập nhật trong giây lát."));
     else if (p === "cancel") setNotice(tr("Giao dịch đã bị huỷ."));

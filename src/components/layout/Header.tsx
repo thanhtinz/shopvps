@@ -1,13 +1,23 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { useAppearance } from "@/components/AppearanceProvider";
 import { useLocale } from "@/components/LocaleProvider";
 
 export default function Header({ title }: { title?: string }) {
   const [showNotif, setShowNotif] = useState(false);
+  const [showUser, setShowUser] = useState(false);
+  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
   const { appearance, update } = useAppearance();
   const { t } = useLocale();
+
+  useEffect(() => {
+    fetch("/api/user/profile").then(r => r.json()).then(d => setUser(d.data || null)).catch(() => {});
+  }, []);
+
+  const displayName = user?.name || user?.email?.split("@")[0] || "—";
+  const initial = (displayName[0] || "U").toUpperCase();
 
   return (
     <header style={{
@@ -80,7 +90,7 @@ export default function Header({ title }: { title?: string }) {
                   </div>
                 </div>
               ))}
-              <Link href="/notifications" style={{ display: "block", padding: "12px", textAlign: "center", fontSize: 12, color: "var(--accent)", textDecoration: "none" }}>
+              <Link href="/tickets" onClick={() => setShowNotif(false)} style={{ display: "block", padding: "12px", textAlign: "center", fontSize: 12, color: "var(--accent)", textDecoration: "none" }}>
                 {t("Xem tất cả thông báo")}
               </Link>
             </div>
@@ -90,15 +100,45 @@ export default function Header({ title }: { title?: string }) {
         {/* Divider */}
         <div style={{ width: 1, height: 20, background: "var(--border)" }} />
 
-        {/* Avatar */}
-        <Link href="/settings/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 8px", borderRadius: "var(--radius-md)", textDecoration: "none", transition: "background 0.12s" }}
-          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"}
-          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
-        >
-          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#4f7cff,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "white" }}>A</div>
-          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)" }}>Admin</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
-        </Link>
+        {/* User menu */}
+        <div style={{ position: "relative" }}>
+          <button onClick={() => setShowUser(s => !s)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 8px", borderRadius: "var(--radius-md)", background: "transparent", border: "none", cursor: "pointer", transition: "background 0.12s" }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
+          >
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#4f7cff,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "white" }}>{initial}</div>
+            <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} className="hdr-username">{displayName}</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+
+          {showUser && (
+            <>
+              <div onClick={() => setShowUser(false)} style={{ position: "fixed", inset: 0, zIndex: 90 }} />
+              <div style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 220, background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", boxShadow: "0 16px 40px rgba(0,0,0,0.4)", zIndex: 100, overflow: "hidden" }}>
+                <div style={{ padding: "12px 14px", borderBottom: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
+                  {user?.email && <div style={{ fontSize: 12, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</div>}
+                </div>
+                {[{ href: "/settings", label: t("Cài đặt tài khoản"), icon: "M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4" },
+                  { href: "/wallet", label: t("Ví & Nạp tiền"), icon: "M20 12V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h6 M16 16h6 M19 13v6" },
+                  { href: "/tickets", label: t("Hỗ trợ"), icon: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" }].map(it => (
+                  <Link key={it.href} href={it.href} onClick={() => setShowUser(false)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", fontSize: 13, color: "var(--text-secondary)", textDecoration: "none" }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{it.icon.split(" M").map((p, i) => <path key={i} d={i === 0 ? p : "M" + p} />)}</svg>
+                    {it.label}
+                  </Link>
+                ))}
+                <button onClick={() => signOut({ callbackUrl: "/login" })} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 14px", fontSize: 13, color: "var(--red)", background: "none", border: "none", borderTop: "1px solid var(--border)", cursor: "pointer", textAlign: "left" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4 M16 17l5-5-5-5 M21 12H9" /></svg>
+                  {t("Đăng xuất")}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

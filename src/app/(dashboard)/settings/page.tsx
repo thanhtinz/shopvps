@@ -98,9 +98,14 @@ export default function SettingsPage() {
       <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:24 }}>{t("settings.title")}</h1>
 
       {/* Tabs */}
-      <div style={{ display:"flex", gap:4, background:"var(--bg-elevated)", borderRadius:"var(--radius-md)", padding:4, width:"fit-content", marginBottom:24 }}>
+      <style>{`
+        .settings-tabs { scrollbar-width: thin; }
+        .settings-tabs::-webkit-scrollbar { height: 4px; }
+        .settings-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+      `}</style>
+      <div className="settings-tabs" style={{ display:"flex", gap:4, background:"var(--bg-elevated)", borderRadius:"var(--radius-md)", padding:4, maxWidth:"100%", overflowX:"auto", whiteSpace:"nowrap", marginBottom:24 }}>
         {TABS.map(t=>(
-          <button key={t.key} onClick={()=>setTab(t.key)} style={{ display:"flex", alignItems:"center", gap:7, padding:"7px 16px", borderRadius:"var(--radius-sm)", border:"none", cursor:"pointer", fontSize:13, fontWeight:600, transition:"all 0.15s", background:tab===t.key?"var(--bg-surface)":"transparent", color:tab===t.key?"var(--text-primary)":"var(--text-muted)", boxShadow:tab===t.key?"0 1px 4px rgba(0,0,0,0.3)":"none" }}>
+          <button key={t.key} onClick={()=>setTab(t.key)} style={{ display:"flex", alignItems:"center", gap:7, padding:"7px 16px", borderRadius:"var(--radius-sm)", border:"none", cursor:"pointer", fontSize:13, fontWeight:600, transition:"all 0.15s", flex:"0 0 auto", whiteSpace:"nowrap", background:tab===t.key?"var(--accent)":"transparent", color:tab===t.key?"#fff":"var(--text-muted)", boxShadow:tab===t.key?"0 1px 6px rgba(79,124,255,0.35)":"none" }}>
             <Icon d={t.icon} size={13}/>{t.label}
           </button>
         ))}
@@ -251,8 +256,8 @@ export default function SettingsPage() {
       {tab === "2fa" && (
         <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"24px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:20, paddingBottom:18, borderBottom:"1px solid var(--border)" }}>
-            <div style={{ width:44, height:44, borderRadius:"var(--radius-md)", background:profile?.twoFactorEnabled?"var(--green-soft)":"var(--bg-elevated)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>
-              {profile?.twoFactorEnabled?"":""}
+            <div style={{ width:44, height:44, borderRadius:"var(--radius-md)", background:profile?.twoFactorEnabled?"var(--green-soft)":"var(--bg-elevated)", display:"flex", alignItems:"center", justifyContent:"center", color:profile?.twoFactorEnabled?"var(--green)":"var(--text-muted)" }}>
+              <Icon d="M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z M7 11V7a5 5 0 0110 0v4" size={20}/>
             </div>
             <div>
               <div style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)" }}>{t("Xác thực 2 lớp (2FA)")}</div>

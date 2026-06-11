@@ -80,23 +80,32 @@ export default function AffiliatePage() {
 
   return (
     <div style={{ maxWidth:900, margin:"0 auto" }}>
+      <style>{`
+        @media (max-width: 720px) {
+          .aff-two-col { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .aff-stat-card { padding: 14px !important; }
+          .aff-stat-value { font-size: 20px !important; }
+        }
+      `}</style>
       <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:4 }}>{t("Chương trình Affiliate")}</h1>
       <p style={{ color:"var(--text-muted)", fontSize:13, marginBottom:24 }}>{t("Giới thiệu bạn bè và nhận hoa hồng cho mỗi đơn hàng")}</p>
 
       {/* Stats */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:24 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:14, marginBottom:24 }}>
         {[
           { label:t("Số dư hoa hồng"), value:formatCurrency(data?.balance||0), color:"var(--green)", icon:"" },
           { label:t("Người được giới thiệu"), value:String(data?.referrals?.length||0), color:"var(--accent)", icon:"" },
           { label:t("Đã nhận"), value:formatCurrency(data?.totalEarned||0), color:"var(--purple)", icon:"" },
           { label:t("Chờ duyệt"), value:formatCurrency(data?.totalPending||0), color:"var(--yellow)", icon:"" },
         ].map(s => (
-          <div key={s.label} style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"20px" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12 }}>
-              <span style={{ fontSize:12.5, color:"var(--text-secondary)" }}>{s.label}</span>
+          <div key={s.label} className="aff-stat-card" style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"20px", minWidth:0 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12, gap:8 }}>
+              <span style={{ fontSize:12.5, color:"var(--text-secondary)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.label}</span>
               <span style={{ fontSize:18 }}>{s.icon}</span>
             </div>
-            <div style={{ fontSize:24, fontWeight:900, color:s.color, letterSpacing:"-0.03em" }}>{s.value}</div>
+            <div className="aff-stat-value" style={{ fontSize:24, fontWeight:900, color:s.color, letterSpacing:"-0.03em", overflow:"hidden", textOverflow:"ellipsis", wordBreak:"break-word" }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -105,8 +114,8 @@ export default function AffiliatePage() {
       <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", padding:"20px", marginBottom:18 }}>
         <div style={{ fontSize:13.5, fontWeight:700, color:"var(--text-primary)", marginBottom:4 }}>{t("Link giới thiệu của bạn")}</div>
         <div style={{ fontSize:12.5, color:"var(--text-muted)", marginBottom:14 }}>{t("Mỗi người đăng ký qua link này, bạn nhận hoa hồng % theo đơn hàng của họ")}</div>
-        <div style={{ display:"flex", gap:10 }}>
-          <div style={{ flex:1, background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 14px", fontSize:13, color:"var(--text-secondary)", fontFamily:"var(--font-mono)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+          <div style={{ flex:"1 1 200px", minWidth:0, background:"var(--bg-elevated)", border:"1px solid var(--border)", borderRadius:"var(--radius-md)", padding:"10px 14px", fontSize:13, color:"var(--text-secondary)", fontFamily:"var(--font-mono)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
             {refUrl}
           </div>
           <button onClick={copy} style={{ padding:"10px 16px", background:copied?"var(--green-soft)":"var(--accent)", border:`1px solid ${copied?"rgba(34,197,94,0.3)":"transparent"}`, borderRadius:"var(--radius-md)", color:copied?"var(--green)":"white", fontSize:13, fontWeight:600, cursor:"pointer", transition:"all 0.2s", whiteSpace:"nowrap" }}>
@@ -118,7 +127,7 @@ export default function AffiliatePage() {
         </div>
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18 }}>
+      <div className="aff-two-col" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18 }}>
         {/* Referrals */}
         <div style={{ background:"var(--bg-surface)", border:"1px solid var(--border)", borderRadius:"var(--radius-lg)", overflow:"hidden" }}>
           <div style={{ padding:"14px 18px", borderBottom:"1px solid var(--border)", fontSize:13, fontWeight:700, color:"var(--text-primary)" }}>
@@ -253,7 +262,8 @@ export default function AffiliatePage() {
 
           {/* History */}
           <div style={{ border:"1px solid var(--border)", borderRadius:"var(--radius-md)", overflow:"hidden" }}>
-            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12.5 }}>
+            <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12.5, minWidth:420 }}>
               <thead>
                 <tr style={{ background:"var(--bg-elevated)" }}>
                   <th style={{ textAlign:"left", padding:"10px 14px", color:"var(--text-secondary)", fontWeight:600 }}>{t("Số tiền")}</th>
@@ -279,6 +289,7 @@ export default function AffiliatePage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>

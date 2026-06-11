@@ -1,5 +1,11 @@
 // EN translations for the admin Settings guidance, doc links, webhook URLs.
 const m: Record<string, string> = {
+  "Tài chính": "Billing",
+  "Sản phẩm & Dịch vụ": "Products & Services",
+  "Tên miền & SSL": "Domains & SSL",
+  "Báo cáo & Bảo mật": "Reports & Security",
+  "Quy tắc thuế": "Tax rules",
+
   // landing marketing + contact settings
   "Tên, slogan và URL hiển thị toàn site, dùng trong email, hoá đơn và landing page.": "Name, tagline and URL shown across the site, used in emails, invoices and the landing page.",
   "Slogan (hiện ở landing)": "Tagline (shown on the landing page)",

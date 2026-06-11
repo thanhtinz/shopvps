@@ -58,12 +58,19 @@ export default function TeamPage() {
 
   return (
     <div style={{ maxWidth:800, margin:"0 auto" }}>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
-        <div>
+      <style>{`
+        @media (max-width: 480px) {
+          .team-header { align-items: flex-start !important; }
+          .team-header .team-title-wrap { flex: 1 1 100% !important; }
+          .team-invite-btn { flex: 1 1 100% !important; width: 100% !important; justify-content: center !important; }
+        }
+      `}</style>
+      <div className="team-header" style={{ display:"flex", flexWrap:"wrap", justifyContent:"space-between", alignItems:"center", gap:12, marginBottom:24 }}>
+        <div className="team-title-wrap">
           <h1 style={{ fontSize:20, fontWeight:800, color:"var(--text-primary)", letterSpacing:"-0.03em", marginBottom:2 }}>{tr("Quản lý Team")}</h1>
           <p style={{ color:"var(--text-muted)", fontSize:13 }}>{tr("Chia sẻ quyền truy cập VPS/Hosting với thành viên")}</p>
         </div>
-        <button onClick={()=>setShowInvite(true)} style={{ display:"flex", alignItems:"center", gap:7, padding:"9px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>
+        <button className="team-invite-btn" onClick={()=>setShowInvite(true)} style={{ flex:"0 0 auto", display:"flex", alignItems:"center", gap:7, padding:"9px 16px", background:"var(--accent)", border:"none", borderRadius:"var(--radius-md)", color:"white", fontSize:13, fontWeight:600, cursor:"pointer" }}>
           <Icon d="M18 21a8 8 0 00-16 0 M10 8a4 4 0 108 0 4 4 0 00-8 0 M22 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75"/> {tr("Mời thành viên")}
         </button>
       </div>

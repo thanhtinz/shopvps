@@ -36,6 +36,14 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <style>{`
+        @media (max-width: 860px) {
+          .dash-main-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 560px) {
+          .dash-quick-actions { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
 
       <AnnouncementBanner />
 
@@ -83,7 +91,7 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
       </div>
 
       {/* Main grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 18 }}>
+      <div className="dash-main-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 18 }}>
 
         {/* Left: Quick actions + Transactions */}
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -91,7 +99,7 @@ export default function DashboardClient({ data, userName }: { data: any; userNam
           {/* Quick actions */}
           <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
             <SectionTitle>{t("Thao tác nhanh")}</SectionTitle>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+            <div className="dash-quick-actions" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
               {[
                 { href: "/vps", label: t("Mua VPS"), icon: "M22 12H2 M5 12V5a2 2 0 012-2h10a2 2 0 012 2v7 M2 19h20 M5 19v-4 M19 19v-4", color: "var(--cyan)" },
                 { href: "/hosting", label: t("Mua Hosting"), icon: "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16", color: "var(--purple)" },
